@@ -1349,35 +1349,45 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         verificationId: redemptionId // Referência para o novo registro
     };
 
+    // 5. Executar Gravações no Banco de Dados com Tratamento Resiliente de Erros
     try {
-        // Criar registro de resgate
+        // A. Criar registro de resgate (ESCRITA FUNDAMENTAL - OBRIGATÓRIA)
         await setDoc(doc(db, 'redemptions', redemptionId), cleanObject(redemption));
-        
-        // Incrementar contador no cupom
+    } catch (error) {
+        console.error("Erro crítico ao criar registro de resgate em 'redemptions':", error);
+        handleFirestoreError(error, OperationType.WRITE, `redemptions/${redemptionId}`);
+        throw error;
+    }
+
+    try {
+        // B. Incrementar contador no cupom (INFORMATIVO - NÃO-BLOQUEANTE)
         await updateDoc(doc(db, 'coupons', c.id), { currentRedemptions: increment(1) });
-        
-        // Atualizar perfil do usuário
+    } catch (error) {
+        console.warn("Aviso (não-bloqueante): Não foi possível incrementar o contador do cupom:", error);
+    }
+
+    try {
+        // C. Atualizar perfil do usuário e economias (INFORMATIVO - NÃO-BLOQUEANTE)
         await updateDoc(doc(db, 'users', uid), { 
             savedAmount: increment(record.amount),
             history: arrayUnion(record)
         });
-
-        // Sincronizar cache local
-        if (user.id === uid) {
-            const updatedUser = {
-                ...user,
-                savedAmount: (user.savedAmount || 0) + record.amount,
-                history: [...(user.history || []), record]
-            };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(updatedUser));
-            notifyListeners();
-        }
-
-        return verificationCode;
     } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, `redemptions/${redemptionId}`);
-        throw error;
+        console.warn("Aviso (não-bloqueante): Não foi possível atualizar a carteira de economias do usuário no Firestore:", error);
     }
+
+    // D. Sincronizar cache local (Sempre atualiza o cache local para experiência instantânea do usuário)
+    if (user.id === uid) {
+        const updatedUser = {
+            ...user,
+            savedAmount: (user.savedAmount || 0) + record.amount,
+            history: [...(user.history || []), record]
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(updatedUser));
+        notifyListeners();
+    }
+
+    return verificationCode;
 };
 
 export const getRedemptionsByBusiness = async (businessId: string) => {
