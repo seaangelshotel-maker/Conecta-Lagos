@@ -234,55 +234,6 @@ export const SuperAdminDashboard: React.FC<{ onNavigate: (page: string) => void;
 
               {view === 'HOME' && (
                   <div className="space-y-8">
-                      {/* TOURIST SPOTS SYNC SECTION - HIGH PROMINENCE */}
-                      <div className="bg-gradient-to-br from-ocean-600 to-ocean-900 border border-ocean-400 rounded-[2.5rem] p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl shadow-ocean-900/20 overflow-hidden relative group">
-                          <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform duration-700">
-                              <MapPin size={300} className="text-white" />
-                          </div>
-                          
-                          <div className="flex items-start gap-6 relative z-10 w-full lg:w-auto">
-                              <div className="bg-white/10 backdrop-blur-md p-5 rounded-3xl text-white border border-white/20 shadow-inner">
-                                  <MapPin size={36} />
-                              </div>
-                              <div className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                      <span className="bg-ocean-400/30 text-ocean-100 text-[10px] font-black px-3 py-1 rounded-full border border-ocean-400/30 uppercase tracking-widest">Setup Inicial</span>
-                                      <h3 className="font-black text-white text-xl uppercase tracking-tighter">Guia Oficial Lagos GO</h3>
-                                  </div>
-                                  <p className="text-ocean-100 font-medium max-w-xl leading-relaxed text-sm md:text-base">
-                                      Sincronize automaticamente os pontos turísticos verificados de <b>Arraial do Cabo</b> e <b>Cabo Frio</b>. 
-                                      Este processo criará as cidades, bairros e categorias necessárias se não existirem.
-                                  </p>
-                              </div>
-                          </div>
-
-                          <button 
-                              onClick={async () => {
-                                  if (await confirm({ 
-                                      title: 'VAMOS POPULAR O GUIA?', 
-                                      message: 'Deseja cadastrar agora os 10 pontos turísticos oficiais verificados? Criaremos as cidades e categorias faltantes automaticamente.' 
-                                  })) {
-                                      setActionLoading('seeding');
-                                      try {
-                                          await seedTouristSpots(notify);
-                                          await loadData();
-                                      } finally {
-                                          setActionLoading(null);
-                                      }
-                                  }
-                              }}
-                              disabled={actionLoading === 'seeding'}
-                              className="relative z-10 bg-white text-ocean-900 hover:bg-ocean-50 px-10 py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 disabled:opacity-50 flex items-center gap-4 group/btn min-w-[280px] justify-center"
-                          >
-                              {actionLoading === 'seeding' ? (
-                                  <Loader2 className="animate-spin" size={20} />
-                              ) : (
-                                  <RefreshCw size={20} className="group-hover/btn:rotate-180 transition-transform duration-500" />
-                              )}
-                              {actionLoading === 'seeding' ? 'SINCRONIZANDO...' : 'SINCRONIZAR GUIA'}
-                          </button>
-                      </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
                               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Cidadãos</p>

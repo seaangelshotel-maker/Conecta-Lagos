@@ -31,13 +31,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </button>
 
       <button 
-        onClick={() => setView('GOOGLE_DRIVE')} 
-        className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'GOOGLE_DRIVE' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-blue-600 shadow-sm'}`}
-      >
-        <HardDrive size={16} className="md:w-[18px] md:h-[18px]" /> GOOGLE DRIVE
-      </button>
-      
-      <button 
         onClick={() => setView('COUPONS')} 
         className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'COUPONS' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
       >
