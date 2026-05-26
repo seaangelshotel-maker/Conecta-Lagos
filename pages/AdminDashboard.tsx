@@ -1011,10 +1011,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                               <button 
                                                                   onClick={async () => {
                                                                       if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
-                                                                          const { updateUser } = await import('../services/dataService');
-                                                                          await updateUser({ ...u, role: UserRole.JOURNALIST });
-                                                                          notify('success', `${u.name} agora é um Jornalista!`);
-                                                                          refreshData();
+                                                                          try {
+                                                                              const { updateUser } = await import('../services/dataService');
+                                                                              await updateUser({ ...u, role: UserRole.JOURNALIST });
+                                                                              notify('success', `${u.name} agora é um Jornalista!`);
+                                                                              refreshData();
+                                                                          } catch (err: any) {
+                                                                              console.error(err);
+                                                                              notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                                          }
                                                                       }
                                                                   }}
                                                                   className="p-3 bg-white text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1 font-bold text-[10px]"
@@ -1038,10 +1043,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                           <button 
                                                               onClick={async () => {
                                                                   if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
-                                                                      const { updateUser } = await import('../services/dataService');
-                                                                      await updateUser({ ...u, role: UserRole.CUSTOMER });
-                                                                      notify('success', `${u.name} agora é um Cliente comum.`);
-                                                                      refreshData();
+                                                                      try {
+                                                                          const { updateUser } = await import('../services/dataService');
+                                                                          await updateUser({ ...u, role: UserRole.CUSTOMER });
+                                                                          notify('success', `${u.name} agora é um Cliente comum.`);
+                                                                          refreshData();
+                                                                      } catch (err: any) {
+                                                                          console.error(err);
+                                                                          notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                                      }
                                                                   }
                                                               }}
                                                               className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1 font-bold text-[10px]"
@@ -1065,10 +1075,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                               <button 
                                                                   onClick={async () => {
                                                                       if (await confirm({ title: 'Remover Acesso de Empresa', message: `Deseja remover o acesso de Empresa de ${u.name}? Ele voltará a ser um cliente comum.` })) {
-                                                                          const { updateUser } = await import('../services/dataService');
-                                                                          await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
-                                                                          notify('success', `${u.name} agora é um Cliente comum.`);
-                                                                          refreshData();
+                                                                          try {
+                                                                              const { updateUser } = await import('../services/dataService');
+                                                                              await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
+                                                                              notify('success', `${u.name} agora é um Cliente comum.`);
+                                                                              refreshData();
+                                                                          } catch (err: any) {
+                                                                              console.error(err);
+                                                                              notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                                          }
                                                                       }
                                                                   }}
                                                                   className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100 flex items-center gap-1 font-bold text-[10px]"
@@ -1117,10 +1132,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                   <button 
                                                       onClick={async () => {
                                                           if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
-                                                              const { updateUser } = await import('../services/dataService');
-                                                              await updateUser({ ...u, role: UserRole.JOURNALIST });
-                                                              notify('success', `${u.name} agora é um Jornalista!`);
-                                                              refreshData();
+                                                              try {
+                                                                  const { updateUser } = await import('../services/dataService');
+                                                                  await updateUser({ ...u, role: UserRole.JOURNALIST });
+                                                                  notify('success', `${u.name} agora é um Jornalista!`);
+                                                                  refreshData();
+                                                              } catch (err: any) {
+                                                                  console.error(err);
+                                                                  notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                              }
                                                           }
                                                       }}
                                                       className="flex items-center justify-center gap-1.5 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-wider"
@@ -1142,10 +1162,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                               <button 
                                                   onClick={async () => {
                                                       if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
-                                                          const { updateUser } = await import('../services/dataService');
-                                                          await updateUser({ ...u, role: UserRole.CUSTOMER });
-                                                          notify('success', `${u.name} agora é um Cliente comum.`);
-                                                          refreshData();
+                                                          try {
+                                                              const { updateUser } = await import('../services/dataService');
+                                                              await updateUser({ ...u, role: UserRole.CUSTOMER });
+                                                              notify('success', `${u.name} agora é um Cliente comum.`);
+                                                              refreshData();
+                                                          } catch (err: any) {
+                                                              console.error(err);
+                                                              notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                          }
                                                       }
                                                   }}
                                                   className="col-span-2 flex items-center justify-center gap-1.5 py-3 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-wider"
@@ -1167,10 +1192,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                   <button 
                                                       onClick={async () => {
                                                           if (await confirm({ title: 'Remover Acesso de Empresa', message: `Deseja remover o acesso de Empresa de ${u.name}? Ele voltará a ser um cliente comum.` })) {
-                                                              const { updateUser } = await import('../services/dataService');
-                                                              await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
-                                                              notify('success', `${u.name} agora é um Cliente comum.`);
-                                                              refreshData();
+                                                              try {
+                                                                  const { updateUser } = await import('../services/dataService');
+                                                                  await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
+                                                                  notify('success', `${u.name} agora é um Cliente comum.`);
+                                                                  refreshData();
+                                                              } catch (err: any) {
+                                                                  console.error(err);
+                                                                  notify('error', 'Erro ao atualizar usuário: ' + (err.message || 'Falha na comunicação'));
+                                                              }
                                                           }
                                                       }}
                                                       className="flex items-center justify-center gap-1.5 py-3 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-wider"
