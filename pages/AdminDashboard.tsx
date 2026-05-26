@@ -67,6 +67,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [editBusiness, setEditBusiness] = useState<Partial<BusinessProfile>>({});
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showGalleryLinkInput, setShowGalleryLinkInput] = useState(false);
   const [passwordPrompt, setPasswordPrompt] = useState<{ businessId: string, businessName: string } | null>(null);
   const [manualPass, setManualPass] = useState('');
 
@@ -1262,23 +1263,54 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                           />
 
                           <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Galeria de Fotos (Links das Imagens)</label>
-                                  <span className="text-[10px] font-bold text-ocean-600 bg-ocean-50 px-2 py-0.5 rounded-full">
-                                      {(editBusiness.gallery || []).length} fotos
-                                  </span>
+                              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                  <div>
+                                      <label className="block text-xs font-black text-slate-800 uppercase tracking-widest pl-2">Galeria de Fotos</label>
+                                      <span className="text-[10px] font-bold text-slate-500 pl-2">
+                                          {(editBusiness.gallery || []).length} fotos adicionadas
+                                      </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                      <button 
+                                          type="button"
+                                          onClick={() => setShowGalleryLinkInput(false)}
+                                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!showGalleryLinkInput ? 'bg-white shadow text-ocean-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                      >
+                                          Upload
+                                      </button>
+                                      <button 
+                                          type="button"
+                                          onClick={() => setShowGalleryLinkInput(true)}
+                                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${showGalleryLinkInput ? 'bg-white shadow text-ocean-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                      >
+                                          Usar Links
+                                      </button>
+                                  </div>
                               </div>
                               
-                              <textarea 
-                                  className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-mono font-bold text-ocean-900 focus:ring-2 focus:ring-ocean-500 outline-none transition-all resize-none"
-                                  rows={4}
-                                  placeholder="Cole aqui os links das imagens da galeria (um por linha)..."
-                                  value={(editBusiness.gallery || []).join('\n')}
-                                  onChange={e => {
-                                      const links = e.target.value.split('\n').filter(link => link.trim() !== '');
-                                      setEditBusiness({...editBusiness, gallery: links});
-                                  }}
-                              />
+                              {!showGalleryLinkInput ? (
+                                  <ImageUpload 
+                                      allowMultiple={true}
+                                      label="Adicionar Fotos Localmente"
+                                      onBatchSelect={(images) => {
+                                          setEditBusiness(prev => ({
+                                              ...prev,
+                                              gallery: [...(prev.gallery || []), ...images]
+                                          }));
+                                      }}
+                                  />
+                              ) : (
+                                  <textarea 
+                                      className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-mono font-bold text-ocean-900 focus:ring-2 focus:ring-ocean-500 outline-none transition-all resize-none"
+                                      rows={4}
+                                      placeholder="Cole aqui os links das imagens da galeria (um por linha)..."
+                                      value={(editBusiness.gallery || []).join('\n')}
+                                      onChange={e => {
+                                          const links = e.target.value.split('\n').filter(link => link.trim() !== '');
+                                          setEditBusiness({...editBusiness, gallery: links});
+                                      }}
+                                  />
+                              )}
 
                               <div className="grid grid-cols-3 gap-3">
                                   {(editBusiness.gallery || []).map((img, idx) => (

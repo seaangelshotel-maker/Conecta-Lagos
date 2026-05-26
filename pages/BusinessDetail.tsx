@@ -315,6 +315,25 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 <p className="text-slate-600 leading-relaxed text-sm">{business.description}</p>
             </div>
 
+            {/* GALERIA DE FOTOS */}
+            {business.gallery && business.gallery.length > 0 && (plan?.showGallery !== false) && (
+                <div className="space-y-6 pt-2 pb-4">
+                    <div className="flex flex-col items-center space-y-1 mb-6">
+                        <h3 className="text-2xl md:text-3xl font-black text-ocean-950 tracking-tight">Galeria</h3>
+                        <div className="w-12 h-1.5 rounded-full bg-ocean-500"></div>
+                    </div>
+                    <div className="overflow-x-auto hide-scrollbar -mx-6 px-6 pb-4">
+                        <div className="flex gap-5 w-max mx-auto">
+                            {business.gallery.map((img, idx) => (
+                                <div key={idx} onClick={() => setLightboxIndex(idx)} className="w-64 md:w-80 aspect-[4/5] flex-shrink-0 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50 cursor-pointer hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 border-[6px] border-white bg-white group">
+                                    <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" alt={`${business.name} galeria ${idx + 1}`} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* COMODIDADES VISUAIS */}
             {business.amenities && business.amenities.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -377,22 +396,6 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     })}
                 </div>
             </div>
-
-            {/* GALERIA DE FOTOS */}
-            {business.gallery && business.gallery.length > 0 && (plan?.showGallery !== false) && (
-                <div className="space-y-4">
-                    <h3 className="text-xl font-black text-ocean-950">Galeria de Fotos</h3>
-                    <div className="overflow-x-auto hide-scrollbar -mx-6 px-6">
-                        <div className="flex gap-4 pb-2">
-                            {business.gallery.map((img, idx) => (
-                                <div key={idx} onClick={() => setLightboxIndex(idx)} className="w-72 h-48 flex-shrink-0 rounded-2xl overflow-hidden shadow-md border border-slate-100 cursor-pointer hover:opacity-90 transition-opacity">
-                                    <img src={img} className="w-full h-full object-cover" alt={`${business.name} gallery ${idx}`} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {coupons.length > 0 && (
                 <div className="space-y-6">
