@@ -28,7 +28,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
         const loadInitialData = async () => {
             const [plans, cats, cts, nbs] = await Promise.all([
                 getPricingPlans(),
-                getCategories(),
+                getCategories(true),
                 getCities(),
                 getNeighborhoods()
             ]);

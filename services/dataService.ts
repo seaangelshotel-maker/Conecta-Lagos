@@ -754,8 +754,8 @@ export const updateUser = async (user: User) => {
     }
 };
 
-export const getCategories = async () => {
-    if (_categories.length === 0) {
+export const getCategories = async (forceRefresh = false) => {
+    if (_categories.length === 0 || forceRefresh) {
         const snap = await getDocs(collection(db, 'app_categories_guia'));
         _categories = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppCategory));
     }
@@ -848,6 +848,15 @@ export const getDicasCategories = async () => {
 };
 export const saveCategory = async (category: AppCategory) => {
     await setDoc(doc(db, 'app_categories_guia', category.id), cleanObject(category), { merge: true });
+    
+    // Atualiza o cache local
+    const idx = _categories.findIndex(c => c.id === category.id);
+    if (idx >= 0) {
+        _categories[idx] = category;
+    } else {
+        _categories.push(category);
+    }
+    notifyListeners();
 };
 
 export const saveDicasCategory = async (category: AppCategory) => {

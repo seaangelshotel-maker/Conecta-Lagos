@@ -159,7 +159,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     setStats(s);
     
     const [cats, cts, nbs, ams] = await Promise.all([
-        getCategories(),
+        getCategories(true),
         getCities(),
         getNeighborhoods(),
         getAmenities()
@@ -343,6 +343,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
     await saveCategory(updatedCategory);
     setNewSubcategory({ ...newSubcategory, [categoryId]: '' });
+    setCategories(await getCategories());
   };
 
   const handleDeleteSubcategory = async (categoryId: string, subcategoryId: string) => {
@@ -355,6 +356,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     };
 
     await saveCategory(updatedCategory);
+    setCategories(await getCategories());
   };
 
   const handleApprove = async (requestId: string) => {
@@ -1354,23 +1356,25 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                               <option key={sub.id || sub.name} value={sub.name || sub}>{sub.name || sub}</option>
                                           ))}
                                       </select>
-                                      <input 
-                                          type="text"
-                                          placeholder="Nova..."
-                                          className="w-24 bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-[10px] outline-none focus:ring-2 focus:ring-ocean-500"
-                                          onKeyDown={async (e) => {
-                                              if (e.key === 'Enter') {
-                                                  const val = (e.target as HTMLInputElement).value;
-                                                  if (val && editBusiness.category) {
-                                                      await ensureSubcategory(editBusiness.category, val);
-                                                      setEditBusiness({...editBusiness, subcategory: val});
-                                                      (e.target as HTMLInputElement).value = '';
-                                                      const updatedCats = await getCategories();
-                                                      setCategories(updatedCats);
+                                      {currentUser.role === UserRole.SUPER_ADMIN && (
+                                          <input 
+                                              type="text"
+                                              placeholder="Nova..."
+                                              className="w-24 bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-[10px] outline-none focus:ring-2 focus:ring-ocean-500"
+                                              onKeyDown={async (e) => {
+                                                  if (e.key === 'Enter') {
+                                                      const val = (e.target as HTMLInputElement).value;
+                                                      if (val && editBusiness.category) {
+                                                          await ensureSubcategory(editBusiness.category, val);
+                                                          setEditBusiness({...editBusiness, subcategory: val});
+                                                          (e.target as HTMLInputElement).value = '';
+                                                          const updatedCats = await getCategories();
+                                                          setCategories(updatedCats);
+                                                      }
                                                   }
-                                              }
-                                          }}
-                                      />
+                                              }}
+                                          />
+                                      )}
                                   </div>
                               </div>
 
