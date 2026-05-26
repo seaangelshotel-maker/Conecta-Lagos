@@ -4,6 +4,25 @@ import { X, MapPin, Clock, FileText, Check, Copy, AlertTriangle, Loader2 } from 
 import { Coupon } from '../types';
 import { getCurrentUser } from '../services/dataService';
 
+const getCleanErrorMessage = (message: string): string => {
+  try {
+    const parsed = JSON.parse(message);
+    if (parsed && parsed.error) {
+      if (typeof parsed.error === 'string') {
+        if (parsed.error.toLowerCase().includes('permission-denied') || 
+            parsed.error.toLowerCase().includes('permission') || 
+            parsed.error.toLowerCase().includes('insufficient')) {
+          return "Permissão negada ou erro de validação. Verifique suas credenciais de acesso.";
+        }
+        return parsed.error;
+      }
+    }
+  } catch {
+    // Not a JSON message, return original
+  }
+  return message;
+};
+
 interface CouponModalProps {
   coupon: Coupon;
   onClose: () => void;
@@ -41,6 +60,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
 
   const handleValidateFinal = async () => {
     if (!user) return setError("Faça login para validar.");
+    setError(null);
     setIsValidating(true);
     try {
         const vCode = await onRedeem(coupon); 
@@ -207,14 +227,15 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                    )}
                 </div>
 
-                <div className="p-4 border-t border-slate-100 bg-white">
+                <div className="p-4 border-t border-slate-100 bg-white space-y-3">
+                    {error && (
+                        <div className="w-full bg-red-50 border border-red-100 text-red-600 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs md:text-sm animate-in fade-in duration-200">
+                            <AlertTriangle size={18} className="shrink-0 text-red-500" />
+                            <span className="text-left leading-snug">{getCleanErrorMessage(error)}</span>
+                        </div>
+                    )}
                     {step === 'details' ? (
-                        error ? (
-                            <div className="w-full bg-red-50 border border-red-100 text-red-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm">
-                                <AlertTriangle size={18} />
-                                {error}
-                            </div>
-                        ) : (
+                        !error && (
                             <button 
                                 onClick={handleGetCode}
                                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all"
