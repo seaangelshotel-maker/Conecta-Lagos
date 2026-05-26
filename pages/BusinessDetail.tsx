@@ -382,7 +382,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 <h3 className="text-xl font-black text-ocean-950 flex items-center gap-2"><Clock size={20} className="text-ocean-600"/> Horário de Funcionamento</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-6 rounded-2xl border border-slate-100">
                     {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map(day => {
-                        const hours = business.openingHours[day] || 'Fechado';
+                        const hours = (business.openingHours && business.openingHours[day]) || 'Fechado';
                         const isToday = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()] === day;
                         return (
                             <div key={day} className={`p-3 rounded-xl transition-all ${isToday ? 'bg-white shadow-sm border border-ocean-100 ring-1 ring-ocean-500/20' : ''}`}>
@@ -515,7 +515,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             </div>
         )}
 
-        {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => { await redeemCoupon(currentUser?.id || '', c); }} isRedeemed={false} />}
+        {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => await redeemCoupon(currentUser?.id || '', c)} isRedeemed={false} />}
 
         {/* LIGHTBOX GALERIA */}
         {lightboxIndex !== null && business.gallery && (

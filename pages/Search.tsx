@@ -118,7 +118,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onNavigate }) => {
         onNavigate('login');
         return;
     }
-    await redeemCoupon(currentUser.id, coupon);
+    return await redeemCoupon(currentUser.id, coupon);
   };
 
   return (
@@ -172,7 +172,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onNavigate }) => {
                 ))}
             </div>
 
-            {selectedCategory !== 'Todos' && (categories.find(c => c.name === selectedCategory)?.subcategories?.length ?? 0) > 0 && (
+            {selectedCategory !== 'Todos' && (categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase())?.subcategories?.length ?? 0) > 0 && (
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0 mt-3">
                     <button 
                         onClick={() => setSelectedSubcategory('Todos')}
@@ -180,7 +180,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onNavigate }) => {
                     >
                         Todas
                     </button>
-                    {categories.find(c => c.name === selectedCategory)?.subcategories?.map((sub: Subcategory) => (
+                    {categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase())?.subcategories?.map((sub: Subcategory) => (
                         <button 
                             key={sub.id}
                             onClick={() => setSelectedSubcategory(sub.name)}

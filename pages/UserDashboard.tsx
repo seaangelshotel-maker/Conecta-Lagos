@@ -474,7 +474,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
       {/* MODALS */}
       {selectedReceipt && <CouponReceiptModal record={selectedReceipt} onClose={() => setSelectedReceipt(null)} />}
-      {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => { await redeemCoupon(currentUser.id, c); }} isRedeemed={false} />}
+      {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => await redeemCoupon(currentUser.id, c)} isRedeemed={false} />}
 
       {editAvatar && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">

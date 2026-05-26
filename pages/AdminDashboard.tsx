@@ -21,7 +21,7 @@ import {
   BarChart3, CheckCircle2, DollarSign, 
   TrendingUp, Share2, MousePointer2, PieChart as PieIcon,
   Navigation, Utensils, Instagram, Share, Globe, ShoppingCart, CalendarDays, Phone, MapPin, Check, Clock, MessageCircle, Layers, Zap,
-  Mail, User as UserIcon, ShieldAlert, ShieldCheck, UserX, Key, Lock, Layout, ShoppingBag, PenTool, Users, Image as ImageIcon, CreditCard, LogIn, LogOut, QrCode, RefreshCw, Sparkles, Bot
+  Mail, User as UserIcon, ShieldAlert, ShieldCheck, UserX, Key, Lock, Layout, ShoppingBag, Edit, PenTool, Users, Image as ImageIcon, CreditCard, LogIn, LogOut, QrCode, RefreshCw, Sparkles, Bot
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { ImageUpload } from '../components/ImageUpload';
@@ -92,6 +92,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     companyId: currentUser.role === UserRole.COMPANY ? currentUser.id : '',
     companyName: currentUser.role === UserRole.COMPANY ? (myBusiness?.name || currentUser.companyName || currentUser.name) : ''
   });
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   
   const [allBusinesses, setAllBusinesses] = useState<BusinessProfile[]>([]);
   
@@ -207,6 +208,33 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
         }
     }
   }, [view, myBusiness, currentUser]);
+
+  useEffect(() => {
+    if (view !== 'CREATE_COUPON') {
+      setEditingCouponId(null);
+    } else if (!editingCouponId) {
+      setNewCoupon({
+        title: '',
+        description: '',
+        originalPrice: 0,
+        discountedPrice: 0,
+        category: myBusiness?.category || 'Gastronomia',
+        active: true,
+        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        rules: [
+          'Válido apenas para consumo no local',
+          'Não cumulativo com outras promoções',
+          'Apresente este cupom antes de solicitar a conta',
+          'Sujeito a disponibilidade e lotação'
+        ],
+        maxRedemptions: 100,
+        currentRedemptions: 0,
+        limitPerUser: 1,
+        companyId: currentUser.role === UserRole.COMPANY ? currentUser.id : '',
+        companyName: currentUser.role === UserRole.COMPANY ? (myBusiness?.name || currentUser.companyName || currentUser.name) : ''
+      });
+    }
+  }, [view, myBusiness]);
 
   useEffect(() => {
     // Check for payment status in URL
@@ -1382,10 +1410,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                         className="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-sm outline-none"
                                         value={editBusiness.subcategory}
                                         onChange={e => setEditBusiness({...editBusiness, subcategory: e.target.value})}
-                                        disabled={!editBusiness.category || !categories.find(c => c.name === editBusiness.category)?.subcategories?.length}
+                                        disabled={!editBusiness.category || !categories.find(c => c.name.toLowerCase() === editBusiness.category.toLowerCase())?.subcategories?.length}
                                       >
                                           <option value="">Selecione</option>
-                                          {categories.find(c => c.name === editBusiness.category)?.subcategories.map((sub: any) => (
+                                          {categories.find(c => c.name.toLowerCase() === editBusiness.category.toLowerCase())?.subcategories?.map((sub: any) => (
                                               <option key={sub.id || sub.name} value={sub.name || sub}>{sub.name || sub}</option>
                                           ))}
                                       </select>
@@ -1705,15 +1733,11 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                           <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
                           <h3 className="text-2xl font-black text-ocean-950 mb-2">Recurso Bloqueado</h3>
                           <p className="text-slate-500 mb-6">Sua assinatura está expirada. Renove para criar novos cupons.</p>
-                          <button onClick={() => setView('MY_PLAN')} className="bg-ocean-600 text-white px-8 py-4 rounded-2xl font-black w-full">RENOVAR AGORA</button>
-                      </div>
-                  </div>
-              )}
-              <div className="flex justify-between items-center">
-                  <button onClick={() => setView('HOME')} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
+                          <button onClick={() => setView('MY_PLAN')} className="bg-ocean-600 text-white px-8 py-4 rounded-2xl font-black w-full">RENOVAR AGORA</button></div></div>)}<div className="flex justify-between items-center">
+                  <button onClick={() => setView(editingCouponId ? 'COUPONS' : 'HOME')} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
                     <ChevronLeft size={16} /> Voltar ao Painel
                   </button>
-                  <h2 className="text-3xl font-black text-ocean-950 hidden md:block">Lançar Nova Oferta</h2>
+                  <h2 className="text-3xl font-black text-ocean-950 hidden md:block">{editingCouponId ? 'Editar Oferta' : 'Lançar Nova Oferta'}</h2>
               </div>
 
               <form onSubmit={async (e) => { 
@@ -1723,22 +1747,27 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                       return;
                   }
                   setIsSaving(true); 
+                  const isEdit = !!editingCouponId;
+                  const couponId = isEdit ? editingCouponId : `c_${Date.now()}`;
+                  const couponCode = isEdit ? (newCoupon.code || `CR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`) : `CR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+                  const status = currentUser.role === UserRole.SUPER_ADMIN ? (newCoupon.status || 'approved') : 'pending';
+
                   const couponData = {
                       ...newCoupon, 
-                      id: `c_${Date.now()}`, 
+                      id: couponId, 
                       companyId: newCoupon.companyId || currentUser.id, 
                       companyName: newCoupon.companyName || renderName(),
-                      companyLogo: myBusiness?.coverImage,
+                      companyLogo: myBusiness?.coverImage || newCoupon.companyLogo,
                       discountPercentage: Math.round(((newCoupon.originalPrice! - newCoupon.discountedPrice!) / newCoupon.originalPrice!) * 100),
-                      code: `CR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                      active: true,
-                      status: 'pending' // Always start as pending
+                      code: couponCode,
+                      active: newCoupon.active !== undefined ? newCoupon.active : true,
+                      status: status
                   } as Coupon;
                   await saveCoupon(couponData); 
-                  setView('HOME'); 
+                  setView(isEdit ? 'COUPONS' : 'HOME'); 
                   refreshData(); 
                   setIsSaving(false); 
-                  notify('success', 'Cupom enviado para aprovação do administrador!');
+                  notify('success', isEdit ? 'Cupom atualizado com sucesso!' : 'Cupom enviado para aprovação do administrador!');
               }} className="space-y-12">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                       <div className="space-y-8">
@@ -1867,6 +1896,19 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Informações da Oferta</label>
                               <input required className="w-full bg-slate-50 p-5 rounded-2xl border border-slate-100 font-black text-lg focus:ring-2 focus:ring-ocean-500 outline-none" placeholder="Título da Oferta (Ex: 50% de Desconto no Rodízio)" value={newCoupon.title} onChange={e => setNewCoupon({...newCoupon, title: e.target.value})} />
                               <textarea required className="w-full bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm leading-relaxed outline-none" rows={3} placeholder="Descreva o que está incluído nesta oferta..." value={newCoupon.description} onChange={e => setNewCoupon({...newCoupon, description: e.target.value})} />
+                          </div>
+
+                          <div className="space-y-4">
+                              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Categoria do Cupom</label>
+                              <select 
+                                className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-sm outline-none focus:ring-2 focus:ring-ocean-500"
+                                value={newCoupon.category || 'Gastronomia'}
+                                onChange={e => setNewCoupon({...newCoupon, category: e.target.value})}
+                              >
+                                  {categories.map(cat => (
+                                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                  ))}
+                              </select>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2810,6 +2852,17 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       className="flex-1 md:flex-none bg-white border border-red-100 text-red-500 px-6 py-3 rounded-xl font-black text-[10px] flex items-center justify-center gap-2 hover:bg-red-50 transition-all"
                                   >
                                       <Trash2 size={16} /> EXCLUIR
+                                   </button>
+                                   <button 
+                                       type="button"
+                                       onClick={() => {
+                                           setNewCoupon(coupon);
+                                           setEditingCouponId(coupon.id);
+                                           setView('CREATE_COUPON');
+                                       }}
+                                       className="flex-1 md:flex-none bg-white border border-ocean-100 text-ocean-600 px-6 py-3 rounded-xl font-black text-[10px] flex items-center justify-center gap-2 hover:bg-ocean-50 transition-all font-black"
+                                   >
+                                       <Edit size={16} /> EDITAR
                                   </button>
                               </div>
                           </div>

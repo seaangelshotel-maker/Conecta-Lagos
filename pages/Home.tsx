@@ -112,7 +112,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       onNavigate('login');
       return;
     }
-    await redeemCoupon(currentUser.id, coupon);
+    return await redeemCoupon(currentUser.id, coupon);
   };
 
   const currentSaved = currentUser?.savedAmount || 0;
@@ -257,7 +257,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
-                        <p className="text-ocean-200 text-xs uppercase tracking-wider font-medium mb-1">Sua Carteira Inteligente</p>
+                        <p className="text-ocean-200 text-xs uppercase tracking-wider font-medium mb-1">Carteira de Economia</p>
                         <h3 className="text-3xl font-bold mb-1">R$ {currentSaved.toFixed(2)}</h3>
                         <p className="text-xs text-slate-300">economizados em experiências.</p>
                     </div>

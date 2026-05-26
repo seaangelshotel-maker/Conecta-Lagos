@@ -201,7 +201,7 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
                 </select>
                 <select className="w-full p-3 border rounded-lg" value={currentPost.subcategory || ''} onChange={e => setCurrentPost({...currentPost, subcategory: e.target.value})}>
                     <option value="">Selecione uma subcategoria</option>
-                    {categories.find(c => c.name === currentPost.category)?.subcategories.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    {categories.find(c => c.name.toLowerCase() === currentPost.category?.toLowerCase())?.subcategories.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
               </div>
               <ImageUpload currentImage={currentPost.imageUrl} onImageSelect={base64 => setCurrentPost({...currentPost, imageUrl: base64})} label="Imagem de Capa" />

@@ -66,7 +66,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                 </div>
                 <h2 className="text-2xl font-bold text-ocean-950 mb-2">Cupom Resgatado! 🎉</h2>
                 <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                    Economia de R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)} adicionada à sua carteira!
+                    Economia de R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)} somada à sua Carteira de Economia!
                 </p>
 
                 {verificationCode && (
@@ -201,7 +201,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                          </div>
 
                          <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-xs w-full text-left">
-                             ⚠️ <strong>Atenção:</strong> A economia de <strong>R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)}</strong> só será adicionada à sua Carteira Inteligente após clicar no botão Validar abaixo.
+                             ⚠️ <strong>Atenção:</strong> A economia de <strong>R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)}</strong> só será adicionada à sua Carteira de Economia após clicar no botão Validar abaixo.
                          </div>
                      </div>
                    )}

@@ -264,7 +264,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
 
   if (isLoadingDB) return <GuideSplash />;
 
-  const currentCategory = categories.find(c => c.name === selectedCategory);
+  const currentCategory = categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase());
   const currentSubcategories = currentCategory?.subcategories || [];
 
   return (
@@ -419,7 +419,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
                       {(() => {
                           const isOpen = checkIfOpen(business.openingHours, business.category);
                           const today = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()];
-                          const todayHours = business.openingHours[today] || 'Fechado';
+                          const todayHours = (business.openingHours && business.openingHours[today]) || 'Fechado';
                           return (
                             <div className="absolute bottom-2 left-2 flex flex-col gap-1 items-start">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}>
