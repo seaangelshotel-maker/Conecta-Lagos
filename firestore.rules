@@ -83,10 +83,7 @@ service cloud.firestore {
         isAdmin()
       );
       allow create: if isAuthenticated() && (
-        request.auth.uid == request.resource.data.userId &&
-        request.resource.data.status == 'PENDING' &&
-        request.resource.data.verificationCode is string &&
-        request.resource.data.couponId is string
+        request.auth.uid == request.resource.data.userId
       );
       allow update: if isAuthenticated() && (
         (request.auth.uid == resource.data.companyId && 
