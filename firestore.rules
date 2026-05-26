@@ -147,6 +147,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    match /app_amenities/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
     // ===============================================================
     // App Settings (Payment, etc.)
     // ===============================================================

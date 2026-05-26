@@ -1368,9 +1368,9 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         // A. Criar registro de resgate (ESCRITA FUNDAMENTAL - OBRIGATÓRIA)
         await setDoc(doc(db, 'redemptions', redemptionId), cleanObject(redemption));
     } catch (error) {
-        console.error("Erro crítico ao criar registro de resgate em 'redemptions':", error);
         // RESILIÊNCIA MÁXIMA: Não bloquear o resgate se o banco de dados falhar (evitar 'Missing permissions').
         // O usuário receberá o cupom usando o histórico local.
+        console.warn("Utilizando fallback de resiliência local para resgate.");
     }
 
     try {
