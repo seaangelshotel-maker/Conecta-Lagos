@@ -58,8 +58,11 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [pendingReviews, setPendingReviews] = useState<any[]>([]);
-  const [newJournalist, setNewJournalist] = useState({ name: '', email: '', password: '' });
+        const [newUserObj, setNewUserObj] = useState({ name: '', email: '', password: '', role: 'JOURNALIST', plan: '' });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  const [promotingUser, setPromotingUser] = useState<User | null>(null);
+  const [selectedPlanForUser, setSelectedPlanForUser] = useState<string>('');
 
   const [editBusiness, setEditBusiness] = useState<Partial<BusinessProfile>>({});
   const [newPassword, setNewPassword] = useState('');
@@ -872,38 +875,38 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
       {view === 'USERS' && (
           <div className="space-y-8">
               <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
-                  <h3 className="text-lg font-black text-ocean-950 mb-4">Criar Novo Jornalista</h3>
-                  <p className="text-sm text-slate-500 mb-6">Crie um novo usuário com acesso direto ao Painel do Jornalista.</p>
+                  <h3 className="text-lg font-black text-ocean-950 mb-4">Criar Novo Usuário</h3>
+                  <p className="text-sm text-slate-500 mb-6">Crie um novo usuário, atribuindo o cargo de Jornalista ou Empresa.</p>
                   
                   <form 
                       onSubmit={async (e) => {
                           e.preventDefault();
-                          if (!newJournalist.name || !newJournalist.email || !newJournalist.password) {
+                          if (!newUserObj.name || !newUserObj.email || !newUserObj.password) {
                               notify('warning', 'Preencha todos os campos.');
                               return;
                           }
                           setIsSaving(true);
                           try {
-                              const { createJournalistUser } = await import('../services/dataService');
-                              await createJournalistUser(newJournalist.name, newJournalist.email, newJournalist.password);
-                              notify('success', 'Jornalista criado com sucesso!');
-                              setNewJournalist({ name: '', email: '', password: '' });
+                              const { createUserByAdmin } = await import('../services/dataService');
+                              await createUserByAdmin(newUserObj.name, newUserObj.email, newUserObj.password, newUserObj.role, newUserObj.plan);
+                              notify('success', 'Usuário criado com sucesso!');
+                              setNewUserObj({ name: '', email: '', password: '', role: 'JOURNALIST', plan: '' });
                               refreshData();
                           } catch (error: any) {
-                              notify('error', 'Erro ao criar jornalista: ' + error.message);
+                              notify('error', 'Erro ao criar usuário: ' + error.message);
                           } finally {
                               setIsSaving(false);
                           }
                       }}
-                      className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end"
                   >
                       <div>
                           <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Nome</label>
                           <input 
                               required 
                               className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
-                              value={newJournalist.name} 
-                              onChange={e => setNewJournalist({...newJournalist, name: e.target.value})} 
+                              value={newUserObj.name} 
+                              onChange={e => setNewUserObj({...newUserObj, name: e.target.value})} 
                           />
                       </div>
                       <div>
@@ -912,8 +915,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               required 
                               type="email"
                               className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
-                              value={newJournalist.email} 
-                              onChange={e => setNewJournalist({...newJournalist, email: e.target.value})} 
+                              value={newUserObj.email} 
+                              onChange={e => setNewUserObj({...newUserObj, email: e.target.value})} 
                           />
                       </div>
                       <div>
@@ -922,17 +925,45 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               required 
                               type="password"
                               className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
-                              value={newJournalist.password} 
-                              onChange={e => setNewJournalist({...newJournalist, password: e.target.value})} 
+                              value={newUserObj.password} 
+                              onChange={e => setNewUserObj({...newUserObj, password: e.target.value})} 
                           />
                       </div>
-                      <button 
-                          type="submit" 
-                          disabled={isSaving}
-                          className="bg-indigo-600 text-white p-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                      >
-                          {isSaving ? 'Criando...' : 'Criar Jornalista'}
-                      </button>
+                      <div>
+                          <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Cargo</label>
+                          <select 
+                              className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
+                              value={newUserObj.role} 
+                              onChange={e => setNewUserObj({...newUserObj, role: e.target.value, plan: ''})} 
+                          >
+                              <option value="JOURNALIST">Jornalista</option>
+                              <option value="COMPANY">Empresa</option>
+                          </select>
+                      </div>
+                      {newUserObj.role === 'COMPANY' && (
+                          <div>
+                              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Plano</label>
+                              <select 
+                                  className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
+                                  value={newUserObj.plan} 
+                                  onChange={e => setNewUserObj({...newUserObj, plan: e.target.value})} 
+                              >
+                                  <option value="">(Sem plano ativo)</option>
+                                  {plans.filter(p => p.active).map(p => (
+                                      <option key={p.id} value={p.id}>{p.name}</option>
+                                  ))}
+                              </select>
+                          </div>
+                      )}
+                      <div className={newUserObj.role === 'COMPANY' ? "lg:col-span-1" : "lg:col-span-2"}>
+                          <button 
+                              type="submit" 
+                              disabled={isSaving}
+                              className="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                          >
+                              {isSaving ? 'Criando...' : 'Criar Usuário'}
+                          </button>
+                      </div>
                   </form>
               </div>
 
@@ -973,37 +1004,81 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </td>
                                       <td className="px-6 py-5">
                                           <div className="flex justify-center items-center gap-2">
-                                              {u.role !== UserRole.SUPER_ADMIN && u.role !== UserRole.JOURNALIST && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
-                                                  <button 
-                                                      onClick={async () => {
-                                                          if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
-                                                              const { updateUser } = await import('../services/dataService');
-                                                              await updateUser({ ...u, role: UserRole.JOURNALIST });
-                                                              notify('success', `${u.name} agora é um Jornalista!`);
-                                                              refreshData();
-                                                          }
-                                                      }}
-                                                      className="p-3 bg-white text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100"
-                                                      title="Tornar Jornalista"
-                                                  >
-                                                      <PenTool size={18} />
-                                                  </button>
-                                              )}
-                                              {u.role === UserRole.JOURNALIST && (
-                                                  <button 
-                                                      onClick={async () => {
-                                                          if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
-                                                              const { updateUser } = await import('../services/dataService');
-                                                              await updateUser({ ...u, role: UserRole.CUSTOMER });
-                                                              notify('success', `${u.name} agora é um Cliente comum.`);
-                                                              refreshData();
-                                                          }
-                                                      }}
-                                                      className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-indigo-100"
-                                                      title="Remover Acesso de Jornalista"
-                                                  >
-                                                      <PenTool size={18} />
-                                                  </button>
+                                              {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
+                                                  <div className="flex gap-1.5 justify-center">
+                                                      {u.role !== UserRole.JOURNALIST && u.role !== UserRole.COMPANY && (
+                                                          <>
+                                                              <button 
+                                                                  onClick={async () => {
+                                                                      if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
+                                                                          const { updateUser } = await import('../services/dataService');
+                                                                          await updateUser({ ...u, role: UserRole.JOURNALIST });
+                                                                          notify('success', `${u.name} agora é um Jornalista!`);
+                                                                          refreshData();
+                                                                      }
+                                                                  }}
+                                                                  className="p-3 bg-white text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1 font-bold text-[10px]"
+                                                                  title="Tornar Jornalista"
+                                                              >
+                                                                  <PenTool size={16} /> <span className="hidden lg:inline">Jornalista</span>
+                                                              </button>
+                                                              <button 
+                                                                  onClick={() => {
+                                                                      setPromotingUser(u);
+                                                                      setSelectedPlanForUser(u.plan || '');
+                                                                  }}
+                                                                  className="p-3 bg-white text-ocean-600 rounded-xl hover:bg-ocean-600 hover:text-white transition-all shadow-sm border border-ocean-100 flex items-center gap-1 font-bold text-[10px]"
+                                                                  title="Tornar Empresa"
+                                                              >
+                                                                  <Store size={16} /> <span className="hidden lg:inline">Empresa</span>
+                                                              </button>
+                                                          </>
+                                                      )}
+                                                      {u.role === UserRole.JOURNALIST && (
+                                                          <button 
+                                                              onClick={async () => {
+                                                                  if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
+                                                                      const { updateUser } = await import('../services/dataService');
+                                                                      await updateUser({ ...u, role: UserRole.CUSTOMER });
+                                                                      notify('success', `${u.name} agora é um Cliente comum.`);
+                                                                      refreshData();
+                                                                  }
+                                                              }}
+                                                              className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1 font-bold text-[10px]"
+                                                              title="Remover Acesso de Jornalista"
+                                                          >
+                                                              <PenTool size={16} /> <span className="hidden lg:inline">Remover Jornalista</span>
+                                                          </button>
+                                                      )}
+                                                      {u.role === UserRole.COMPANY && (
+                                                          <>
+                                                              <button 
+                                                                  onClick={() => {
+                                                                      setPromotingUser(u);
+                                                                      setSelectedPlanForUser(u.plan || '');
+                                                                  }}
+                                                                  className="p-3 bg-ocean-50 text-ocean-600 rounded-xl hover:bg-ocean-600 hover:text-white transition-all shadow-sm border border-ocean-100 flex items-center gap-1 font-bold text-[10px]"
+                                                                  title="Alterar Plano da Empresa"
+                                                              >
+                                                                  <Zap size={16} /> <span className="hidden lg:inline">Alterar Plano</span>
+                                                              </button>
+                                                              <button 
+                                                                  onClick={async () => {
+                                                                      if (await confirm({ title: 'Remover Acesso de Empresa', message: `Deseja remover o acesso de Empresa de ${u.name}? Ele voltará a ser um cliente comum.` })) {
+                                                                          const { updateUser } = await import('../services/dataService');
+                                                                          await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
+                                                                          notify('success', `${u.name} agora é um Cliente comum.`);
+                                                                          refreshData();
+                                                                      }
+                                                                  }}
+                                                                  className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100 flex items-center gap-1 font-bold text-[10px]"
+                                                                  title="Remover Acesso de Empresa"
+                                                              >
+                                                                  <UserX size={16} /> <span className="hidden lg:inline">Remover Empresa</span>
+                                                              </button>
+                                                          </>
+                                                      )}
+                                                  </div>
                                               )}
                                           </div>
                                       </td>
@@ -1032,38 +1107,79 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                               <span className="text-[7px] font-black text-red-500 uppercase">Mestre</span>
                                           )}
                                       </div>
-                                  </div>
-                              </div>
-                              <div className="flex gap-2">
-                                  {u.role !== UserRole.SUPER_ADMIN && u.role !== UserRole.JOURNALIST && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
-                                      <button 
-                                          onClick={async () => {
-                                              if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
-                                                  const { updateUser } = await import('../services/dataService');
-                                                  await updateUser({ ...u, role: UserRole.JOURNALIST });
-                                                  notify('success', `${u.name} agora é um Jornalista!`);
-                                                  refreshData();
-                                              }
-                                          }}
-                                          className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest"
-                                      >
-                                          <PenTool size={14} /> TORNAR JORNALISTA
-                                      </button>
-                                  )}
-                                  {u.role === UserRole.JOURNALIST && (
-                                      <button 
-                                          onClick={async () => {
-                                              if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
-                                                  const { updateUser } = await import('../services/dataService');
-                                                  await updateUser({ ...u, role: UserRole.CUSTOMER });
-                                                  notify('success', `${u.name} agora é um Cliente comum.`);
-                                                  refreshData();
-                                              }
-                                          }}
-                                          className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest"
-                                      >
-                                          <PenTool size={14} /> REMOVER ACESSO
-                                      </button>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
+                                      <div className="grid grid-cols-2 gap-2">
+                                          {u.role !== UserRole.JOURNALIST && u.role !== UserRole.COMPANY && (
+                                              <>
+                                                  <button 
+                                                      onClick={async () => {
+                                                          if (await confirm({ title: 'Promover a Jornalista', message: `Deseja transformar ${u.name} em Jornalista?` })) {
+                                                              const { updateUser } = await import('../services/dataService');
+                                                              await updateUser({ ...u, role: UserRole.JOURNALIST });
+                                                              notify('success', `${u.name} agora é um Jornalista!`);
+                                                              refreshData();
+                                                          }
+                                                      }}
+                                                      className="flex items-center justify-center gap-1.5 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-wider"
+                                                  >
+                                                      <PenTool size={14} /> JORNALISTA
+                                                  </button>
+                                                  <button 
+                                                      onClick={() => {
+                                                          setPromotingUser(u);
+                                                          setSelectedPlanForUser(u.plan || '');
+                                                      }}
+                                                      className="flex items-center justify-center gap-1.5 py-3 bg-ocean-50 text-ocean-600 rounded-xl font-black text-[10px] uppercase tracking-wider border border-ocean-100"
+                                                  >
+                                                      <Store size={14} /> EMPRESA
+                                                  </button>
+                                              </>
+                                          )}
+                                          {u.role === UserRole.JOURNALIST && (
+                                              <button 
+                                                  onClick={async () => {
+                                                      if (await confirm({ title: 'Remover Jornalista', message: `Deseja remover o acesso de Jornalista de ${u.name}?` })) {
+                                                          const { updateUser } = await import('../services/dataService');
+                                                          await updateUser({ ...u, role: UserRole.CUSTOMER });
+                                                          notify('success', `${u.name} agora é um Cliente comum.`);
+                                                          refreshData();
+                                                      }
+                                                  }}
+                                                  className="col-span-2 flex items-center justify-center gap-1.5 py-3 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-wider"
+                                              >
+                                                  <PenTool size={14} /> REMOVER JORNALISTA
+                                              </button>
+                                          )}
+                                          {u.role === UserRole.COMPANY && (
+                                              <>
+                                                  <button 
+                                                      onClick={() => {
+                                                          setPromotingUser(u);
+                                                          setSelectedPlanForUser(u.plan || '');
+                                                      }}
+                                                      className="flex items-center justify-center gap-1.5 py-3 bg-ocean-50 text-ocean-600 rounded-xl font-black text-[10px] uppercase tracking-wider"
+                                                  >
+                                                      <Zap size={14} /> ALTERAR PLANO
+                                                  </button>
+                                                  <button 
+                                                      onClick={async () => {
+                                                          if (await confirm({ title: 'Remover Acesso de Empresa', message: `Deseja remover o acesso de Empresa de ${u.name}? Ele voltará a ser um cliente comum.` })) {
+                                                              const { updateUser } = await import('../services/dataService');
+                                                              await updateUser({ ...u, role: UserRole.CUSTOMER, plan: '' });
+                                                              notify('success', `${u.name} agora é um Cliente comum.`);
+                                                              refreshData();
+                                                          }
+                                                      }}
+                                                      className="flex items-center justify-center gap-1.5 py-3 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-wider"
+                                                  >
+                                                      <UserX size={14} /> REMOVER EMPRESA
+                                                  </button>
+                                              </>
+                                          )}
+                                      </div>
                                   )}
                               </div>
                           </div>
@@ -2833,6 +2949,98 @@ const HighlightsManager: React.FC<{ highlights: HomeHighlight[]; onBack: () => v
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {promotingUser && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div>
+                                <h3 className="text-xl font-black text-ocean-950">Atribuir Plano Comercial</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Usuário: {promotingUser.name}</p>
+                            </div>
+                            <button onClick={() => setPromotingUser(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                                <X size={24} className="text-slate-400" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-4">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    Selecione o Plano da Empresa
+                                </label>
+                                <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto">
+                                    {plans.map(p => (
+                                        <button
+                                            key={p.id}
+                                            type="button"
+                                            onClick={() => setSelectedPlanForUser(p.id)}
+                                            className={`p-5 rounded-2xl border-2 text-left transition-all flex justify-between items-center ${selectedPlanForUser === p.id ? 'border-ocean-600 bg-ocean-50/50 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'}`}
+                                        >
+                                            <div>
+                                                <p className="font-black text-sm text-ocean-950 uppercase">{p.name}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">
+                                                    R$ {p.price.toFixed(2)} / {p.period === 'monthly' ? 'Mês' : 'Ano'}
+                                                </p>
+                                            </div>
+                                            {selectedPlanForUser === p.id && (
+                                                <div className="bg-ocean-600 p-1.5 rounded-full text-white">
+                                                    <Check size={14} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {plans.length === 0 && (
+                                        <p className="text-sm font-bold text-slate-400 text-center py-4">Nenhum plano cadastrado</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 bg-slate-50 flex gap-3">
+                            <button 
+                                onClick={() => setPromotingUser(null)}
+                                className="flex-1 px-6 py-4 bg-white border border-slate-200 text-slate-500 font-black rounded-2xl text-xs hover:bg-slate-100 transition-all uppercase tracking-wider"
+                            >
+                                CANCELAR
+                            </button>
+                            <button 
+                                onClick={async () => {
+                                    if (!selectedPlanForUser) {
+                                        notify('error', 'Por favor, selecione um plano!');
+                                        return;
+                                    }
+                                    setActionLoading('promoting');
+                                    try {
+                                        const { updateUser } = await import('../services/dataService');
+                                        await updateUser({ 
+                                            ...promotingUser, 
+                                            role: UserRole.COMPANY, 
+                                            plan: selectedPlanForUser,
+                                            permissions: {
+                                                canCreateBusiness: true,
+                                                canManageBusiness: true,
+                                                canCreateCoupons: true
+                                            }
+                                        });
+                                        notify('success', `${promotingUser.name} agora é uma Empresa com o plano selecionado!`);
+                                        setPromotingUser(null);
+                                        refreshData();
+                                    } catch (error) {
+                                        console.error(error);
+                                        notify('error', 'Erro ao promover usuário.');
+                                    } finally {
+                                        setActionLoading(null);
+                                    }
+                                }}
+                                disabled={actionLoading === 'promoting' || !selectedPlanForUser}
+                                className="flex-1 px-6 py-4 bg-ocean-600 text-white font-black rounded-2xl text-xs shadow-lg shadow-ocean-600/20 flex items-center justify-center gap-2 hover:bg-ocean-700 transition-all uppercase tracking-wider disabled:opacity-50"
+                            >
+                                {actionLoading === 'promoting' ? <Loader2 className="animate-spin" size={16}/> : <Check size={16} />} CONFIRMAR
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

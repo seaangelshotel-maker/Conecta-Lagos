@@ -334,8 +334,8 @@ export const SuperAdminDashboard: React.FC<{ onNavigate: (page: string) => void;
                                   }
                                   setIsSaving(true);
                                   try {
-                                      const { createJournalistUser } = await import('../services/dataService');
-                                      await createJournalistUser(newJournalist.name, newJournalist.email, newJournalist.password);
+                                      const { createUserByAdmin } = await import('../services/dataService');
+                                      await createUserByAdmin(newJournalist.name, newJournalist.email, newJournalist.password, 'JOURNALIST', '');
                                        notify('success', 'Jornalista criado com sucesso!');
                                       setNewJournalist({ name: '', email: '', password: '' });
                                       loadData();

@@ -1483,16 +1483,41 @@ export const registerUser = async (name: string, email: string, pass: string): P
     return newUser;
 };
 
-export const createJournalistUser = async (name: string, email: string, pass: string): Promise<User> => {
+export const createUserByAdmin = async (name: string, email: string, pass: string, role: string, plan: string = ''): Promise<User> => {
     // To avoid logging out the current admin, we use a secondary app instance
-    const { initializeApp } = await import('firebase/app');
+    const { initializeApp, getApps } = await import('firebase/app');
     const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
     
-    const secondaryApp = initializeApp(auth.app.options, 'SecondaryApp');
+    // Check if secondary app already exists to prevent duplication
+    const apps = getApps();
+    let secondaryApp = apps.find(app => app.name === 'SecondaryApp');
+    if (!secondaryApp) {
+        secondaryApp = initializeApp(auth.app.options, 'SecondaryApp');
+    }
+    
     const secondaryAuth = getAuth(secondaryApp);
     
     const res = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
-    const newUser: User = { id: res.user.uid, name, email, role: UserRole.JOURNALIST, favorites: { coupons: [], businesses: [] }, history: [], savedAmount: 0 };
+    
+    let userRole = UserRole.CUSTOMER;
+    if (role === 'COMPANY') userRole = UserRole.COMPANY;
+    if (role === 'JOURNALIST') userRole = UserRole.JOURNALIST;
+    if (role === 'SUPER_ADMIN') userRole = UserRole.SUPER_ADMIN;
+
+    const newUser: User = { 
+        id: res.user.uid, 
+        name, 
+        email, 
+        role: userRole, 
+        favorites: { coupons: [], businesses: [] }, 
+        history: [], 
+        savedAmount: 0 
+    };
+    
+    if (userRole === UserRole.COMPANY && plan) {
+        newUser.plan = plan; // Assign the plan if applicable
+    }
+
     await setDoc(doc(db, 'users', newUser.id), cleanObject(newUser));
     
     // Sign out the secondary app and delete it to clean up

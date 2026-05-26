@@ -272,6 +272,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                     )}
                 </button>
 
+                <div className="bg-amber-50/70 border border-amber-100 rounded-2xl p-4 text-left space-y-1">
+                    <p className="text-[9px] font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <AlertCircle size={12} /> Nota sobre o Login Google
+                    </p>
+                    <p className="text-[10px] text-amber-700/90 font-medium leading-relaxed">
+                        Se estiver usando o visualizador do AI Studio, o login do Google pode ser bloqueado devido a restrições de iFrame do navegador. Para funcionar, use o botão <strong>&quot;Abrir em nova aba&quot;</strong> no canto superior direito para abrir o site diretamente, ou use login comum de e-mail e senha.
+                    </p>
+                </div>
+
                 <div className="pt-6 border-t border-slate-100 mt-6 text-center flex flex-col gap-4">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Possui um negócio?</p>
                     <button 

@@ -3,5 +3,8 @@
   "description": "O guia oficial de descontos e conexões da Região dos Lagos. Economize em restaurantes, passeios e hospedagem.",
   "requestFramePermissions": [
     "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }
