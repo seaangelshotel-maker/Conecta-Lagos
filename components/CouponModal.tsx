@@ -16,7 +16,9 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
   const [error, setError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const user = getCurrentUser();
+  const gallery = coupon.gallery && coupon.gallery.length > 0 ? coupon.gallery : [coupon.imageUrl];
 
   useEffect(() => {
       if (!user) return;
@@ -91,18 +93,51 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
             </div>
         ) : (
             <>
-                <div className="relative h-56 shrink-0">
-                  <img src={coupon.imageUrl} className="w-full h-full object-cover" alt="Coupon" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <button onClick={onClose} className="absolute top-4 right-4 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 backdrop-blur-sm">
+                <div className="relative h-56 shrink-0 group">
+                  <div className="w-full h-full relative overflow-hidden">
+                      {gallery.map((img, idx) => (
+                          <img 
+                              key={idx}
+                              src={img} 
+                              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} 
+                              alt={`Coupon gallery ${idx + 1}`} 
+                          />
+                      ))}
+                  </div>
+
+                  {gallery.length > 1 && (
+                      <>
+                          <button 
+                              onClick={(e) => { e.stopPropagation(); setCurrentSlide(prev => (prev === 0 ? gallery.length - 1 : prev - 1)); }}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+                          >
+                              <span className="text-xs font-bold leading-none">&lt;</span>
+                          </button>
+                          <button 
+                              onClick={(e) => { e.stopPropagation(); setCurrentSlide(prev => (prev === gallery.length - 1 ? 0 : prev + 1)); }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+                          >
+                              <span className="text-xs font-bold leading-none">&gt;</span>
+                          </button>
+                          
+                          <div className="absolute bottom-4 right-4 flex gap-1 z-10">
+                              {gallery.map((_, idx) => (
+                                  <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentSlide ? 'bg-white w-3' : 'bg-white/50'}`} />
+                              ))}
+                          </div>
+                      </>
+                  )}
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                  <button onClick={onClose} className="absolute top-4 right-4 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 backdrop-blur-sm z-10 transition-colors">
                     <X size={20} />
                   </button>
                   
-                  <div className="absolute bottom-4 left-4 text-white">
-                     <span className="bg-gold-500 text-ocean-950 text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block uppercase">
+                  <div className="absolute bottom-4 left-4 text-white z-10 pr-12">
+                     <span className="bg-gold-500 text-ocean-950 text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block uppercase tracking-wider">
                         {coupon.category}
                      </span>
-                     <h2 className="text-2xl font-bold leading-tight">{coupon.companyName}</h2>
+                     <h2 className="text-2xl font-black leading-tight drop-shadow-md">{coupon.companyName}</h2>
                   </div>
                 </div>
 

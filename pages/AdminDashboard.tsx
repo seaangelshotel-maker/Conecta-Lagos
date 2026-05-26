@@ -68,6 +68,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showGalleryLinkInput, setShowGalleryLinkInput] = useState(false);
+  const [showCouponGalleryLinkInput, setShowCouponGalleryLinkInput] = useState(false);
   const [passwordPrompt, setPasswordPrompt] = useState<{ businessId: string, businessName: string } | null>(null);
   const [manualPass, setManualPass] = useState('');
 
@@ -1741,7 +1742,97 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               }} className="space-y-12">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                       <div className="space-y-8">
-                          <ImageUpload label="Foto da Oferta (Chamativa)" onImageSelect={img => setNewCoupon({...newCoupon, imageUrl: img})} />
+                          <div className="space-y-4">
+                              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                  <div>
+                                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Galeria da Oferta</label>
+                                      <span className="text-[10px] font-bold text-slate-500 pl-2">
+                                          {(newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : [])).length} fotos
+                                      </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                      <button 
+                                          type="button"
+                                          onClick={() => setShowCouponGalleryLinkInput(false)}
+                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-wider ${!showCouponGalleryLinkInput ? 'bg-white shadow text-ocean-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                      >
+                                          Upload
+                                      </button>
+                                      <button 
+                                          type="button"
+                                          onClick={() => setShowCouponGalleryLinkInput(true)}
+                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-wider ${showCouponGalleryLinkInput ? 'bg-white shadow text-ocean-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                      >
+                                          Link
+                                      </button>
+                                  </div>
+                              </div>
+                              
+                              {!showCouponGalleryLinkInput ? (
+                                  <ImageUpload 
+                                      label="Fotos da Oferta (A 1ª será a principal)" 
+                                      allowMultiple={true}
+                                      onBatchSelect={images => {
+                                          const prevGallery = newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : []);
+                                          const nextGallery = [...prevGallery, ...images];
+                                          setNewCoupon({...newCoupon, gallery: nextGallery, imageUrl: nextGallery[0] || ''});
+                                      }} 
+                                  />
+                              ) : (
+                                  <textarea 
+                                      className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-mono font-bold text-ocean-900 focus:ring-2 focus:ring-ocean-500 outline-none transition-all resize-none"
+                                      rows={4}
+                                      placeholder="Cole os links das imagens (um por linha)..."
+                                      value={(newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : [])).join('\n')}
+                                      onChange={e => {
+                                          const links = e.target.value.split('\n').filter(link => link.trim() !== '');
+                                          setNewCoupon({...newCoupon, gallery: links, imageUrl: links[0] || ''});
+                                      }}
+                                  />
+                              )}
+
+                              <div className="grid grid-cols-3 gap-3">
+                                  {(newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : [])).map((img, idx) => (
+                                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group shadow-sm border border-slate-100 bg-slate-50">
+                                          <img 
+                                              src={img} 
+                                              alt={`Oferta ${idx+1}`} 
+                                              className="w-full h-full object-cover"
+                                          />
+                                          <div className="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[10px] font-bold text-white">
+                                              {idx === 0 ? 'Principal' : `#${idx+1}`}
+                                          </div>
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                              <button 
+                                                  type="button"
+                                                  onClick={() => {
+                                                      const g = (newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : [])).filter((_, i) => i !== idx);
+                                                      setNewCoupon({...newCoupon, gallery: g, imageUrl: g[0] || ''});
+                                                  }}
+                                                  className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                              >
+                                                  <Trash2 size={14} />
+                                              </button>
+                                              {idx > 0 && (
+                                                  <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                          const g = [...(newCoupon.gallery || (newCoupon.imageUrl ? [newCoupon.imageUrl] : []))];
+                                                          const temp = g[0];
+                                                          g[0] = g[idx];
+                                                          g[idx] = temp;
+                                                          setNewCoupon({...newCoupon, gallery: g, imageUrl: g[0]});
+                                                      }}
+                                                      className="p-1.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-600 transition-colors"
+                                                  >
+                                                      <span className="text-[10px] font-bold">↑</span>
+                                                  </button>
+                                              )}
+                                          </div>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
                           
                           <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 space-y-6">
                               <h3 className="text-sm font-black text-ocean-950 uppercase tracking-widest flex items-center gap-2">

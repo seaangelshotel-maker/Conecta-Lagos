@@ -157,6 +157,7 @@ export interface Coupon {
   discountedPrice: number;
   discountPercentage: number;
   imageUrl: string;
+  gallery?: string[];
   category: string;
   subcategory?: string;
   expiryDate: string;
