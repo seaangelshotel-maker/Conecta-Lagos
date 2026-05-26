@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+    <title>Lagos GO - Guia Oficial da Região dos Lagos</title>
+    <meta name="description" content="O guia definitivo da Região dos Lagos. Encontre os melhores lugares, cupons de desconto exclusivos e notícias locais." />
+    <meta name="keywords" content="Região dos Lagos, Cabo Frio, Búzios, Arraial do Cabo, Cupons de Desconto, Turismo, Guia Comercial, Onde Comer, Onde se Hospedar" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lagosgo.com.br/" />
+    <meta property="og:title" content="Lagos GO - Seu Guia na Região dos Lagos" />
+    <meta property="og:description" content="Descubra o melhor da Região dos Lagos. Economize com cupons exclusivos e fique por dentro de todas as notícias." />
+    <meta property="og:image" content="https://lagosgo.com.br/logo.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://lagosgo.com.br/" />
+    <meta property="twitter:title" content="Lagos GO - Seu Guia na Região dos Lagos" />
+    <meta property="twitter:description" content="Descubra o melhor da Região dos Lagos. Economize com cupons exclusivos e fique por dentro de todas as notícias." />
+    <meta property="twitter:image" content="https://lagosgo.com.br/logo.png" />
+    
+    <!-- PWA / Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Lagos GO">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- Leaflet Map CSS & JS (OpenSource Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
+                950: '#082f49',
+              },
+              gold: {
+                400: '#fbbf24',
+                500: '#f59e0b',
+                600: '#d97706',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      html, body {
+        height: 100%;
+        overflow-x: hidden;
+        background-color: #f8fafc;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      html { scroll-behavior: smooth; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .leaflet-pane { z-index: 10 !important; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+    "react/": "https://esm.sh/react@^19.2.1/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "firebase/": "https://esm.sh/firebase@^12.6.0/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.560.0",
+    "recharts": "https://esm.sh/recharts@^3.5.1",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-50 text-ocean-950 font-sans antialiased pb-safe">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

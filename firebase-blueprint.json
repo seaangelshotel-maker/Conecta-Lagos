@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Application user profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "surname": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["CUSTOMER", "COMPANY", "SUPER_ADMIN", "CONTENT_CREATOR", "JOURNALIST"] },
+        "avatarUrl": { "type": "string" },
+        "isPrime": { "type": "boolean" },
+        "savedAmount": { "type": "number" },
+        "companyName": { "type": "string" },
+        "category": { "type": "string" },
+        "phone": { "type": "string" },
+        "maxCoupons": { "type": "number" },
+        "plan": { "type": "string" },
+        "isBlocked": { "type": "boolean" },
+        "manualPassword": { "type": "string" },
+        "profession": { "type": "string" },
+        "bio": { "type": "string" },
+        "instagram": { "type": "string" },
+        "website": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "BusinessProfile": {
+      "title": "Business Profile",
+      "description": "Company profile and details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "gallery": { "type": "array", "items": { "type": "string" } },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "instagram": { "type": "string" },
+        "website": { "type": "string" },
+        "deliveryUrl": { "type": "string" },
+        "bookingUrl": { "type": "string" },
+        "amenities": { "type": "array", "items": { "type": "string" } },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "isFeatured": { "type": "boolean" },
+        "isClaimed": { "type": "boolean" },
+        "isBlocked": { "type": "boolean" },
+        "plan": { "type": "string" },
+        "cityId": { "type": "string" },
+        "neighborhoodId": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "address"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Discount coupon offered by a business",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "originalPrice": { "type": "number" },
+        "discountedPrice": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "expiryDate": { "type": "string", "format": "date-time" },
+        "code": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "companyId", "title", "originalPrice", "discountedPrice", "code"]
+    },
+    "PaymentSettings": {
+      "title": "Payment Settings",
+      "description": "Global payment configuration",
+      "type": "object",
+      "properties": {
+        "isPaymentActive": { "type": "boolean" },
+        "isTestMode": { "type": "boolean" },
+        "pagbankToken": { "type": "string" },
+        "pagbankWebhookSecret": { "type": "string" }
+      },
+      "required": ["isPaymentActive", "isTestMode"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/businesses/{businessId}": {
+      "schema": "BusinessProfile",
+      "description": "Business profiles"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "Discount coupons"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "User reviews"
+    },
+    "/blog_posts/{postId}": {
+      "schema": "BlogPost",
+      "description": "Blog posts"
+    },
+    "/pricingPlans/{planId}": {
+      "schema": "PricingPlan",
+      "description": "Subscription plans"
+    },
+    "/cities/{cityId}": {
+      "schema": "City",
+      "description": "Cities"
+    },
+    "/neighborhoods/{neighborhoodId}": {
+      "schema": "Neighborhood",
+      "description": "Neighborhoods"
+    },
+    "/settings/{settingId}": {
+      "schema": "PaymentSettings",
+      "description": "Global application settings"
+    }
+  }
+}
