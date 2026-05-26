@@ -212,7 +212,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
     <div className={`bg-white min-h-screen pb-32 ${showMenuOverlay ? 'overflow-hidden' : ''}`}>
         <SEO 
             title={business.name}
-            description={business.description.substring(0, 160)}
+            description={(business.description || '').substring(0, 160)}
             image={business.coverImage}
             url={`/business/${businessId}`}
         />
