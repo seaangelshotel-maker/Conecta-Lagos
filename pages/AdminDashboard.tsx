@@ -3477,7 +3477,7 @@ const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessPro
                         <p className="text-sm font-medium text-slate-500">Gerencie as coleções em destaque</p>
                     </div>
                 </div>
-                <button onClick={() => setEditingCollection({ title: '', description: '', coverImage: '', businessIds: [], order: 0, active: true })} className="bg-ocean-600 text-white px-6 py-4 rounded-2xl font-black text-xs shadow-lg shadow-ocean-600/20 active:scale-95 transition-all flex items-center gap-2">
+                <button onClick={() => setEditingCollection({ title: '', description: '', coverImage: '', businessIds: [], order: 0, active: true, themeColor: '#1e3a8a', gradientOpacity: 0.8 })} className="bg-ocean-600 text-white px-6 py-4 rounded-2xl font-black text-xs shadow-lg shadow-ocean-600/20 active:scale-95 transition-all flex items-center gap-2">
                     <Plus size={16} /> NOVA COLEÇÃO
                 </button>
             </div>
@@ -3504,6 +3504,16 @@ const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessPro
                                     <div className="flex items-center gap-3 pt-8">
                                         <input type="checkbox" id="active" className="w-5 h-5 rounded border-slate-300 text-ocean-600 focus:ring-ocean-500" checked={editingCollection.active} onChange={e => setEditingCollection({...editingCollection, active: e.target.checked})} />
                                         <label htmlFor="active" className="text-sm font-bold text-slate-700 cursor-pointer">Ativo</label>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Cor de Fundo (Hex)</label>
+                                        <input type="color" className="w-full h-12 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer" value={editingCollection.themeColor || '#1e3a8a'} onChange={e => setEditingCollection({...editingCollection, themeColor: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Opacidade (0 a 1)</label>
+                                        <input type="number" step="0.1" min="0" max="1" className="w-full bg-slate-50 p-3 rounded-2xl border border-slate-100 font-bold text-sm text-ocean-950 focus:ring-2 focus:ring-ocean-500 outline-none transition-all" value={editingCollection.gradientOpacity != null ? editingCollection.gradientOpacity : 0.8} onChange={e => setEditingCollection({...editingCollection, gradientOpacity: parseFloat(e.target.value) || 0})} />
                                     </div>
                                 </div>
                             </div>

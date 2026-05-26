@@ -285,6 +285,8 @@ export interface Collection {
   businessIds: string[];
   active: boolean;
   order: number;
+  themeColor?: string; // hex color for gradient
+  gradientOpacity?: number; // 0 to 1
 }
 
 export interface HomeHighlight {

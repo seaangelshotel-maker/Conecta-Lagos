@@ -35,6 +35,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const { categories: swrCategories, isLoading: categoriesLoading } = useAppCategories();
   
   const [highlights, setHighlights] = useState<HomeHighlight[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   
@@ -45,7 +46,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const fetchData = async () => {
       try {
           const highData = await getHomeHighlights();
+          const collData = await getCollections();
           setHighlights(highData);
+          setCollections(collData.filter(c => c.active));
       } catch (e) {
           console.error("Failed to load home data", e);
       } finally {
@@ -125,24 +128,40 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         description="Descubra o melhor da Região dos Lagos com o Konecta Lagos."
       />
       
-      {/* HEADER (iFood Style) */}
+      {/* HEADER (iFood Style - Clean & Vibrant) */}
       <div className="sticky top-0 md:top-16 z-30 bg-white border-b border-slate-100 shadow-sm transition-all duration-300">
          <div className="flex justify-between items-center px-4 py-3 max-w-7xl mx-auto w-full">
+             
+             {/* Location Area - iFood similar but with Konecta touch */}
              <div 
                 onClick={() => activateGPS(false)}
-                className="flex items-center gap-1 text-slate-900 cursor-pointer hover:bg-slate-50 px-2 py-1 rounded-sm transition-colors active:scale-95"
+                className="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform group"
              >
-                <span className="font-bold text-sm md:text-base leading-none">{locationName}</span>
-                <ChevronDown size={16} className="text-red-500 font-bold" />
-                {gpsLoading && <div className="w-2 h-2 rounded-full border-2 border-red-500 border-t-transparent animate-spin ml-1"/>}
+                <div className="bg-red-50 p-1.5 rounded-full group-hover:bg-red-100 transition-colors text-red-500">
+                   <MapPin size={16} className="fill-current" />
+                </div>
+                <div className="flex flex-col justify-center">
+                    <span className="text-[10px] uppercase font-black text-slate-400 leading-tight tracking-wider">Entregar ou Explorar em</span>
+                    <div className="flex items-center gap-1">
+                        <span className="font-bold text-sm text-slate-900 leading-tight">{locationName}</span>
+                        <ChevronDown size={14} className="text-red-500 font-bold" />
+                    </div>
+                </div>
+                {gpsLoading && <div className="w-2 h-2 rounded-full border-2 border-red-500 border-t-transparent animate-spin ml-2"/>}
              </div>
              
-             {currentUser && currentUser.savedAmount > 0 && (
-                <div className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-full shadow-sm border border-red-100">
-                    <Gem size={14} className="fill-red-600" />
-                    <span className="text-[10px] sm:text-xs font-bold leading-none tracking-tight">R$ {currentUser.savedAmount.toFixed(2)}</span>
-                </div>
-             )}
+             {/* Language Selector */}
+             <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                 {['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'].map((flag, i) => (
+                     <button 
+                        key={flag} 
+                        className={`text-sm w-7 h-7 flex items-center justify-center rounded-md transition-all active:scale-95 ${i === 0 ? 'bg-white shadow-sm opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                        title="Alterar Idioma"
+                     >
+                         {flag}
+                     </button>
+                 ))}
+             </div>
          </div>
       </div>
 
@@ -226,24 +245,48 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             )}
         </div>
 
-        {/* BIG CARDS / HITS (No iFood também tem) */}
-        <div className="px-4">
-            <h3 className="text-slate-900 font-bold mb-3 text-lg px-0.5 tracking-tight">Vale conhecer</h3>
-            <div className="grid grid-flow-col auto-cols-max overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-                <div className="w-[140px] md:w-[220px] h-[180px] md:h-[260px] bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex-shrink-0 p-3 flex flex-col justify-between cursor-pointer relative overflow-hidden shadow-sm active:scale-95 transition-transform" onClick={() => onNavigate('collections')}>
-                    <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">Guia de Praias e Ilhas</span>
-                    <div className="absolute -bottom-4 -right-4 w-28 h-28 bg-blue-400 rounded-full blur-2xl opacity-50"></div>
-                </div>
-                <div className="w-[140px] md:w-[220px] h-[180px] md:h-[260px] bg-gradient-to-br from-orange-400 to-red-600 rounded-2xl flex-shrink-0 p-3 flex flex-col justify-between cursor-pointer relative overflow-hidden shadow-sm active:scale-95 transition-transform" onClick={() => onNavigate('search')}>
-                    <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">Coma bem no precinho</span>
-                    <div className="absolute -bottom-4 -right-4 w-28 h-28 bg-yellow-400 rounded-full blur-2xl opacity-50"></div>
-                </div>
-                <div className="w-[140px] md:w-[220px] h-[180px] md:h-[260px] bg-gradient-to-br from-slate-800 to-black rounded-2xl flex-shrink-0 p-3 flex flex-col justify-between cursor-pointer relative overflow-hidden shadow-sm active:scale-95 transition-transform" onClick={() => onNavigate('guide')}>
-                    <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">Experiências premium</span>
-                    <div className="absolute -bottom-4 -right-4 w-28 h-28 bg-slate-600 rounded-full blur-2xl opacity-50"></div>
+        {/* BIG CARDS / HITS (Vale conhecer - Collections) */}
+        {collections.length > 0 && (
+            <div className="px-4">
+                <h3 className="text-slate-900 font-bold mb-3 text-lg px-0.5 tracking-tight">Vale conhecer</h3>
+                <div className="grid grid-flow-col auto-cols-max overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                    {collections.map(collection => {
+                        // Apply custom theme or fall back to gradient
+                        const bgColor = collection.themeColor || '#1e3a8a'; // default blue
+                        const bgOp = collection.gradientOpacity != null ? collection.gradientOpacity : 0.8;
+                        
+                        return (
+                            <div 
+                                key={collection.id}
+                                className="w-[140px] md:w-[220px] h-[180px] md:h-[260px] rounded-2xl flex-shrink-0 p-3 flex flex-col justify-between cursor-pointer relative overflow-hidden shadow-sm active:scale-95 transition-transform" 
+                                onClick={() => onNavigate('collection-detail', { collectionId: collection.id })}
+                            >
+                                {/* Background Image */}
+                                {collection.coverImage ? (
+                                    <img src={collection.coverImage} className="absolute inset-0 w-full h-full object-cover" alt={collection.title} />
+                                ) : (
+                                    <div className="absolute inset-0" style={{ backgroundColor: bgColor }}></div>
+                                )}
+                                
+                                {/* Gradient Overlay */}
+                                <div 
+                                    className="absolute inset-0"
+                                    style={{
+                                        background: `linear-gradient(to bottom, transparent 0%, ${bgColor} 100%)`, 
+                                        opacity: bgOp 
+                                    }}
+                                ></div>
+                                
+                                {/* Alternative semi-transparent solid overlay for readability over the whole image */}
+                                <div className="absolute inset-0" style={{ backgroundColor: bgColor, opacity: bgOp * 0.3 }}></div>
+
+                                <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">{collection.title}</span>
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
-        </div>
+        )}
 
         {/* HORIZONTAL COUPONS (Promotions) */}
         {swrCoupons.length > 0 && (
