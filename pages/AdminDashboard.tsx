@@ -12,7 +12,7 @@ import {
   deleteCity, deleteNeighborhood, updateBusinessPlan, getCollections, 
   saveCollection, deleteCollection, getPendingReviews, approveReview, 
   rejectReview, updateUser, getPaymentSettings, savePaymentSettings, 
-  getRedemptionsByBusiness, validateRedemption, getAmenities, saveAmenity 
+  getRedemptionsByBusiness, validateRedemption, getAmenities, saveAmenity, ensureSubcategory 
 } from '../services/dataService';
 import { seedTouristSpots } from '../services/seedService';
 import { 
@@ -2807,6 +2807,98 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
       {view === 'GOOGLE_DRIVE' && (
           <GoogleDriveManager />
       )}
+
+      {promotingUser && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+              <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
+                  <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                      <div>
+                          <h3 className="text-xl font-black text-ocean-950">Atribuir Plano Comercial</h3>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Usuário: {promotingUser.name}</p>
+                      </div>
+                      <button onClick={() => setPromotingUser(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                          <X size={24} className="text-slate-400" />
+                      </button>
+                  </div>
+                  
+                  <div className="p-8 space-y-6">
+                      <div className="space-y-4">
+                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                              Selecione o Plano da Empresa
+                          </label>
+                          <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto">
+                              {plans.map(p => (
+                                  <button
+                                      key={p.id}
+                                      type="button"
+                                      onClick={() => setSelectedPlanForUser(p.id)}
+                                      className={`p-5 rounded-2xl border-2 text-left transition-all flex justify-between items-center ${selectedPlanForUser === p.id ? 'border-ocean-600 bg-ocean-50/50 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'}`}
+                                  >
+                                      <div>
+                                          <p className="font-black text-sm text-ocean-950 uppercase">{p.name}</p>
+                                          <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">
+                                              R$ {p.price.toFixed(2)} / {p.period === 'monthly' ? 'Mês' : 'Ano'}
+                                          </p>
+                                      </div>
+                                      {selectedPlanForUser === p.id && (
+                                          <div className="bg-ocean-600 p-1.5 rounded-full text-white">
+                                              <Check size={14} />
+                                          </div>
+                                      )}
+                                  </button>
+                              ))}
+                              {plans.length === 0 && (
+                                  <p className="text-sm font-bold text-slate-400 text-center py-4">Nenhum plano cadastrado</p>
+                              )}
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="p-8 bg-slate-50 flex gap-3">
+                      <button 
+                          onClick={() => setPromotingUser(null)}
+                          className="flex-1 px-6 py-4 bg-white border border-slate-200 text-slate-500 font-black rounded-2xl text-xs hover:bg-slate-100 transition-all uppercase tracking-wider"
+                      >
+                          CANCELAR
+                      </button>
+                      <button 
+                          onClick={async () => {
+                              if (!selectedPlanForUser) {
+                                  notify('error', 'Por favor, selecione um plano!');
+                                  return;
+                              }
+                              setActionLoading('promoting');
+                              try {
+                                  const { updateUser } = await import('../services/dataService');
+                                  await updateUser({ 
+                                      ...promotingUser, 
+                                      role: UserRole.COMPANY, 
+                                      plan: selectedPlanForUser,
+                                      permissions: {
+                                          canCreateBusiness: true,
+                                          canManageBusiness: true,
+                                          canCreateCoupons: true
+                                      }
+                                  });
+                                  notify('success', `${promotingUser.name} agora é uma Empresa com o plano selecionado!`);
+                                  setPromotingUser(null);
+                                  refreshData();
+                              } catch (error: any) {
+                                  console.error(error);
+                                  notify('error', 'Erro ao promover usuário: ' + (error.message || ''));
+                              } finally {
+                                  setActionLoading(null);
+                              }
+                          }}
+                          disabled={actionLoading === 'promoting' || !selectedPlanForUser}
+                          className="flex-1 px-6 py-4 bg-ocean-600 text-white font-black rounded-2xl text-xs shadow-lg shadow-ocean-600/20 flex items-center justify-center gap-2 hover:bg-ocean-700 transition-all uppercase tracking-wider disabled:opacity-50"
+                      >
+                          {actionLoading === 'promoting' ? <Loader2 className="animate-spin" size={16}/> : <Check size={16} />} CONFIRMAR
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 };
@@ -2979,98 +3071,6 @@ const HighlightsManager: React.FC<{ highlights: HomeHighlight[]; onBack: () => v
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-
-            {promotingUser && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <div>
-                                <h3 className="text-xl font-black text-ocean-950">Atribuir Plano Comercial</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Usuário: {promotingUser.name}</p>
-                            </div>
-                            <button onClick={() => setPromotingUser(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-                                <X size={24} className="text-slate-400" />
-                            </button>
-                        </div>
-                        
-                        <div className="p-8 space-y-6">
-                            <div className="space-y-4">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                                    Selecione o Plano da Empresa
-                                </label>
-                                <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto">
-                                    {plans.map(p => (
-                                        <button
-                                            key={p.id}
-                                            type="button"
-                                            onClick={() => setSelectedPlanForUser(p.id)}
-                                            className={`p-5 rounded-2xl border-2 text-left transition-all flex justify-between items-center ${selectedPlanForUser === p.id ? 'border-ocean-600 bg-ocean-50/50 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'}`}
-                                        >
-                                            <div>
-                                                <p className="font-black text-sm text-ocean-950 uppercase">{p.name}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">
-                                                    R$ {p.price.toFixed(2)} / {p.period === 'monthly' ? 'Mês' : 'Ano'}
-                                                </p>
-                                            </div>
-                                            {selectedPlanForUser === p.id && (
-                                                <div className="bg-ocean-600 p-1.5 rounded-full text-white">
-                                                    <Check size={14} />
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                    {plans.length === 0 && (
-                                        <p className="text-sm font-bold text-slate-400 text-center py-4">Nenhum plano cadastrado</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-8 bg-slate-50 flex gap-3">
-                            <button 
-                                onClick={() => setPromotingUser(null)}
-                                className="flex-1 px-6 py-4 bg-white border border-slate-200 text-slate-500 font-black rounded-2xl text-xs hover:bg-slate-100 transition-all uppercase tracking-wider"
-                            >
-                                CANCELAR
-                            </button>
-                            <button 
-                                onClick={async () => {
-                                    if (!selectedPlanForUser) {
-                                        notify('error', 'Por favor, selecione um plano!');
-                                        return;
-                                    }
-                                    setActionLoading('promoting');
-                                    try {
-                                        const { updateUser } = await import('../services/dataService');
-                                        await updateUser({ 
-                                            ...promotingUser, 
-                                            role: UserRole.COMPANY, 
-                                            plan: selectedPlanForUser,
-                                            permissions: {
-                                                canCreateBusiness: true,
-                                                canManageBusiness: true,
-                                                canCreateCoupons: true
-                                            }
-                                        });
-                                        notify('success', `${promotingUser.name} agora é uma Empresa com o plano selecionado!`);
-                                        setPromotingUser(null);
-                                        refreshData();
-                                    } catch (error) {
-                                        console.error(error);
-                                        notify('error', 'Erro ao promover usuário.');
-                                    } finally {
-                                        setActionLoading(null);
-                                    }
-                                }}
-                                disabled={actionLoading === 'promoting' || !selectedPlanForUser}
-                                className="flex-1 px-6 py-4 bg-ocean-600 text-white font-black rounded-2xl text-xs shadow-lg shadow-ocean-600/20 flex items-center justify-center gap-2 hover:bg-ocean-700 transition-all uppercase tracking-wider disabled:opacity-50"
-                            >
-                                {actionLoading === 'promoting' ? <Loader2 className="animate-spin" size={16}/> : <Check size={16} />} CONFIRMAR
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
