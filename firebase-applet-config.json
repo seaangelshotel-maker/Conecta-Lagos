@@ -1,9 +1,9 @@
 {
-  "projectId": "remixed-project-id",
-  "appId": "remixed-app-id",
-  "apiKey": "remixed-api-key",
-  "authDomain": "remixed-auth-domain",
-  "storageBucket": "remixed-storage-bucket",
-  "messagingSenderId": "remixed-messaging-sender-id",
-  "measurementId": "remixed-measurement-id"
+  "projectId": "conectario-dd04b",
+  "appId": "1:733864820546:web:9dc7affdf1e76ec92cd2db",
+  "apiKey": "AIzaSyCLyaiF_RVOd4BXNE9sZ4sGNsjlqu6ihdQ",
+  "authDomain": "conectario-dd04b.firebaseapp.com",
+  "storageBucket": "conectario-dd04b.firebasestorage.app",
+  "messagingSenderId": "733864820546",
+  "measurementId": "G-39XG38B9GK"
 }

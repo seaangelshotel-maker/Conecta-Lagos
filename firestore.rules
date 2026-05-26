@@ -86,7 +86,7 @@ service cloud.firestore {
         request.auth.uid == request.resource.data.userId &&
         request.resource.data.status == 'PENDING' &&
         request.resource.data.verificationCode is string &&
-        exists(/databases/$(database)/documents/coupons/$(request.resource.data.couponId))
+        request.resource.data.couponId is string
       );
       allow update: if isAuthenticated() && (
         (request.auth.uid == resource.data.companyId && 
