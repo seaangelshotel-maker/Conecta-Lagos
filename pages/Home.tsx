@@ -42,6 +42,10 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationName, setLocationName] = useState("Região dos Lagos");
+  
+  const [currentLang, setCurrentLang] = useState('🇧🇷');
+  const [showLanguages, setShowLanguages] = useState(false);
+  const languages = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
   const fetchData = async () => {
       try {
@@ -151,16 +155,37 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
              </div>
              
              {/* Language Selector */}
-             <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-100">
-                 {['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'].map((flag, i) => (
-                     <button 
-                        key={flag} 
-                        className={`text-sm w-7 h-7 flex items-center justify-center rounded-md transition-all active:scale-95 ${i === 0 ? 'bg-white shadow-sm opacity-100' : 'opacity-40 hover:opacity-100'}`}
-                        title="Alterar Idioma"
-                     >
-                         {flag}
-                     </button>
-                 ))}
+             <div className="relative">
+                 <button 
+                     onClick={() => setShowLanguages(!showLanguages)}
+                     className="flex items-center justify-center w-9 h-9 bg-slate-50 border border-slate-100 rounded-lg text-lg hover:bg-slate-100 transition-colors active:scale-95 z-50 relative"
+                     title="Alterar Idioma"
+                 >
+                     {currentLang}
+                 </button>
+                 
+                 {showLanguages && (
+                     <>
+                         <div 
+                             className="fixed inset-0 z-40" 
+                             onClick={() => setShowLanguages(false)} 
+                         ></div>
+                         <div className="absolute right-0 mt-2 p-1.5 bg-white border border-slate-100 shadow-xl rounded-xl flex flex-col gap-1 z-50 animate-in fade-in slide-in-from-top-2">
+                             {languages.filter(l => l !== currentLang).map((flag) => (
+                                 <button 
+                                    key={flag} 
+                                    onClick={() => {
+                                        setCurrentLang(flag);
+                                        setShowLanguages(false);
+                                    }}
+                                    className="w-10 h-10 flex items-center justify-center text-xl rounded-lg hover:bg-slate-50 transition-colors active:scale-95"
+                                 >
+                                     {flag}
+                                 </button>
+                             ))}
+                         </div>
+                     </>
+                 )}
              </div>
          </div>
       </div>

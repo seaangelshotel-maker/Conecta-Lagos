@@ -1095,6 +1095,8 @@ export const saveCollection = async (col: Partial<Collection>) => {
         businessIds: col.businessIds || [],
         order: col.order || 0,
         active: col.active ?? true,
+        themeColor: col.themeColor || '#1e3a8a',
+        gradientOpacity: col.gradientOpacity ?? 0.8,
         ...col
     } as Collection;
     

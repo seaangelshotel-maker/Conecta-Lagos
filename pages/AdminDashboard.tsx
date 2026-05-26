@@ -3426,6 +3426,7 @@ const LocationsManager: React.FC<{ cities: City[]; neighborhoods: Neighborhood[]
 const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessProfile[]; onBack: () => void; onRefresh: () => void }> = ({ collections, businesses, onBack, onRefresh }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [editingCollection, setEditingCollection] = useState<any | null>(null);
+    const [businessSearch, setBusinessSearch] = useState("");
     const { notify, confirm } = useNotification();
 
     const handleSave = async (e: React.FormEvent) => {
@@ -3524,10 +3525,21 @@ const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessPro
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Empresas na Coleção ({(editingCollection.businessIds || []).length})</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-wider">Empresas na Coleção ({(editingCollection.businessIds || []).length})</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Buscar empresa..." 
+                                    className="bg-slate-50 border border-slate-200 text-xs px-3 py-1.5 rounded-lg outline-none focus:ring-1 focus:ring-ocean-500 w-48"
+                                    value={businessSearch}
+                                    onChange={e => setBusinessSearch(e.target.value)}
+                                />
+                            </div>
                             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 max-h-64 overflow-y-auto">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                    {businesses.map(b => (
+                                    {businesses
+                                        .filter(b => b.name.toLowerCase().includes(businessSearch.toLowerCase()) || editingCollection.businessIds?.includes(b.id))
+                                        .map(b => (
                                         <label key={b.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${editingCollection.businessIds?.includes(b.id) ? 'bg-ocean-50 border-ocean-200' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
                                             <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-ocean-600 focus:ring-ocean-500" checked={editingCollection.businessIds?.includes(b.id)} onChange={() => toggleBusiness(b.id)} />
                                             <div className="flex items-center gap-2 overflow-hidden">
