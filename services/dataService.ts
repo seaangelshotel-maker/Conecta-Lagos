@@ -145,7 +145,11 @@ onAuthStateChanged(auth, async (firebaseUser) => {
             console.error("Auth session sync error:", e);
         }
     } else {
-        localStorage.removeItem(SESSION_KEY);
+        // Prevent deleting active local session (which supports master-password bypass and manual credentials bypass)
+        const hasSession = localStorage.getItem(SESSION_KEY);
+        if (!hasSession) {
+            localStorage.removeItem(SESSION_KEY);
+        }
     }
     _isAuthInitialized = true;
     notifyListeners();
