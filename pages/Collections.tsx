@@ -13,7 +13,10 @@ export const Collections: React.FC<CollectionsProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchData = async () => {
       const data = await getCollections();
-      setCollections(data);
+      const unique = data.filter((item, index, self) => 
+        item && item.id && self.findIndex(c => c.id === item.id) === index
+      );
+      setCollections(unique);
     };
     fetchData();
   }, []);

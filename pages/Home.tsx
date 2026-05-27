@@ -47,6 +47,24 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [showLanguages, setShowLanguages] = useState(false);
   const languages = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
+  // Deduplicate helper to prevent React key warning (e.g., local_1765502020338)
+  const getUniqueById = <T extends { id: string }>(items: T[]): T[] => {
+    const seen = new Set<string>();
+    return items.filter(item => {
+      if (!item || !item.id) return false;
+      const key = String(item.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const uniqueCoupons = getUniqueById(swrCoupons);
+  const uniqueBusinesses = getUniqueById(swrBusinesses);
+  const uniqueCategories = getUniqueById(swrCategories);
+  const uniqueHighlights = getUniqueById(highlights);
+  const uniqueCollections = getUniqueById(collections);
+
   const fetchData = async () => {
       try {
           const highData = await getHomeHighlights();
@@ -81,9 +99,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   }, []);
 
   useEffect(() => {
-    if (highlights.length > 1) {
+    if (uniqueHighlights.length > 1) {
         const interval = setInterval(() => {
-            setCurrentHighlightIndex(prev => (prev + 1) % highlights.length);
+            setCurrentHighlightIndex(prev => (prev + 1) % uniqueHighlights.length);
         }, 5000);
         return () => clearInterval(interval);
     }
@@ -195,8 +213,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* CAROUSEL / BANNERS */}
         <div className="px-4">
             <div className="relative w-full h-40 sm:h-52 md:h-[350px] rounded-2xl overflow-hidden shadow-sm bg-slate-100">
-                {highlights.length > 0 ? (
-                    highlights.map((h, idx) => (
+                {uniqueHighlights.length > 0 ? (
+                    uniqueHighlights.map((h, idx) => (
                         <div 
                             key={h.id}
                             className={`absolute inset-0 transition-opacity duration-700 ease-in-out cursor-pointer ${idx === currentHighlightIndex ? 'opacity-100' : 'opacity-0 z-0'}`}
@@ -224,9 +242,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                     </div>
                 )}
                 
-                {highlights.length > 1 && (
+                {uniqueHighlights.length > 1 && (
                     <div className="absolute bottom-3 right-0 w-full flex justify-center gap-1.5 z-20">
-                        {highlights.map((_, idx) => (
+                        {uniqueHighlights.map((_, idx) => (
                             <button 
                                 key={idx}
                                 onClick={() => setCurrentHighlightIndex(idx)}
@@ -246,7 +264,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 </div>
             ) : (
                 <div className="grid grid-flow-col auto-cols-max gap-3 md:gap-6 overflow-x-auto px-4 pb-2 hide-scrollbar">
-                    {swrCategories.map(cat => {
+                    {uniqueCategories.map(cat => {
                         // Dummy emojis for visual proxy of realistic icons
                         let emoji = '🗺️';
                         const n = cat.name.toLowerCase();
@@ -271,11 +289,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         </div>
 
         {/* BIG CARDS / HITS (Vale conhecer - Collections) */}
-        {collections.length > 0 && (
+        {uniqueCollections.length > 0 && (
             <div className="px-4">
                 <h3 className="text-slate-900 font-bold mb-3 text-lg px-0.5 tracking-tight">Vale conhecer</h3>
                 <div className="grid grid-flow-col auto-cols-max overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-                    {collections.map(collection => {
+                    {uniqueCollections.map(collection => {
                         // Apply custom theme or fall back to gradient
                         const bgColor = collection.themeColor || '#1e3a8a'; // default blue
                         const bgOp = collection.gradientOpacity != null ? collection.gradientOpacity : 0.8;
@@ -314,14 +332,14 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         )}
 
         {/* HORIZONTAL COUPONS (Promotions) */}
-        {swrCoupons.length > 0 && (
+        {uniqueCoupons.length > 0 && (
             <div>
                 <div className="flex justify-between items-center mb-3 px-4">
                     <h3 className="text-slate-900 text-lg font-bold tracking-tight">Melhores Cupons</h3>
                     <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('search')}>Ver todos</button>
                 </div>
                 <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-4 md:mx-0 md:px-0 md:grid md:grid-cols-4">
-                    {swrCoupons.slice(0, 5).map(coupon => (
+                    {uniqueCoupons.slice(0, 5).map(coupon => (
                         <div key={coupon.id} className="w-[280px] md:w-full flex-shrink-0">
                             <CouponCard coupon={coupon} onGetCoupon={handleCardClick} />
                         </div>
@@ -348,11 +366,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                     <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
                     <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
                 </div>
-            ) : swrBusinesses.length > 0 ? (
+            ) : uniqueBusinesses.length > 0 ? (
                 <div className="flex flex-col px-4 gap-0.5">
-                    {swrBusinesses.map(biz => {
+                    {uniqueBusinesses.map(biz => {
                         const isOpen = checkIfOpen(biz.openingHours, biz.category);
-                        const bizCoupons = swrCoupons.filter(c => c.companyId === biz.id);
+                        const bizCoupons = uniqueCoupons.filter(c => c.companyId === biz.id);
                         
                         return (
                             <div 

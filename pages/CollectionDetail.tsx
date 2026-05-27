@@ -27,7 +27,11 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId
           const ids = col.businessIds || [];
           const loadedBusinesses = await Promise.all(ids.map((id: string) => getBusinessById(id)));
           const filteredBusinesses = loadedBusinesses.filter((b: BusinessProfile | undefined): b is BusinessProfile => b !== undefined);
-          setBusinesses(filteredBusinesses);
+          // Deduplicate by business id
+          const uniqueBusinesses = filteredBusinesses.filter((b, index, self) => 
+            self.findIndex(x => x.id === b.id) === index
+          );
+          setBusinesses(uniqueBusinesses);
       }
       
       // Fetch coupons to see which businesses have active coupons
