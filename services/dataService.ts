@@ -1000,10 +1000,14 @@ export const getAmenities = async () => {
             _amenities = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppAmenity));
         } else {
             // Seed defaults
-            for (const am of DEFAULT_AMENITIES) {
-                await setDoc(doc(db, 'app_amenities', am.id), am);
-            }
             _amenities = DEFAULT_AMENITIES;
+            for (const am of DEFAULT_AMENITIES) {
+                try {
+                    await setDoc(doc(db, 'app_amenities', am.id), am);
+                } catch (e) {
+                    console.warn("Using default amenities. Seed failed (permissions expected if non-admin):", e);
+                }
+            }
         }
     } catch (e) {
         console.warn("Using default amenities:", e);
