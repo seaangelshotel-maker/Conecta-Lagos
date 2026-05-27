@@ -146,11 +146,8 @@ onAuthStateChanged(auth, async (firebaseUser) => {
             console.error("Auth session sync error:", e);
         }
     } else {
-        // Prevent deleting active local session (which supports master-password bypass and manual credentials bypass)
-        const hasSession = localStorage.getItem(SESSION_KEY);
-        if (!hasSession) {
-            localStorage.removeItem(SESSION_KEY);
-        }
+        // Firebase Auth is signed out, ensure local session is cleared
+        localStorage.removeItem(SESSION_KEY);
     }
     _isAuthInitialized = true;
     notifyListeners();
@@ -336,24 +333,6 @@ export const login = async (email: string, pass: string): Promise<User | null> =
 
     if (foundUser) {
         if (foundUser.isBlocked) throw new Error("Sua conta está inativa. Entre em contato com o suporte.");
-        
-        // Master password or manual password set by admin
-        if (pass === '123456' || (foundUser.manualPassword && pass === foundUser.manualPassword)) {
-            // Ensure master admins are always SUPER_ADMIN
-            const emailLower = (foundUser.email || '').toLowerCase();
-            const isMasterAdmin = 
-                emailLower === 'sea.angelshotel@gmail.com' || 
-                emailLower === 'admin@lagosgo.org' || 
-                emailLower === 'admin@conectario.com';
-            
-            if (isMasterAdmin && foundUser.role !== UserRole.SUPER_ADMIN) {
-                foundUser.role = UserRole.SUPER_ADMIN;
-                await updateUser(foundUser);
-            }
-            localStorage.setItem(SESSION_KEY, JSON.stringify(foundUser));
-            notifyListeners();
-            return foundUser;
-        }
     }
 
     try {
