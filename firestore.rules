@@ -17,8 +17,7 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && 
         (
-         (request.auth.token.get('email', '') == 'sea.angelshotel@gmail.com') ||
-         (request.auth.token.get('email', '') == 'admin@lagosgo.org') ||
+         (('email' in request.auth.token) && (request.auth.token.email == 'sea.angelshotel@gmail.com' || request.auth.token.email == 'admin@lagosgo.org')) ||
          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN')
         );
