@@ -16,14 +16,17 @@ service cloud.firestore {
     
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == 'sea.angelshotel@gmail.com' ||
-         request.auth.token.email == 'admin@lagosgo.org' ||
+        (
+         (request.auth.token.email == 'sea.angelshotel@gmail.com') ||
+         (request.auth.token.email == 'admin@lagosgo.org') ||
          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN'));
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN')
+        );
     }
     
     function isCompany() {
       return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'COMPANY';
     }
 

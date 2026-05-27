@@ -3439,6 +3439,7 @@ const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessPro
             setEditingCollection(null);
             onRefresh();
         } catch (error) {
+            console.error("Erro ao salvar coleção:", error);
             notify('error', 'Erro ao salvar coleção.');
         } finally {
             setIsSaving(false);
