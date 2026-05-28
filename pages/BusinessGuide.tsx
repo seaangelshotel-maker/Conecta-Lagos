@@ -8,6 +8,8 @@ import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 interface BusinessGuideProps {
   currentUser: User | null;
+  initialCategory?: string;
+  initialSubcategory?: string;
   onNavigate: (page: string, params?: any) => void;
 }
 
@@ -24,7 +26,7 @@ const GuideSplash = () => (
     </div>
 );
 
-export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNavigate }) => {
+export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initialCategory, initialSubcategory, onNavigate }) => {
   const { notify } = useNotification();
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [filtered, setFiltered] = useState<BusinessProfile[]>([]);
@@ -39,8 +41,8 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
   const [collections, setCollections] = useState<any[]>([]);
 
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [selectedSubCategory, setSelectedSubCategory] = useState('Todos'); 
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'Todos');
+  const [selectedSubCategory, setSelectedSubCategory] = useState(initialSubcategory || 'Todos'); 
   const [selectedLocation, setSelectedLocation] = useState('Todos');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -61,6 +63,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const loaderRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
@@ -146,6 +149,15 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
   }, []);
 
   useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+    if (initialSubcategory) {
+      setSelectedSubCategory(initialSubcategory);
+    }
+  }, [initialCategory, initialSubcategory]);
+
+  useEffect(() => {
     syncData();
     
     const handleUpdate = () => syncData();
@@ -168,6 +180,26 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
         syncData(true);
     }
   };
+
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        handleLoadMore();
+      }
+    }, { threshold: 0.1 });
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader) {
+      observer.observe(currentLoader);
+    }
+
+    return () => {
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
+      }
+    };
+  }, [hasMore, loadingMore, loaderRef]);
 
   useEffect(() => {
     let result = [...businesses];
@@ -473,7 +505,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, onNav
 
       {/* --- LOAD MORE BUTTON (PROMPT 1) --- */}
       {hasMore && (
-          <div className="flex justify-center mt-12 mb-20">
+          <div ref={loaderRef} className="flex justify-center mt-12 mb-20">
               <button 
                   onClick={handleLoadMore}
                   disabled={loadingMore}

@@ -174,11 +174,11 @@ function AppContent() {
       case 'home':
         return <Home currentUser={user} onNavigate={handleNavigate} />;
       case 'guide':
-        return <BusinessGuide currentUser={user} onNavigate={handleNavigate} />;
+        return <BusinessGuide currentUser={user} initialCategory={pageParams?.category} initialSubcategory={pageParams?.subcategory} onNavigate={handleNavigate} />;
       case 'business-detail':
         return <BusinessDetail businessId={pageParams?.businessId} onNavigate={handleNavigate} />;
       case 'search':
-        return <SearchPage onNavigate={handleNavigate} />;
+        return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} onNavigate={handleNavigate} />;
       case 'blog':
         return <Blog onNavigate={handleNavigate} />;
       case 'blog-detail':

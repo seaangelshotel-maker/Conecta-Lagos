@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ChevronDown, ChevronRight, Gem, ArrowRight, Star, Ticket } from 'lucide-react';
+import { MapPin, ChevronDown, ChevronRight, Gem, ArrowRight, Star, Ticket, Loader2 } from 'lucide-react';
 import { Coupon, User, AppCategory, BusinessProfile, BlogPost, Collection, HomeHighlight } from '../types';
 import { SEO } from '../components/SEO';
 import { CouponCard } from '../components/CouponCard';
@@ -47,6 +47,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [showLanguages, setShowLanguages] = useState(false);
   const languages = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
+  const [activeFilter, setActiveFilter] = useState('Tudo');
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [loadingMoreHome, setLoadingMoreHome] = useState(false);
+  const homeLoaderRef = React.useRef<HTMLDivElement | null>(null);
+
   // Deduplicate helper to prevent React key warning (e.g., local_1765502020338)
   const getUniqueById = <T extends { id: string }>(items: T[]): T[] => {
     const seen = new Set<string>();
@@ -64,6 +69,75 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const uniqueCategories = getUniqueById(swrCategories);
   const uniqueHighlights = getUniqueById(highlights);
   const uniqueCollections = getUniqueById(collections);
+
+  const filteredBusinessesForFeed = React.useMemo(() => {
+    const list = [...uniqueBusinesses];
+    if (activeFilter === 'Tudo') return list;
+    
+    const tag = activeFilter.toLowerCase();
+    if (tag === 'lanches') {
+      return list.filter(b => 
+        (b.category || '').toLowerCase().includes('gastro') || 
+        (b.subcategory || '').toLowerCase().includes('lanche') || 
+        (b.name || '').toLowerCase().includes('burger') || 
+        (b.name || '').toLowerCase().includes('lanche') ||
+        (b.description || '').toLowerCase().includes('lanche')
+      );
+    }
+    if (tag === 'passeios') {
+      return list.filter(b => 
+        (b.category || '').toLowerCase().includes('passeio') || 
+        (b.subcategory || '').toLowerCase().includes('passeio') ||
+        (b.description || '').toLowerCase().includes('passeio')
+      );
+    }
+    if (tag === 'açaí') {
+      return list.filter(b => 
+        (b.name || '').toLowerCase().includes('açaí') || 
+        (b.name || '').toLowerCase().includes('acai') || 
+        (b.description || '').toLowerCase().includes('açaí')
+      );
+    }
+    if (tag === 'mariscos') {
+      return list.filter(b => 
+        (b.name || '').toLowerCase().includes('marisco') || 
+        (b.name || '').toLowerCase().includes('camarão') || 
+        (b.name || '').toLowerCase().includes('peixe') || 
+        (b.description || '').toLowerCase().includes('camarão') || 
+        (b.description || '').toLowerCase().includes('marisco')
+      );
+    }
+    return list;
+  }, [uniqueBusinesses, activeFilter]);
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [activeFilter]);
+
+  useEffect(() => {
+    if (visibleCount >= filteredBusinessesForFeed.length) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setLoadingMoreHome(true);
+        setTimeout(() => {
+          setVisibleCount(prev => Math.min(prev + 6, filteredBusinessesForFeed.length));
+          setLoadingMoreHome(false);
+         }, 400);
+      }
+    }, { threshold: 0.1 });
+
+    const currentLoader = homeLoaderRef.current;
+    if (currentLoader) {
+      observer.observe(currentLoader);
+    }
+
+    return () => {
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
+      }
+    };
+  }, [visibleCount, filteredBusinessesForFeed, homeLoaderRef]);
 
   const fetchData = async () => {
       try {
@@ -276,7 +350,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                         if (n.includes('festa') || n.includes('evento')) emoji = '🎉';
                         
                         return (
-                            <div key={cat.id} className="flex flex-col items-center gap-2 min-w-[72px] cursor-pointer group shrink-0" onClick={() => onNavigate('search')}>
+                            <div key={cat.id} className="flex flex-col items-center gap-2 min-w-[72px] cursor-pointer group shrink-0" onClick={() => onNavigate('guide', { category: cat.name })} >
                                 <div className="w-[72px] h-[72px] rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center justify-center text-red-500 overflow-hidden relative active:scale-95 transition-transform group-hover:bg-slate-50">
                                    <div className="text-3xl relative z-10 drop-shadow-sm">{emoji}</div>
                                 </div>
@@ -291,7 +365,10 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* BIG CARDS / HITS (Vale conhecer - Collections) */}
         {uniqueCollections.length > 0 && (
             <div className="px-4">
-                <h3 className="text-slate-900 font-bold mb-3 text-lg px-0.5 tracking-tight">Vale conhecer</h3>
+                <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-slate-900 font-bold text-lg px-0.5 tracking-tight">Vale conhecer</h3>
+                    <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('collections')}>Ver todas</button>
+                </div>
                 <div className="grid grid-flow-col auto-cols-max overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
                     {uniqueCollections.map(collection => {
                         // Apply custom theme or fall back to gradient
@@ -350,12 +427,19 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
 
         {/* LIST - Recomendados para você */}
         <div>
-            <h3 className="text-slate-900 text-lg font-bold tracking-tight mb-3 px-4">Recomendados para você</h3>
+            <div className="flex justify-between items-center mb-3 px-4">
+                <h3 className="text-slate-900 font-bold text-lg tracking-tight">Recomendados para você</h3>
+                <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('guide')}>Ver todos</button>
+            </div>
             
             {/* Quick Filters */}
             <div className="flex overflow-x-auto hide-scrollbar gap-2 px-4 mb-4">
                 {['Tudo', 'Lanches', 'Passeios', 'Açaí', 'Mariscos'].map(tag => (
-                   <div key={tag} className="border border-slate-200 bg-white px-4 py-1.5 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap shadow-sm hover:border-slate-300 cursor-pointer active:scale-95 transition-transform text-center">
+                   <div 
+                      key={tag} 
+                      onClick={() => setActiveFilter(tag)}
+                      className={`border px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm hover:border-slate-300 cursor-pointer active:scale-95 transition-all text-center ${activeFilter === tag ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-white text-slate-700 border-slate-200'}`}
+                   >
                        {tag}
                    </div> 
                 ))}
@@ -366,9 +450,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                     <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
                     <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
                 </div>
-            ) : uniqueBusinesses.length > 0 ? (
+            ) : filteredBusinessesForFeed.length > 0 ? (
                 <div className="flex flex-col px-4 gap-0.5">
-                    {uniqueBusinesses.map(biz => {
+                    {filteredBusinessesForFeed.slice(0, visibleCount).map(biz => {
                         const isOpen = checkIfOpen(biz.openingHours, biz.category);
                         const bizCoupons = uniqueCoupons.filter(c => c.companyId === biz.id);
                         
@@ -376,7 +460,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                             <div 
                                 key={biz.id} 
                                 onClick={() => onNavigate('business-detail', { businessId: biz.id })}
-                                className="bg-white p-3 rounded-lg flex gap-3 cursor-pointer hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 items-center group relative overflow-hidden"
+                                className="bg-white p-3 rounded-lg flex gap-3 cursor-pointer hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 items-center group relative overflow-hidden animate-in fade-in"
                             >
                                 <img src={biz.coverImage} className="w-[72px] h-[72px] min-w-[72px] rounded-lg object-cover bg-slate-100 border border-slate-100" />
                                 
@@ -400,8 +484,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                     </div>
                                     
                                     <div className="flex items-center gap-3 text-xs">
-                                        {/* Fake distance estimation for visual completeness (iFood style) */}
-                                        <div className="text-slate-500">{(Math.random() * 5 + 1).toFixed(1)} km</div>
+                                        <div className="text-slate-500">1.8 km</div>
                                         {bizCoupons.length > 0 && (
                                             <div className="flex items-center gap-1 bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">
                                                 <Ticket size={10} /> Cupom
@@ -413,7 +496,24 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                         )
                     })}
                 </div>
-            ) : null}
+            ) : (
+                <div className="text-center py-12 text-slate-400 font-medium text-sm">
+                    Nenhum estabelecimento encontrado nesta categoria.
+                </div>
+            )}
+
+            {visibleCount < filteredBusinessesForFeed.length && (
+                <div ref={homeLoaderRef} className="flex flex-col items-center justify-center py-8 text-slate-400 font-semibold text-xs gap-2">
+                    <Loader2 className="animate-spin text-red-500" size={24} />
+                    <span>Carregando mais estabelecimentos...</span>
+                </div>
+            )}
+            
+            {visibleCount >= filteredBusinessesForFeed.length && filteredBusinessesForFeed.length > 0 && (
+                <div className="text-center py-8 text-slate-400 font-bold text-xs">
+                    Você chegou ao fim dos recomendados.
+                </div>
+            )}
         </div>
 
       </div>

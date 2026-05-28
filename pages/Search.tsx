@@ -8,13 +8,15 @@ import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 
 interface SearchPageProps {
+  initialCategory?: string;
+  initialQuery?: string;
   onNavigate: (page: string) => void;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onNavigate }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initialQuery, onNavigate }) => {
   const { notify } = useNotification();
-  const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [query, setQuery] = useState(initialQuery || '');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'Todos');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('Todos');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
@@ -50,6 +52,15 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onNavigate }) => {
     window.addEventListener('dataUpdated', fetch);
     return () => window.removeEventListener('dataUpdated', fetch);
   }, []);
+
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+    if (initialQuery !== undefined) {
+       setQuery(initialQuery);
+    }
+  }, [initialCategory, initialQuery]);
 
   useEffect(() => {
     let result = [...coupons];
