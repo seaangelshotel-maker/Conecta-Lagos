@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BlogPost, User, AppCategory } from '../types';
-import { getBlogPosts, getAllUsers, getDicasCategories } from '../services/dataService';
+import { BlogPost, User, AppCategory, BlogAd } from '../types';
+import { getBlogPosts, getAllUsers, getDicasCategories, getBlogAds } from '../services/dataService';
 import { Calendar, ChevronRight, Search, Heart, Clock, Compass, BookOpen, Share2, Award, User as UserIcon, Utensils, Newspaper, Lightbulb, Layers, Flame, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -18,47 +18,10 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  const adsSlides = [
-    {
-      id: 'ad1',
-      title: 'Passeio de Barco VIP com Capitão Arraial • 15% OFF',
-      subtitle: 'Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.',
-      imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80',
-      tag: 'Patrocinado',
-      actionLabel: 'Ver Agências',
-      badgeColor: 'bg-amber-500/90 text-white',
-      onAction: () => {
-        if (onNavigate) onNavigate('guide', { category: 'Passeios' });
-      }
-    },
-    {
-      id: 'ad2',
-      title: 'Festival da Moqueca no Saint Tropez',
-      subtitle: 'A mais tradicional e farta moqueca litorânea com desconto exclusivo de 10% pelo Lagos GO.',
-      imageUrl: 'https://images.unsplash.com/photo-1534080391025-a77b068740e4?auto=format&fit=crop&w=1200&q=80',
-      tag: 'Destaque Gourmet',
-      actionLabel: 'Ver Cardápio',
-      badgeColor: 'bg-red-500/90 text-white',
-      onAction: () => {
-        if (onNavigate) onNavigate('guide', { category: 'Gastronomia' });
-      }
-    },
-    {
-      id: 'ad3',
-      title: 'Hospedagem Prime no Pontal do Atalaia',
-      subtitle: 'Flats mobiliados com vista eterna para o mar das Prainhas do Pontal. Reserve pelo app.',
-      imageUrl: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&w=1200&q=80',
-      tag: 'Parceiro Premium',
-      actionLabel: 'Ver Flats',
-      badgeColor: 'bg-purple-600/90 text-white',
-      onAction: () => {
-        if (onNavigate) onNavigate('guide', { category: 'Hospedagem' });
-      }
-    }
-  ];
+  const [adsSlides, setAdsSlides] = useState<BlogAd[]>([]);
 
   useEffect(() => {
+    if (adsSlides.length === 0) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % adsSlides.length);
     }, 4500);
@@ -67,14 +30,16 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [p, u, c] = await Promise.all([
+      const [p, u, c, ads] = await Promise.all([
         getBlogPosts(),
         getAllUsers(),
-        getDicasCategories()
+        getDicasCategories(),
+        getBlogAds()
       ]);
       setPosts(p);
       setUsers(u);
       setCategories(c);
+      setAdsSlides(ads.filter(a => a.active));
     };
     fetchData();
 
@@ -162,7 +127,11 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
               return (
                 <div 
                   key={slide.id}
-                  onClick={slide.onAction}
+                  onClick={() => {
+                    if (onNavigate && slide.targetCategory) {
+                      onNavigate('guide', { category: slide.targetCategory });
+                    }
+                  }}
                   className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-95 pointer-events-none'}`}
                 >
                   <img 

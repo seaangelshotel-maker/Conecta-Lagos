@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
-import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity } from '../types';
+import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity, BlogAd, BlogPost } from '../types';
 import { 
   getCoupons, saveCoupon, deleteCoupon, getBusinesses, getAllBusinesses, 
   saveBusiness, getBusinessStats, getCategories, saveCategory, 
@@ -12,7 +12,9 @@ import {
   deleteCity, deleteNeighborhood, updateBusinessPlan, getCollections, 
   saveCollection, deleteCollection, getPendingReviews, approveReview, 
   rejectReview, updateUser, getPaymentSettings, savePaymentSettings, 
-  getRedemptionsByBusiness, validateRedemption, getAmenities, saveAmenity, ensureSubcategory 
+  getRedemptionsByBusiness, validateRedemption, getAmenities, saveAmenity, ensureSubcategory,
+  getBlogAds, saveBlogAd, deleteBlogAd, getBlogPosts, saveBlogPost, deleteBlogPost,
+  getDicasCategories, saveDicasCategory, deleteDicasCategory, deleteDicasSubcategory, saveDicasSubcategory
 } from '../services/dataService';
 import { seedTouristSpots } from '../services/seedService';
 import { 
@@ -31,6 +33,8 @@ import { BusinessHoursEditor } from '../components/BusinessHoursEditor';
 import { AdminStats } from '../components/admin/AdminStats';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
 import { GoogleDriveManager } from '../components/GoogleDriveManager';
+import { BlogAdsManager } from '../components/admin/BlogAdsManager';
+import { BlogPostsManager } from '../components/admin/BlogPostsManager';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -38,7 +42,10 @@ const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
-  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE'>('HOME');
+  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS'>('HOME');
+  const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [dicasCategories, setDicasCategories] = useState<AppCategory[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({ isPaymentActive: false, isTestMode: true, isDirectPaymentTest: true });
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [redemptions, setRedemptions] = useState<any[]>([]);
@@ -173,18 +180,24 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     setAmenitiesList(ams);
     
     if (currentUser.role === UserRole.SUPER_ADMIN) {
-        const [allRequests, allPlans, allHighlights, allCollections, paySettings] = await Promise.all([
+        const [allRequests, allPlans, allHighlights, allCollections, paySettings, ads, posts, dicasCats] = await Promise.all([
             getCompanyRequests(),
             getPricingPlans(),
             getAllHomeHighlights(),
             getCollections(),
-            getPaymentSettings()
+            getPaymentSettings(),
+            getBlogAds(),
+            getBlogPosts(),
+            getDicasCategories()
         ]);
         setRequests(allRequests.filter(r => r.status === 'PENDING'));
         setPlans(allPlans);
         setHighlights(allHighlights);
         setCollections(allCollections);
         setPaymentSettings(paySettings);
+        setBlogAds(ads);
+        setBlogPosts(posts);
+        setDicasCategories(dicasCats);
         const allU = await getAllUsers();
         setUsers(allU);
         const pReviews = await getPendingReviews();
@@ -713,6 +726,14 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <button onClick={() => setView('HIGHLIGHTS')} className="bg-slate-50 hover:bg-pink-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-pink-600 mb-1">Destaques da Home</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Gerencie o carrossel de banners da home.</p>
+                              </button>
+                              <button onClick={() => setView('BLOG_ADS')} className="bg-slate-50 hover:bg-emerald-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-emerald-600 mb-1">Patrocínios Dicas</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Controle o carrosel patrocinado de dicas.</p>
+                              </button>
+                              <button onClick={() => setView('BLOG_POSTS')} className="bg-slate-50 hover:bg-sky-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-sky-600 mb-1">Feed de Dicas & News</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Gerencie matérias e categorias de notícias.</p>
                               </button>
                           </div>
                       </div>
@@ -2762,6 +2783,27 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </div>
               )}
           </div>
+      )}
+
+      {view === 'BLOG_ADS' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <BlogAdsManager 
+            blogAds={blogAds}
+            onBack={() => setView('HOME')}
+            onRefresh={refreshData}
+            notify={notify}
+            confirm={(msg) => confirm({ title: 'Confirmação', message: msg, type: 'danger' })}
+          />
+      )}
+
+      {view === 'BLOG_POSTS' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <BlogPostsManager 
+            blogPosts={blogPosts}
+            dicasCategories={dicasCategories}
+            onBack={() => setView('HOME')}
+            onRefresh={refreshData}
+            notify={notify}
+            confirm={(msg) => confirm({ title: 'Confirmação', message: msg, type: 'danger' })}
+          />
       )}
 
       {view === 'COUPONS' && (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) && (

@@ -354,3 +354,17 @@ export const DEFAULT_AMENITIES: AppAmenity[] = [
     { id: 'card', label: 'Aceita Cartão' },
     { id: 'delivery', label: 'Faz Entrega' }
 ];
+
+export interface BlogAd {
+  id: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  tag: string;
+  actionLabel?: string;
+  badgeColor?: string;
+  targetCategory?: string; // category inside guide (e.g. Passeios)
+  active: boolean;
+  order: number;
+}
+

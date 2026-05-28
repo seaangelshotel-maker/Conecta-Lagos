@@ -32,7 +32,7 @@ import { auth, db } from './firebase';
 import { 
     Coupon, User, UserRole, BusinessProfile, BlogPost, SavingsRecord, 
     CompanyRequest, AppCategory, Subcategory, DEFAULT_CATEGORIES, 
-    DEFAULT_AMENITIES, AppConfig, Collection, PricingPlan, HomeHighlight, City, Neighborhood, Review, PaymentSettings, AppAmenity
+    DEFAULT_AMENITIES, AppConfig, Collection, PricingPlan, HomeHighlight, City, Neighborhood, Review, PaymentSettings, AppAmenity, BlogAd
 } from '../types';
 
 export interface AppGlobalSettings {
@@ -53,6 +53,7 @@ let _highlights: HomeHighlight[] = [];
 let _cities: City[] = [];
 let _neighborhoods: Neighborhood[] = [];
 const _reviews: Review[] = [];
+let _blogAds: BlogAd[] = [];
 
 enum OperationType {
   CREATE = 'create',
@@ -1135,6 +1136,25 @@ export const saveDicasSubcategory = async (categoryId: string, subcategoryName: 
     }
 };
 
+export const deleteDicasCategory = async (id: string) => {
+    await deleteDoc(doc(db, 'app_categories_dicas', id));
+    _dicasCategories = _dicasCategories.filter(c => c.id !== id);
+    notifyListeners();
+};
+
+export const deleteDicasSubcategory = async (categoryId: string, subcategoryId: string) => {
+    const cat = _dicasCategories.find(c => c.id === categoryId);
+    if (cat) {
+        const updatedCat = {
+            ...cat,
+            subcategories: (cat.subcategories || []).filter(s => s.id !== subcategoryId)
+        };
+        await setDoc(doc(db, 'app_categories_dicas', categoryId), cleanObject(updatedCat), { merge: true });
+        _dicasCategories = _dicasCategories.map(c => c.id === categoryId ? updatedCat : c);
+        notifyListeners();
+    }
+};
+
 export const saveCoupon = async (c: Coupon) => {
     const couponToSave = { ...c };
     
@@ -1389,6 +1409,87 @@ export const saveHomeHighlight = async (h: Partial<HomeHighlight>) => {
 export const deleteHomeHighlight = async (id: string) => {
     await deleteDoc(doc(db, 'home_highlights', id));
 };
+
+export const getBlogAds = async () => {
+    if (_blogAds.length === 0) {
+        const snap = await getDocs(collection(db, 'blog_ads'));
+        _blogAds = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogAd)).sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    
+    // Seed default ads if none exist
+    if (_blogAds.length === 0) {
+        const defaultAds: BlogAd[] = [
+            {
+                id: 'ad1',
+                title: 'Passeio de Barco VIP com Capitão Arraial • 15% OFF',
+                subtitle: 'Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.',
+                imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80',
+                tag: 'Patrocinado',
+                actionLabel: 'Ver Passeios',
+                badgeColor: 'bg-amber-500/95 text-white',
+                targetCategory: 'Passeios',
+                active: true,
+                order: 0
+            },
+            {
+                id: 'ad2',
+                title: 'Festival da Lagosta em Arraial do Cabo',
+                subtitle: 'Neste final de semana, venha saborear pratos exclusivos nos melhores restaurantes com preços especiais!',
+                imageUrl: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=1200&q=80',
+                tag: 'Destaque Gastronômico',
+                actionLabel: 'Ver Gastronomia',
+                badgeColor: 'bg-red-500/95 text-white',
+                targetCategory: 'Gastronomia',
+                active: true,
+                order: 1
+            }
+        ];
+        
+        for (const ad of defaultAds) {
+            await setDoc(doc(db, 'blog_ads', ad.id), ad, { merge: true });
+            _blogAds.push(ad);
+        }
+        _blogAds.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    
+    return _blogAds;
+};
+
+export const saveBlogAd = async (ad: Partial<BlogAd>) => {
+    const id = ad.id || doc(collection(db, 'blog_ads')).id;
+    const newAd: BlogAd = {
+        id,
+        title: ad.title || '',
+        subtitle: ad.subtitle || '',
+        imageUrl: ad.imageUrl || '',
+        tag: ad.tag || 'Destaque',
+        actionLabel: ad.actionLabel || '',
+        badgeColor: ad.badgeColor || 'bg-red-500/95 text-white',
+        targetCategory: ad.targetCategory || '',
+        active: ad.active ?? true,
+        order: ad.order || 0,
+        ...ad
+    } as BlogAd;
+    
+    await setDoc(doc(db, 'blog_ads', id), newAd);
+    
+    const idx = _blogAds.findIndex(b => b.id === id);
+    if (idx >= 0) {
+        _blogAds[idx] = newAd;
+    } else {
+        _blogAds.push(newAd);
+    }
+    _blogAds.sort((a, b) => (a.order || 0) - (b.order || 0));
+    notifyListeners();
+    return newAd;
+};
+
+export const deleteBlogAd = async (id: string) => {
+    await deleteDoc(doc(db, 'blog_ads', id));
+    _blogAds = _blogAds.filter(b => b.id !== id);
+    notifyListeners();
+};
+
 
 export const getCities = async () => {
     if (_cities.length === 0) {

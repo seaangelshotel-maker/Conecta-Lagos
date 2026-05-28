@@ -1,10 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Clock, Check, Heart, Navigation, Loader2, Crown, Compass, Map as MapIcon, X, ChevronDown, ListFilter, ShoppingBag, Ticket, Store } from 'lucide-react';
-import { BusinessProfile, AppCategory, AppAmenity, User, City, Neighborhood } from '../types';
-import { getBusinesses, getCategories, getAmenities, toggleFavorite, calculateDistance, getCities, getNeighborhoods, identifyNeighborhood, checkIfOpen, getCoupons, getCollections, getBusinessesPaginated } from '../services/dataService';
+import { 
+  Search, MapPin, Star, Clock, Check, Heart, Navigation, 
+  Loader2, Crown, Compass, Map as MapIcon, X, ChevronDown, 
+  ListFilter, ShoppingBag, Ticket, Store, Sparkles, 
+  Newspaper, Lightbulb, Layers, Utensils, ArrowRight
+} from 'lucide-react';
+import { BusinessProfile, AppCategory, AppAmenity, User, City, Neighborhood, BlogPost } from '../types';
+import { 
+  getBusinesses, getCategories, getAmenities, toggleFavorite, 
+  calculateDistance, getCities, getNeighborhoods, identifyNeighborhood, 
+  checkIfOpen, getCoupons, getCollections, getBusinessesPaginated, getBlogPosts 
+} from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
-import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 interface BusinessGuideProps {
   currentUser: User | null;
@@ -14,14 +21,14 @@ interface BusinessGuideProps {
 }
 
 const GuideSplash = () => (
-    <div className="fixed inset-0 z-[100] bg-slate-50 flex flex-col items-center justify-center animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] bg-slate-50/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
         <div className="relative mb-8 text-center">
-            <div className="absolute inset-0 bg-ocean-200 rounded-full animate-ping opacity-20 duration-1000"></div>
-            <div className="relative w-24 h-24 bg-white rounded-3xl shadow-xl border-4 border-ocean-50 flex items-center justify-center mx-auto">
-                <Compass size={48} className="text-ocean-600 animate-[spin_4s_linear_infinite]" />
+            <div className="absolute inset-0 bg-ocean-200 rounded-full animate-ping opacity-15 duration-1000"></div>
+            <div className="relative w-28 h-28 bg-white rounded-3xl shadow-xl border-4 border-ocean-50/50 flex items-center justify-center mx-auto">
+                <Compass size={56} className="text-ocean-600 animate-[spin_5s_linear_infinite]" />
             </div>
-            <h2 className="text-xl font-bold text-ocean-950 mt-6 animate-pulse">Explorando os Lagos...</h2>
-            <p className="text-slate-400 text-xs mt-2 font-medium">Sincronizando guia comercial</p>
+            <h2 className="text-2xl font-black text-ocean-950 mt-8 tracking-tight animate-pulse">Explorando os Lagos...</h2>
+            <p className="text-slate-400 text-xs mt-2.5 font-bold uppercase tracking-widest">Sincronizando guia oficial</p>
         </div>
     </div>
 );
@@ -39,6 +46,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [amenities, setAmenities] = useState<AppAmenity[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
 
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'Todos');
@@ -48,22 +56,36 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [nearby, setNearby] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [currentLocationName, setCurrentLocationName] = useState('Região dos Lagos');
+  const [currentLocationName, setCurrentLocationName] = useState('Todas as Regiões');
   const [allCoupons, setAllCoupons] = useState<any[]>([]);
-  const businessesWithCoupons = React.useMemo(() => {
-    const activeCoupons = allCoupons.filter(c => c.active);
-    return new Set(activeCoupons.map(c => c.companyId));
-  }, [allCoupons]);
-
+  
   const [favorites, setFavorites] = useState<string[]>(currentUser?.favorites?.businesses || []);
 
-  // --- PAGINATION STATE (PROMPT 1) ---
   const [lastIndex, setLastIndex] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const loaderRef = React.useRef<HTMLDivElement | null>(null);
+
+  const businessesWithCoupons = React.useMemo(() => {
+    const activeCoupons = allCoupons.filter(c => c.active);
+    return new Set(activeCoupons.map(c => c.companyId));
+  }, [allCoupons]);
+
+  // Integrated Blog suggestions relevant for active category select
+  const filteredBlogPosts = React.useMemo(() => {
+    if (!blogPosts || blogPosts.length === 0) return [];
+    if (selectedCategory === 'Todos') {
+      return blogPosts.slice(0, 3); // Latest editorial suggestions
+    }
+    const catLower = selectedCategory.toLowerCase();
+    const matches = blogPosts.filter(post => 
+      (post.category || '').toLowerCase().includes(catLower) || 
+      (post.tags || []).some(t => t.toLowerCase().includes(catLower))
+    );
+    return matches.length > 0 ? matches.slice(0, 3) : blogPosts.slice(0, 3);
+  }, [blogPosts, selectedCategory]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
@@ -76,13 +98,11 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
 
     try {
         if (debouncedQuery.length > 2) {
-            // Use searchBusinesses for queries
             const { searchBusinesses } = await import('../services/dataService');
             const results = await searchBusinesses(debouncedQuery, selectedCategory, selectedLocation, selectedSubCategory);
             setBusinesses(results);
             setHasMore(false);
         } else {
-            // Fetch paginated businesses
             const isCity = cities.some(c => c.id === selectedLocation);
             const isNeighborhood = neighborhoods.some(n => n.id === selectedLocation);
 
@@ -116,16 +136,17 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
     }
   };
 
-  // --- INITIAL STRUCTURAL DATA LOAD ---
+  // LOAD STRUCTURAL & CONTENT DATA
   useEffect(() => {
     const loadStructuralData = async () => {
         try {
-            const [cats, cts, nbs, cols, ams] = await Promise.all([
+            const [cats, cts, nbs, cols, ams, posts] = await Promise.all([
                 getCategories(),
                 getCities(),
                 getNeighborhoods(),
                 getCollections(),
-                getAmenities()
+                getAmenities(),
+                getBlogPosts()
             ]);
             
             setCategories(cats);
@@ -133,6 +154,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
             setNeighborhoods(nbs);
             setAmenities(ams);
             setCollections(cols.filter(c => c.active).sort((a, b) => a.order - b.order));
+            setBlogPosts(posts || []);
         } catch (e) {
             console.error("Failed to load structural data", e);
         }
@@ -163,7 +185,6 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
     const handleUpdate = () => syncData();
     window.addEventListener('dataUpdated', handleUpdate);
 
-    // Auto-detect location name on load if available
     const storedGps = sessionStorage.getItem('user_gps');
     if (storedGps && !nearby && selectedLocation === 'Todos') {
         const { lat, lng } = JSON.parse(storedGps);
@@ -204,7 +225,6 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
   useEffect(() => {
     let result = [...businesses];
 
-    // FIX: Protective check for name/description to avoid toLowerCase crash
     if (query) {
       const q = query.toLowerCase();
       result = result.filter(b => 
@@ -219,10 +239,10 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
         const isCity = cities.some(c => c.id === selectedLocation);
         if (isCity) {
             result = result.filter(b => b.cityId === selectedLocation);
-            setCurrentLocationName(cities.find(c => c.id === selectedLocation)?.name || 'Região dos Lagos');
+            setCurrentLocationName(cities.find(c => c.id === selectedLocation)?.name || 'Todas as Regiões');
         } else {
             result = result.filter(b => b.neighborhoodId === selectedLocation);
-            setCurrentLocationName(neighborhoods.find(n => n.id === selectedLocation)?.name || 'Região dos Lagos');
+            setCurrentLocationName(neighborhoods.find(n => n.id === selectedLocation)?.name || 'Todas as Regiões');
         }
     } else if (!nearby) {
         setCurrentLocationName('Todas as Regiões');
@@ -239,7 +259,6 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
         if (storedGps) {
             const { lat, lng } = JSON.parse(storedGps);
             
-            // Find the current neighborhood based on GPS
             let currentNeighborhoodId: string | null = null;
             let minDistance = Infinity;
             for (const n of neighborhoods) {
@@ -253,10 +272,8 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
             }
             
             if (currentNeighborhoodId && minDistance < 10) {
-                // Filter by neighborhood if within 10km
                 result = result.filter(b => b.neighborhoodId === currentNeighborhoodId);
             } else {
-                // Otherwise, sort by distance
                 result = result
                     .map(b => ({...b, distance: calculateDistance(lat, lng, b.lat || 0, b.lng || 0)}))
                     .filter(b => (b.distance || 0) < 15) 
@@ -290,7 +307,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
               setNearby(true);
               setCurrentLocationName(identifyNeighborhood(pos.coords.latitude, pos.coords.longitude));
           },
-          () => { setLocating(false); notify('error', "GPS não autorizado."); }
+          () => { setLocating(false); notify('error', "Acesso ao GPS não autorizado."); }
       );
   };
 
@@ -300,104 +317,317 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
   const currentSubcategories = currentCategory?.subcategories || [];
 
   return (
-    <div className="pb-24 pt-4 min-h-screen bg-slate-50">
-      <div className="px-4 mb-4 max-w-7xl mx-auto w-full">
-          <div className="flex justify-between items-center mb-1">
-              <h1 className="text-2xl font-bold text-ocean-950">Guia Comercial</h1>
-              <div className="flex items-center gap-1 text-ocean-600 bg-ocean-50 px-2 py-1 rounded-lg">
-                  <MapPin size={14} />
-                  <span className="text-xs font-bold">{currentLocationName}</span>
-              </div>
-          </div>
-          <p className="text-sm text-slate-500 mb-4">Os melhores lugares do Rio na palma da sua mão.</p>
-          
-          <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
-              <div className="relative mb-3">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input 
-                      type="text" placeholder="O que você procura?"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-ocean-500 text-sm"
-                      value={query} onChange={(e) => setQuery(e.target.value)}
-                  />
+    <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
+      
+      {/* 1. HEADER SECTION (Typography & GPS Polish) */}
+      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 pb-3 border-b border-slate-100">
+              <div className="space-y-0.5">
+                  <span className="text-[10px] uppercase font-black text-ocean-600 tracking-widest flex items-center gap-1">
+                      <Sparkles size={11} className="fill-current" /> Guia de Serviços e Estadia
+                  </span>
+                  <h1 className="text-3xl md:text-3.5xl font-black text-slate-900 tracking-tight leading-none">
+                      Guia Comercial
+                  </h1>
+                  <p className="text-xs text-slate-500 font-medium leading-none">
+                      Os melhores lugares da <strong className="text-slate-800">Região dos Lagos</strong> na palma da sua mão.
+                  </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                  <div className="relative">
-                      <select 
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2.5 outline-none text-xs font-bold text-slate-600 appearance-none pr-6"
-                        value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
-                      >
-                          <option value="Todos">Categorias</option>
-                          {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+              {/* Dynamic GPS indicator and details */}
+              <button 
+                onClick={handleNearbyClick}
+                className="flex items-center gap-2 self-start bg-white border border-slate-200/80 p-2.5 rounded-2xl shadow-xs hover:border-ocean-300 hover:bg-ocean-50/30 transition-all cursor-pointer active:scale-95 text-left shrink-0"
+              >
+                  <div className={`p-1.5 rounded-xl ${nearby ? 'bg-ocean-100 text-ocean-600' : 'bg-slate-50 text-slate-400'}`}>
+                      <MapPin size={16} className={nearby ? 'fill-current' : ''} />
+                  </div>
+                  <div className="flex flex-col justify-center select-none pr-2">
+                      <span className="text-[8px] uppercase font-black text-slate-400 leading-none tracking-wide">Foco de busca</span>
+                      <span className="font-extrabold text-[11px] text-slate-800 leading-tight mt-0.5 flex items-center gap-1 text-ocean-600">
+                          {currentLocationName}
+                          {nearby && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />}
+                      </span>
+                  </div>
+              </button>
+          </div>
+      </div>
+
+      {/* 2. ROUND ICON CATEGORY SLIDER (Consistent alignment with home styling) */}
+      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
+          <div className="flex gap-4.5 overflow-x-auto hide-scrollbar pb-3 px-0.5">
+            {/* TODOS bubble map */}
+            <div 
+              onClick={() => { setSelectedCategory('Todos'); setSelectedSubCategory('Todos'); }} 
+              className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
+            >
+              <div className={`w-[66px] h-[66px] rounded-2xl flex items-center justify-center transition-all ${selectedCategory === 'Todos' ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white shadow-md shadow-ocean-500/20 scale-103' : 'bg-white border border-slate-100 text-slate-400 group-hover:bg-slate-100/50'}`}>
+                <Compass size={24} className={selectedCategory === 'Todos' ? 'animate-[spin_4s_linear_infinite]' : ''} />
+              </div>
+              <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider text-center leading-tight ${selectedCategory === 'Todos' ? 'text-ocean-600' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                Todos
+              </span>
+            </div>
+            
+            {/* Database categories round items slider mapping */}
+            {categories.map(cat => {
+              let emoji = '🧭';
+              const n = cat.name.toLowerCase();
+              if (n.includes('gastro') || n.includes('restaurante') || n.includes('comida')) emoji = '🍔';
+              else if (n.includes('hospedagem') || n.includes('hotel') || n.includes('pousada')) emoji = '🛌';
+              else if (n.includes('passeio') || n.includes('barco') || n.includes('ilha')) emoji = '⛵';
+              else if (n.includes('serviço') || n.includes('delivery')) emoji = '🛵';
+              else if (n.includes('praia')) emoji = '⛱️';
+              else if (n.includes('festa') || n.includes('evento')) emoji = '🎉';
+              else if (n.includes('comércio') || n.includes('loja')) emoji = '🛍️';
+
+              const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+
+              return (
+                <div 
+                  key={cat.id} 
+                  onClick={() => { setSelectedCategory(cat.name); setSelectedSubCategory('Todos'); }} 
+                  className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
+                >
+                  <div className={`w-[66px] h-[66px] rounded-2xl flex items-center justify-center text-3xl transition-all relative ${isActive ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 shadow-md shadow-ocean-500/25 scale-103 text-white' : 'bg-white border border-slate-100 text-slate-700 group-hover:bg-slate-100/50'}`}>
+                    <span className="relative z-10 drop-shadow-sm select-none">{emoji}</span>
+                    {isActive && (
+                      <div className="absolute inset-0 bg-white/10 rounded-2xl animate-pulse"></div>
+                    )}
+                  </div>
+                  <span className={`text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 max-w-[72px] ${isActive ? 'text-ocean-600 font-black' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                    {cat.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+      </div>
+
+      {/* 3. CONSOLIDATED FILTER PANEL (iFood/Konecta style) */}
+      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
+          <div className="bg-white p-4 sm:p-5 rounded-[2.2rem] shadow-sm border border-slate-100/85">
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                  
+                  {/* Free text search bar */}
+                  <div className="relative md:col-span-2">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                      <input 
+                          type="text" 
+                          placeholder="Tem fome de quê? Busque por lugar, nicho ou prato..."
+                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-10 pr-4 outline-none focus:ring-4 focus:ring-ocean-500/10 focus:border-ocean-300 font-semibold text-xs text-slate-800 placeholder-slate-400 transition-all shadow-inner"
+                          value={query} 
+                          onChange={(e) => setQuery(e.target.value)}
+                      />
+                      {query && (
+                          <button 
+                            onClick={() => setQuery('')}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                              <X size={14} />
+                          </button>
+                      )}
                   </div>
 
+                  {/* Grouped Location Select Selector */}
                   <div className="relative">
                       <select 
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2.5 outline-none text-xs font-bold text-slate-600 appearance-none pr-6"
-                        value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}
+                        className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-2xl pl-3.5 pr-8 py-3 outline-none text-xs font-bold text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/10 transition-all"
+                        value={selectedLocation} 
+                        onChange={(e) => setSelectedLocation(e.target.value)}
                       >
-                          <option value="Todos">Localização</option>
+                          <option value="Todos">📍 Toda a Região</option>
                           {cities.map(city => (
-                              <optgroup key={city.id} label={city.name}>
+                              <optgroup key={city.id} label={`🌴 ${city.name}`} className="font-extrabold text-xs text-ocean-900 bg-white">
                                   <option value={city.id}>Toda a cidade</option>
                                   {neighborhoods.filter(n => n.cityId === city.id).map(n => (
-                                      <option key={n.id} value={n.id}>{n.name}</option>
+                                      <option key={n.id} value={n.id} className="font-semibold text-slate-700">
+                                          {n.name}
+                                      </option>
                                   ))}
                               </optgroup>
                           ))}
                       </select>
-                      <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                      <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
                   </div>
 
+                  {/* SWR Category selector backup */}
                   <div className="relative">
                       <select 
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2.5 outline-none text-xs font-bold text-slate-600 appearance-none pr-6"
-                        onChange={(e) => { if (e.target.value) { const id = e.target.value; setSelectedAmenities(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); e.target.value = ""; } }}
+                        className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-2xl pl-3.5 pr-8 py-3 outline-none text-xs font-bold text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/10 transition-all"
+                        value={selectedCategory} 
+                        onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
                       >
-                          <option value="">Filtros +</option>
+                          <option value="Todos">🗂️ Todas as Categorias</option>
+                          {categories.map(cat => (
+                              <option key={cat.id} value={cat.name} className="font-semibold">
+                                  {cat.name}
+                              </option>
+                          ))}
+                      </select>
+                      <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
+                  </div>
+
+              </div>
+
+              {/* Horizontal Secondary Scrollable Pill filters */}
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3.5 border-t border-slate-50 mt-3.5 items-center">
+                  
+                  {/* Near tracking Toggle Button */}
+                  <button 
+                    onClick={handleNearbyClick} 
+                    className={`shrink-0 px-4 py-2.5 rounded-full text-xs font-extrabold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${nearby ? 'bg-ocean-100/70 border-ocean-200 text-ocean-700' : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'}`}
+                  >
+                      {locating ? <Loader2 className="animate-spin" size={13}/> : <Navigation size={13} className={nearby ? "fill-current animate-pulse" : ""}/>} 
+                      {locating ? 'Buscando...' : 'Mais Perto'}
+                  </button>
+
+                  {/* Active Open scheduling indicator Button */}
+                  <button 
+                    onClick={() => setOnlyOpen(!onlyOpen)} 
+                    className={`shrink-0 px-4 py-2.5 rounded-full text-xs font-extrabold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${onlyOpen ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'}`}
+                  >
+                      <Clock size={13}/> Aberto Agora
+                  </button>
+
+                  {/* Sliced selected amenities indicators */}
+                  {selectedAmenities.map(id => (
+                      <button 
+                        key={id} 
+                        onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} 
+                        className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-ocean-600 text-white text-xs font-extrabold uppercase tracking-wide shadow-sm hover:bg-ocean-700 transition-colors"
+                      >
+                          <Check size={13} /> {amenities.find(a => a.id === id)?.label || id} 
+                          <X size={11} className="ml-0.5 opacity-70"/>
+                      </button>
+                  ))}
+
+                  {/* Inline micro select for Amenity tagging expansion */}
+                  <div className="relative shrink-0">
+                      <select 
+                        className="bg-white hover:bg-slate-50 text-slate-500 border border-slate-200/80 rounded-full px-4.5 py-2.5 outline-none text-xs font-extrabold appearance-none pr-8 cursor-pointer shadow-sm"
+                        onChange={(e) => { 
+                            if (e.target.value) { 
+                                const id = e.target.value; 
+                                setSelectedAmenities(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); 
+                                e.target.value = ""; 
+                            } 
+                        }}
+                      >
+                          <option value="">Filtros Avançados +</option>
                           {amenities.map(am => <option key={am.id} value={am.id}>{am.label}</option>)}
                       </select>
-                      <ListFilter className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                      <ListFilter className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={13} />
                   </div>
               </div>
 
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 items-center">
-                  <button onClick={handleNearbyClick} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 transition-colors ${nearby ? 'bg-ocean-100 border-ocean-200 text-ocean-700' : 'bg-white border-slate-200 text-slate-500'}`}>
-                      {locating ? <Loader2 className="animate-spin" size={12}/> : <Navigation size={12} className={nearby ? "fill-current" : ""}/>} Perto
-                  </button>
-                  <button onClick={() => setOnlyOpen(!onlyOpen)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 transition-colors ${onlyOpen ? 'bg-green-100 border-green-200 text-green-700' : 'bg-white border-slate-200 text-slate-500'}`}>
-                      <Clock size={12}/> Aberto
-                  </button>
-                  {selectedAmenities.map(id => (
-                      <button key={id} onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-ocean-600 text-white text-xs font-bold">
-                          <Check size={12} /> {amenities.find(a => a.id === id)?.label || id} <X size={10} className="ml-1 opacity-60"/>
+              {/* Dynamic subcategory filtering pills under category scope */}
+              {currentSubcategories.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 border-t border-slate-50/50 mt-3.5 items-center">
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">Ramos:</span>
+                      
+                      <button 
+                        onClick={() => setSelectedSubCategory('Todos')} 
+                        className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${selectedSubCategory === 'Todos' ? 'bg-ocean-950 text-white border-ocean-950' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100/50'}`}
+                      >
+                          Todos Subramos
                       </button>
-                  ))}
-                  {currentSubcategories.map(sub => (
-                      <button key={sub.id} onClick={() => setSelectedSubCategory(selectedSubCategory === sub.name ? 'Todos' : sub.name)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${selectedSubCategory === sub.name ? 'bg-ocean-600 text-white' : 'bg-white text-slate-600'}`}>
-                          {sub.name}
-                      </button>
-                  ))}
-              </div>
+
+                      {currentSubcategories.map(sub => (
+                          <button 
+                            key={sub.id} 
+                            onClick={() => setSelectedSubCategory(selectedSubCategory === sub.name ? 'Todos' : sub.name)} 
+                            className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${selectedSubCategory === sub.name ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white border-transparent shadow-sm' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100'}`}
+                          >
+                              {sub.name}
+                          </button>
+                      ))}
+                  </div>
+              )}
           </div>
       </div>
 
-      {collections.length > 0 && (
-          <div className="px-4 mb-6 max-w-7xl mx-auto">
-              <h2 className="text-lg font-black text-ocean-950 mb-3">Coleções em Destaque</h2>
-              <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+      {/* 4. INTEGRATED EDITORIAL DICAS CONTENT (Synergy of Commercial + Blog Content) */}
+      {filteredBlogPosts.length > 0 && (
+          <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
+              <div className="flex justify-between items-center mb-4 px-1">
+                  <div className="space-y-0.5">
+                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
+                          <Sparkles size={14} className="text-gold-500 fill-gold-500 animate-pulse" /> 
+                          {selectedCategory === 'Todos' ? 'Roteiros e Dicas da Semana' : `O melhor de ${selectedCategory}`}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 font-medium">Visualização rápida de matérias escritas de nossa redação.</p>
+                  </div>
+                  <button 
+                      onClick={() => onNavigate('blog')} 
+                      className="text-[10px] font-black text-ocean-600 hover:text-ocean-700 flex items-center gap-1 uppercase tracking-widest bg-ocean-50/50 hover:bg-ocean-50 px-3.5 py-2.5 rounded-xl border border-ocean-100/40 transition-all active:scale-95 shrink-0"
+                  >
+                      Ver Feed Geral <ArrowRight size={12} />
+                  </button>
+              </div>
+              
+              <div className="flex gap-4.5 overflow-x-auto hide-scrollbar pb-2 px-0.5 -mx-4 px-4 md:mx-0 md:px-0.5">
+                  {filteredBlogPosts.map(post => (
+                      <div 
+                          key={post.id}
+                          onClick={() => onNavigate('blog-detail', { postId: post.id })}
+                          className="w-[285px] sm:w-[330px] bg-white rounded-[1.8rem] p-3 shadow-xs border border-slate-100 hover:shadow-md transition-all duration-300 cursor-pointer flex gap-3.5 shrink-0 group relative overflow-hidden"
+                      >
+                          <div className="w-20 h-20 sm:w-[92px] sm:h-[92px] rounded-2xl overflow-hidden shrink-0 relative bg-slate-100">
+                              <img 
+                                  src={post.imageUrl} 
+                                  referrerPolicy="no-referrer"
+                                  alt={post.title} 
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                              />
+                              <div className="absolute inset-0 bg-black/5"></div>
+                          </div>
+                          <div className="flex-1 py-1 flex flex-col justify-between overflow-hidden">
+                              <div className="space-y-1">
+                                  <span className="inline-block text-[8px] font-black tracking-widest uppercase text-ocean-600 bg-ocean-50 px-2 py-0.5 rounded-md leading-none select-none">
+                                      {post.category}
+                                  </span>
+                                  <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug line-clamp-2 group-hover:text-ocean-600 transition-colors">
+                                      {post.title}
+                                  </h4>
+                              </div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 leading-none mt-1.5 select-none">
+                                  📖 Ver Roteiro
+                              </p>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      )}
+
+      {/* 5. FEATURED COLLECTIONS (Vale Conhecer highlight slider) */}
+      {collections.length > 0 && selectedCategory === 'Todos' && (
+          <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
+              <div className="flex items-center gap-2 mb-4 px-1">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+                      <MapIcon size={14} className="text-ocean-500" /> Histórias & Coleções em Destaque
+                  </h3>
+              </div>
+              
+              <div className="flex gap-4.5 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0.5">
                   {collections.map(col => (
                       <div 
                           key={col.id} 
                           onClick={() => onNavigate('collection-detail', { collectionId: col.id })}
-                          className="shrink-0 w-64 h-32 rounded-2xl overflow-hidden relative cursor-pointer group shadow-sm"
+                          className="shrink-0 w-64 h-36 rounded-[1.8rem] overflow-hidden relative cursor-pointer group shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                          <img src={col.coverImage} alt={col.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-4">
-                              <h3 className="text-white font-black text-sm leading-tight">{col.title}</h3>
-                              <p className="text-white/80 text-[10px] font-medium mt-1">{(col.businessIds || []).length} locais</p>
+                          <img 
+                            src={col.coverImage} 
+                            alt={col.title} 
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 brightness-95" 
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-4">
+                              <h3 className="text-white font-extrabold text-sm leading-snug drop-shadow-sm">{col.title}</h3>
+                              <p className="text-white/80 text-[10px] font-bold tracking-wider uppercase mt-1">
+                                  {(col.businessIds || []).length} locais recomendados
+                              </p>
                           </div>
                       </div>
                   ))}
@@ -405,132 +635,195 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
           </div>
       )}
 
-      <div className="px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto relative">
-          {isFiltering && (
-              <div className="absolute inset-0 z-10 bg-slate-50/50 backdrop-blur-[1px] flex items-center justify-center min-h-[200px]">
-                  <Loader2 className="animate-spin text-ocean-600" size={32} />
-              </div>
-          )}
+      {/* 6. BUSINESS RESULTS GRID (With robust card layout) */}
+      <div className="px-4 max-w-7xl mx-auto w-full relative">
           
-          {filtered.length === 0 && !isFiltering ? (
-              <div className="col-span-full py-20 text-center">
-                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                      <Search size={32} />
+          <div className="mb-4 flex justify-between items-center px-1">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                  <Store size={15} className="text-slate-400" /> Recomendados Disponíveis
+              </h2>
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase bg-slate-100 px-2 py-1 rounded-md tracking-wider">
+                  Encontrados: {filtered.length}
+              </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 relative">
+              {isFiltering && (
+                  <div className="absolute inset-0 z-10 bg-slate-50/50 backdrop-blur-[1px] flex items-center justify-center min-h-[350px] rounded-3xl">
+                      <Loader2 className="animate-spin text-ocean-600" size={36} />
                   </div>
-                  <h3 className="text-lg font-bold text-ocean-950 mb-2">Nenhum resultado encontrado</h3>
-                  <p className="text-slate-500 text-sm max-w-xs mx-auto">Tente ajustar seus filtros ou pesquisar por outro termo.</p>
-                  <button 
-                    onClick={() => {
-                        setQuery('');
-                        setSelectedCategory('Todos');
-                        setSelectedLocation('Todos');
-                        setSelectedAmenities([]);
-                        setOnlyOpen(false);
-                        setNearby(false);
-                    }}
-                    className="mt-6 text-ocean-600 font-bold text-sm hover:underline"
+              )}
+              
+              {filtered.length === 0 && !isFiltering ? (
+                  <div className="col-span-full py-24 text-center bg-white rounded-[2.2rem] border border-dashed border-slate-200 shadow-sm px-6">
+                      <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 border border-slate-100">
+                          <Search size={36} />
+                      </div>
+                      <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">Nenhum estabelecimento correspondente</h3>
+                      <p className="text-slate-400 text-xs max-w-sm mx-auto font-medium">Tente alterar os termos da busca, limpar filtros ou ligar o GPS para encontrar locais próximos.</p>
+                      <button 
+                        onClick={() => {
+                            setQuery('');
+                            setSelectedCategory('Todos');
+                            setSelectedLocation('Todos');
+                            setSelectedAmenities([]);
+                            setOnlyOpen(false);
+                            setNearby(false);
+                        }}
+                        className="mt-6 inline-flex px-5 py-3 bg-ocean-50 hover:bg-ocean-100 text-ocean-700 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all"
+                      >
+                          Limpar todos os filtros
+                      </button>
+                  </div>
+              ) : filtered.map((business) => (
+                  <div 
+                    key={business.id} 
+                    onClick={() => onNavigate('business-detail', { businessId: business.id })} 
+                    className={`bg-white rounded-[2rem] overflow-hidden shadow-xs border hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full relative group hover:-translate-y-1 ${business.isFeatured ? 'ring-[3px] ring-gold-400 ring-offset-2 border-gold-300' : 'border-slate-100'}`}
                   >
-                      Limpar todos os filtros
-                  </button>
-              </div>
-          ) : filtered.map((business) => (
-              <div key={business.id} onClick={() => onNavigate('business-detail', { businessId: business.id })} className={`bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full relative ${business.isFeatured ? 'ring-2 ring-gold-400' : 'border-slate-100'}`}>
-                  {business.isFeatured && <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-gold-500 text-white text-[10px] font-bold px-3 py-1 rounded-full z-20 shadow-md">DESTAQUE</div>}
-                  <div className="h-40 w-full relative bg-slate-100 flex items-center justify-center">
-                      {business.coverImage ? (
-                          <img src={business.coverImage} className="w-full h-full object-cover" alt={business.name} />
-                      ) : (
-                          <div className="flex flex-col items-center text-slate-400">
-                              <Store size={32} className="mb-2 opacity-50" />
-                              <span className="text-xs font-medium">Sem imagem</span>
+                      {/* Premium feature designation label */}
+                      {business.isFeatured && (
+                          <div className="absolute top-3.5 left-4 bg-gradient-to-r from-gold-500 to-amber-600 text-white text-[9px] font-black tracking-widest px-3.5 py-1 rounded-full z-20 shadow-md uppercase flex items-center gap-1.5">
+                              <Crown size={10} className="fill-current" /> Destaque
                           </div>
                       )}
-                      <button onClick={(e) => handleToggleFavorite(e, business.id)} className="absolute top-2 right-2 p-2 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm z-20">
-                         <Heart size={16} className={favorites.includes(business.id) ? 'fill-red-500 text-red-500' : 'text-white'} />
-                      </button>
-                      {(() => {
-                          const isOpen = checkIfOpen(business.openingHours, business.category);
-                          const today = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()];
-                          const todayHours = (business.openingHours && business.openingHours[today]) || 'Fechado';
-                          return (
-                            <div className="absolute bottom-2 left-2 flex flex-col gap-1 items-start">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}>
-                                    {isOpen ? 'ABERTO AGORA' : 'FECHADO'}
-                                </span>
-                                {isOpen && (
-                                    <span className="bg-black/50 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-tighter">
-                                        Hoje: {todayHours}
-                                    </span>
-                                )}
-                            </div>
-                          );
-                      })()}
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                      <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-bold text-ocean-950 text-lg line-clamp-1 flex items-center gap-2">
-                              {business.name}
-                              {business.deliveryUrl && (
-                                  <span title="Delivery Disponível" className="bg-ocean-50 text-ocean-600 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
-                                      Tem Entrega
-                                  </span>
-                              )}
-                          </h3>
-                          <div className="flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded">
-                              <Star size={12} className="text-gold-500 fill-gold-500" />
-                              <span className="text-xs font-bold">{business.rating}</span>
-                          </div>
-                      </div>
-                      <p className="text-slate-400 text-xs font-medium mb-2">{business.category} • {neighborhoods.find(n => n.id === business.neighborhoodId)?.name || cities.find(c => c.id === business.cityId)?.name || 'Rio'}</p>
-                      <p className="text-slate-600 text-sm line-clamp-2 mb-4">{(business.description || '').substring(0, 100)}...</p>
-                      <div className="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center gap-2 overflow-hidden">
-                          <div className="flex gap-2 overflow-hidden">
-                              {(business.amenities || []).slice(0, 3).map(am => (
-                                  <span key={am} className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                      {amenities.find(a => a.id === am)?.label || am}
-                                  </span>
-                              ))}
-                          </div>
-                          {businessesWithCoupons.has(business.id) && (
-                              <div className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded-lg shrink-0 shadow-sm border border-red-100" title="Cupom Disponível">
-                                  <Ticket size={12} className="animate-pulse" />
-                                  <span className="text-[10px] font-black uppercase tracking-wider">Tem Cupom</span>
+
+                      {/* Card Cover Picture container frame */}
+                      <div className="h-48 w-full relative bg-slate-100 flex items-center justify-center overflow-hidden">
+                          {business.coverImage ? (
+                              <img 
+                                src={business.coverImage} 
+                                className="w-full h-full object-cover duration-500 group-hover:scale-104 transition-all" 
+                                alt={business.name} 
+                              />
+                          ) : (
+                              <div className="flex flex-col items-center text-slate-400">
+                                  <Store size={36} className="mb-2 opacity-35" />
+                                  <span className="text-[10px] uppercase font-black tracking-wider">Sem fotos oficiais</span>
                               </div>
                           )}
+
+                          {/* Top Dark shadow gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent"></div>
+
+                          {/* Floating Glass Favorite Heart Button */}
+                          <button 
+                            onClick={(e) => handleToggleFavorite(e, business.id)} 
+                            className="absolute top-3.5 right-4 p-2.5 rounded-full bg-black/35 hover:bg-black/50 backdrop-blur-md z-20 text-white transition-all shadow-sm active:scale-90"
+                          >
+                             <Heart size={15} className={`transition-all duration-300 ${favorites.includes(business.id) ? 'fill-rose-500 text-rose-500 scale-110' : 'text-white'}`} />
+                          </button>
+
+                          {/* Open Closed Active Hours Tag Badges */}
+                          {(() => {
+                              const isOpen = checkIfOpen(business.openingHours, business.category);
+                              const today = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()];
+                              const todayHours = (business.openingHours && business.openingHours[today]) || 'Fechado';
+                              return (
+                                <div className="absolute bottom-3 left-4 flex flex-col gap-1 items-start z-20 select-none">
+                                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider text-white shadow-md uppercase leading-none ${isOpen ? 'bg-emerald-500/90 backdrop-blur-md' : 'bg-rose-500/90 backdrop-blur-sm'}`}>
+                                        {isOpen ? '🟢 Aberto Agora' : '🔴 Fechado'}
+                                    </span>
+                                    {isOpen && (
+                                        <span className="bg-slate-950/75 backdrop-blur-md text-slate-200 text-[8px] font-extrabold px-2 py-0.5 rounded shadow-sm tracking-wide">
+                                            Hoje: {todayHours}
+                                        </span>
+                                    )}
+                                </div>
+                              );
+                          })()}
+                      </div>
+
+                      {/* Card Information Body area */}
+                      <div className="p-5 flex-1 flex flex-col justify-between">
+                          <div>
+                              <div className="flex justify-between items-start gap-1 pb-1">
+                                  <h3 className="font-extrabold text-slate-800 text-[16px] md:text-lg line-clamp-1 flex items-center gap-1.5 leading-snug">
+                                      {business.name}
+                                  </h3>
+                                  
+                                  {/* Compact Rating Tag indicator */}
+                                  <div className="flex items-center gap-0.5 bg-amber-50 border border-amber-100/50 px-2 py-0.5 rounded-lg shrink-0">
+                                      <Star size={11} className="text-gold-500 fill-gold-500" />
+                                      <span className="text-[11px] font-black text-gold-600">{business.rating}</span>
+                                  </div>
+                              </div>
+                              
+                              {/* Category and neighborhood markers */}
+                              <p className="text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2 select-none">
+                                  {business.category} • {neighborhoods.find(n => n.id === business.neighborhoodId)?.name || cities.find(c => c.id === business.cityId)?.name || 'Região dos Lagos'}
+                              </p>
+
+                              {/* Core short description with ellipsis line Clamp */}
+                              <p className="text-slate-500 text-xs font-medium leading-relaxed line-clamp-2 md:line-clamp-3 mb-4">
+                                  {business.description || 'Dica exclusiva Konecta de entretenimento e turismo, agende já a sua viagem.'}
+                              </p>
+                          </div>
+
+                          {/* Directory Bottom Action Tags Grid (Amenities, Coupons) */}
+                          <div className="pt-3 border-t border-slate-50 flex items-center justify-between gap-1.5 overflow-hidden">
+                              
+                              {/* Row of Amenity mini-tags */}
+                              <div className="flex gap-1.5 overflow-hidden select-none">
+                                  {(business.amenities || []).slice(0, 2).map(am => (
+                                      <span key={am} className="text-[9px] font-black uppercase tracking-widest bg-slate-100 hover:bg-slate-200/50 text-slate-500 px-2.5 py-1 rounded-lg shrink-0 transition-colors">
+                                          {amenities.find(a => a.id === am)?.label || am}
+                                      </span>
+                                  ))}
+                              </div>
+
+                              {/* Promotion indicators line */}
+                              <div className="flex items-center gap-1.5 shrink-0 select-none">
+                                  {business.deliveryUrl && (
+                                      <span title="Delivery" className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border border-emerald-100/60 transition-colors">
+                                          🛵 Entrega
+                                      </span>
+                                  )}
+
+                                  {businessesWithCoupons.has(business.id) && (
+                                      <div className="flex items-center gap-1 bg-red-50 text-red-600 px-2.5 py-1 rounded-lg shadow-xs border border-red-100/70" title="Cupom Disponível">
+                                          <Ticket size={11} className="animate-pulse text-red-500 fill-red-100" />
+                                          <span className="text-[8px] font-black uppercase tracking-wider">Cupom</span>
+                                      </div>
+                                  )}
+                              </div>
+
+                          </div>
                       </div>
                   </div>
+              ))}
+          </div>
+
+          {/* INFINITE LAZY PAGINATION LOADING BOTTON OR END OF LIST TEXT */}
+          {hasMore && (
+              <div ref={loaderRef} className="flex justify-center mt-12 mb-20 select-none">
+                  <button 
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="bg-white border-2 border-ocean-600 hover:bg-ocean-600 text-ocean-600 hover:text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2.5"
+                  >
+                      {loadingMore ? (
+                          <>
+                              <Loader2 className="animate-spin" size={16} />
+                              Carregando lista...
+                          </>
+                      ) : (
+                          <>
+                              Ver Mais Estabelecimentos
+                              <ChevronDown size={16} />
+                          </>
+                      )}
+                  </button>
               </div>
-          ))}
+          )}
+
+          {!hasMore && filtered.length > 0 && (
+              <div className="text-center mt-12 mb-20 text-slate-400 font-extrabold text-[11px] uppercase tracking-widest select-none">
+                  🌴 Fim do guia. Explore outros rumos!
+              </div>
+          )}
       </div>
 
-      {/* --- LOAD MORE BUTTON (PROMPT 1) --- */}
-      {hasMore && (
-          <div ref={loaderRef} className="flex justify-center mt-12 mb-20">
-              <button 
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="bg-white border-2 border-ocean-600 text-ocean-600 hover:bg-ocean-600 hover:text-white px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-3"
-              >
-                  {loadingMore ? (
-                      <>
-                          <Loader2 className="animate-spin" size={20} />
-                          CARREGANDO...
-                      </>
-                  ) : (
-                      <>
-                          VER MAIS ESTABELECIMENTOS
-                          <ChevronDown size={20} />
-                      </>
-                  )}
-              </button>
-          </div>
-      )}
-
-      {!hasMore && filtered.length > 0 && (
-          <div className="text-center mt-12 mb-20 text-slate-400 font-bold text-sm">
-              Você chegou ao fim da lista.
-          </div>
-      )}
     </div>
   );
 };

@@ -83,6 +83,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <Star size={16} className="md:w-[18px] md:h-[18px]" /> AVALIAÇÕES
           </button>
           <button 
+            onClick={() => setView('BLOG_ADS')} 
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'BLOG_ADS' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
+          >
+            <Zap size={16} className="md:w-[18px] md:h-[18px]" /> PATROCÍNIOS DICAS
+          </button>
+          <button 
+            onClick={() => setView('BLOG_POSTS')} 
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'BLOG_POSTS' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
+          >
+            <PenTool size={16} className="md:w-[18px] md:h-[18px]" /> FEED DE DICAS
+          </button>
+          <button 
             onClick={() => setView('PAYMENT_SETTINGS')} 
             className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'PAYMENT_SETTINGS' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-purple-600 shadow-sm'}`}
           >
