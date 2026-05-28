@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ChevronDown, ChevronRight, Gem, ArrowRight, Star, Ticket, Loader2 } from 'lucide-react';
+import { MapPin, ChevronDown, ChevronRight, Gem, ArrowRight, Star, Ticket, Loader2, Compass, Utensils, Sparkles, Newspaper, Lightbulb, Layers, Flame } from 'lucide-react';
 import { Coupon, User, AppCategory, BusinessProfile, BlogPost, Collection, HomeHighlight } from '../types';
 import { SEO } from '../components/SEO';
 import { CouponCard } from '../components/CouponCard';
@@ -370,7 +370,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             <div className="px-4">
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="text-slate-900 font-extrabold text-lg px-0.5 tracking-tight flex items-center gap-1.5">
-                       📰 Dicas e Notícias Locais
+                       <Newspaper size={18} className="text-red-500" /> Dicas e Notícias Locais
                     </h3>
                     <button 
                         className="text-[13px] font-black text-red-500 hover:text-red-700 active:scale-95 transition-transform" 
@@ -383,14 +383,14 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 {/* Scrollable grid matching the mobile/desktop layout of modern city feeds */}
                 <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0">
                     {blogPosts.slice(0, 4).map(post => {
-                        const getEmoji = (cat: string) => {
-                            const c = cat.toLowerCase();
-                            if (c.includes('roteiro')) return '🗺️';
-                            if (c.includes('gastro')) return '🍽️';
-                            if (c.includes('evento')) return '🎉';
-                            if (c.includes('notícia')) return '📰';
-                            if (c.includes('dica')) return '💡';
-                            return '✨';
+                        const getCategoryIcon = (catName: string, size = 11) => {
+                            const c = catName.toLowerCase();
+                            if (c.includes('roteiro')) return <Compass size={size} />;
+                            if (c.includes('gastro')) return <Utensils size={size} />;
+                            if (c.includes('evento')) return <Sparkles size={size} />;
+                            if (c.includes('notícia')) return <Newspaper size={size} />;
+                            if (c.includes('dica')) return <Lightbulb size={size} />;
+                            return <Layers size={size} />;
                         };
                         return (
                             <div 
@@ -410,8 +410,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                                 
                                 {/* Top tag */}
-                                <span className="absolute top-3.5 left-3.5 bg-white/90 text-slate-800 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide shadow-sm z-10">
-                                   {getEmoji(post.category)} {post.category}
+                                <span className="absolute top-3.5 left-3.5 bg-white/95 text-slate-800 text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider shadow-sm z-10 flex items-center gap-1">
+                                   <span className="text-red-500">{getCategoryIcon(post.category, 11)}</span>
+                                   <span>{post.category}</span>
                                 </span>
                                 
                                 {/* Bottom contents */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost, User, AppCategory } from '../types';
 import { getBlogPosts, getAllUsers, getDicasCategories } from '../services/dataService';
-import { Calendar, ChevronRight, Search, Heart, Clock, Compass, BookOpen, Share2, Award, User as UserIcon } from 'lucide-react';
+import { Calendar, ChevronRight, Search, Heart, Clock, Compass, BookOpen, Share2, Award, User as UserIcon, Utensils, Newspaper, Lightbulb, Layers, Flame, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface BlogProps {
@@ -17,6 +17,53 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const adsSlides = [
+    {
+      id: 'ad1',
+      title: 'Passeio de Barco VIP com Capitão Arraial • 15% OFF',
+      subtitle: 'Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.',
+      imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80',
+      tag: 'Patrocinado',
+      actionLabel: 'Ver Agências',
+      badgeColor: 'bg-amber-500/90 text-white',
+      onAction: () => {
+        if (onNavigate) onNavigate('guide', { category: 'Passeios' });
+      }
+    },
+    {
+      id: 'ad2',
+      title: 'Festival da Moqueca no Saint Tropez',
+      subtitle: 'A mais tradicional e farta moqueca litorânea com desconto exclusivo de 10% pelo Lagos GO.',
+      imageUrl: 'https://images.unsplash.com/photo-1534080391025-a77b068740e4?auto=format&fit=crop&w=1200&q=80',
+      tag: 'Destaque Gourmet',
+      actionLabel: 'Ver Cardápio',
+      badgeColor: 'bg-red-500/90 text-white',
+      onAction: () => {
+        if (onNavigate) onNavigate('guide', { category: 'Gastronomia' });
+      }
+    },
+    {
+      id: 'ad3',
+      title: 'Hospedagem Prime no Pontal do Atalaia',
+      subtitle: 'Flats mobiliados com vista eterna para o mar das Prainhas do Pontal. Reserve pelo app.',
+      imageUrl: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&w=1200&q=80',
+      tag: 'Parceiro Premium',
+      actionLabel: 'Ver Flats',
+      badgeColor: 'bg-purple-600/90 text-white',
+      onAction: () => {
+        if (onNavigate) onNavigate('guide', { category: 'Hospedagem' });
+      }
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % adsSlides.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [adsSlides.length]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,86 +139,131 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   // Hot right now / Destaques: First 3 posts matching category or general
   const hotPosts = posts.slice(0, 3);
 
-  // Emojis mapping for dicas categories to look amazing
-  const getCategoryEmoji = (catName: string): string => {
+  // Beautiful vector Lucide Icon mapping for categories (super elegant outline branding)
+  const getCategoryIcon = (catName: string, size = 12) => {
     const c = catName.toLowerCase();
-    if (c.includes('roteiro')) return '🗺️';
-    if (c.includes('gastro')) return '🍽️';
-    if (c.includes('evento')) return '🎉';
-    if (c.includes('notícia')) return '📰';
-    if (c.includes('dica')) return '💡';
-    return '✨';
+    if (c.includes('roteiro')) return <Compass size={size} />;
+    if (c.includes('gastro')) return <Utensils size={size} />;
+    if (c.includes('evento')) return <Sparkles size={size} />;
+    if (c.includes('notícia')) return <Newspaper size={size} />;
+    if (c.includes('dica')) return <Lightbulb size={size} />;
+    return <Layers size={size} />;
   };
 
   return (
     <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
-      {/* HEADER HERO BANNER & SEARCH */}
-      <div className="relative overflow-hidden mb-8 bg-gradient-to-br from-red-500 to-amber-500 text-white rounded-[2rem] mx-4 p-8 md:p-12 shadow-xl shadow-red-500/10">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full blur-2xl -ml-20 -mb-20"></div>
+      {/* AUTOMATIC LANDING CAROUSEL (Publicidade / Destaque de Notícias) */}
+      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
+        <div className="relative h-48 md:h-64 rounded-[2.2rem] overflow-hidden shadow-lg border border-slate-100 group">
+          {/* Slides Render */}
+          <div className="w-full h-full relative">
+            {adsSlides.map((slide, index) => {
+              const isActive = index === currentSlide;
+              return (
+                <div 
+                  key={slide.id}
+                  onClick={slide.onAction}
+                  className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-95 pointer-events-none'}`}
+                >
+                  <img 
+                    src={slide.imageUrl}
+                    referrerPolicy="no-referrer"
+                    alt={slide.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
+                  />
+                  {/* Subtle Premium Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10"></div>
+                  
+                  {/* Slide Content */}
+                  <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 text-white z-20">
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${slide.badgeColor} mb-2.5 shadow-sm`}>
+                      {slide.tag}
+                    </span>
+                    <h2 className="text-base sm:text-[19px] md:text-2.5xl font-black tracking-tight leading-snug mb-1 text-white pr-4 drop-shadow">
+                      {slide.title}
+                    </h2>
+                    <p className="text-white/85 text-[11px] sm:text-xs md:text-sm line-clamp-1 max-w-2xl font-light">
+                      {slide.subtitle}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20 mb-4 inline-block">
-            Guia da Cidade Live Feed
-          </span>
-          <h1 className="text-3.5xl md:text-5xl font-black tracking-tight leading-tight mb-2">
-            Descubra o Melhor de Arraial
-          </h1>
-          <p className="text-white/90 text-sm md:text-base max-w-xl font-light mb-6">
-            Roteiros planejados, notícias em tempo real, dicas gastronômicas exclusivas e a curadoria dos melhores eventos na Região dos Lagos.
-          </p>
-
-          {/* Luxury Search Bar */}
-          <div className="relative max-w-xl">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-              <Search size={20} />
-            </span>
-            <input 
-              type="text"
-              placeholder="Encontre sua próxima aventura, notícia ou dica útil..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white text-slate-800 placeholder-slate-400 font-medium border-none shadow-lg focus:ring-4 focus:ring-amber-400/30 text-sm transition-all"
-            />
+          {/* Navigation Dot Indicators */}
+          <div className="absolute bottom-6 right-6 flex gap-1.5 z-20">
+            {adsSlides.map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentSlide(index);
+                }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? 'bg-white w-4' : 'bg-white/40 hover:bg-white/60'}`}
+              />
+            ))}
           </div>
         </div>
       </div>
 
+      {/* COMPACT FLOATING SEARCH BAR & SECTION TITLE */}
+      <div className="px-4 mb-8 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+            Lagos GO Feed
+          </h2>
+          <p className="text-xs text-slate-500 font-medium">Informação premium, agenda local e os melhores roteiros.</p>
+        </div>
+
+        <div className="relative w-full md:max-w-xs shadow-sm rounded-2xl">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <Search size={15} />
+          </span>
+          <input 
+            type="text"
+            placeholder="Buscar notícias, dicas ou roteiros..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl bg-white text-slate-800 placeholder-slate-400 font-semibold border border-slate-200 focus:ring-4 focus:ring-red-500/10 text-xs transition-all"
+          />
+        </div>
+      </div>
+
       {/* QUICK CATEGORY CHIPS */}
-      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-slate-900 font-extrabold text-[15px] tracking-tight uppercase flex items-center gap-2">
-            <Compass size={18} className="text-red-500" /> Categorias de Exploração
+      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-3.5 px-1">
+          <h3 className="text-slate-900 font-extrabold text-xs tracking-wider uppercase flex items-center gap-2">
+            <Compass size={15} className="text-red-500" /> Categorias de Exploração
           </h3>
           <button 
             onClick={() => {
               setShowOnlyLiked(!showOnlyLiked);
               setSelectedCategory('Todos');
             }}
-            className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-all ${showOnlyLiked ? 'bg-red-50 text-red-500' : 'text-slate-500 hover:text-red-500'}`}
+            className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1 px-3 py-1.5 rounded-full transition-all ${showOnlyLiked ? 'bg-red-50 text-red-500' : 'text-slate-500 hover:text-red-500'}`}
           >
-            <Heart size={14} className={showOnlyLiked ? "fill-red-500 text-red-500" : ""} /> {showOnlyLiked ? "Ver Todos os Posts" : "Favoritos"}
+            <Heart size={12} className={showOnlyLiked ? "fill-red-500 text-red-500" : ""} /> {showOnlyLiked ? "Ver Todos" : "Favoritos"}
           </button>
         </div>
 
         {/* Categories Horizontal Carousel */}
-        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
           <button 
             onClick={() => { setSelectedCategory('Todos'); setShowOnlyLiked(false); }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition-all shadow-sm border border-transparent active:scale-95 ${selectedCategory === 'Todos' && !showOnlyLiked ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50'}`}
+            className={`flex items-center gap-1.5 px-4.5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-sm border border-transparent active:scale-95 ${selectedCategory === 'Todos' && !showOnlyLiked ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50'}`}
           >
-            ⚡ Todos
+            <Layers size={13} /> Todos
           </button>
           {categories.map(cat => {
-            const emoji = getCategoryEmoji(cat.name);
             const isSelected = selectedCategory === cat.name && !showOnlyLiked;
             return (
               <button 
                 key={cat.id}
                 onClick={() => { setSelectedCategory(cat.name); setShowOnlyLiked(false); }}
-                className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition-all shadow-sm border border-transparent active:scale-95 ${isSelected ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50'}`}
+                className={`flex items-center gap-1.5 px-4.5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-sm border border-transparent active:scale-95 ${isSelected ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50'}`}
               >
-                <span>{emoji}</span> {cat.name}
+                <span className={isSelected ? "text-white" : "text-slate-400"}>{getCategoryIcon(cat.name, 13)}</span> {cat.name}
               </button>
             );
           })}
@@ -182,8 +274,8 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       {selectedCategory === 'Todos' && !showOnlyLiked && searchQuery === '' && hotPosts.length > 0 && (
         <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
           <div className="flex justify-between items-center mb-4 px-1">
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              🔥 Mais Lidos Agora <span className="text-xs font-semibold bg-red-100 text-red-500 px-2 py-0.5 rounded-full">Hot now</span>
+            <h2 className="text-md font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Flame size={16} className="text-red-500 animate-pulse" /> Mais Lidas Agora <span className="text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-600 px-2 py-0.5 rounded-md">Hot now</span>
             </h2>
           </div>
           
@@ -266,8 +358,8 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                       
                       {/* Floating Category tag */}
-                      <span className="absolute top-4 left-4 bg-white/95 text-slate-900 text-[9px] font-black px-2.5 py-1 rounded-xl backdrop-blur-sm uppercase tracking-wider shadow-sm">
-                        {getCategoryEmoji(post.category)} {post.category}
+                      <span className="absolute top-4 left-4 bg-white/95 text-slate-800 text-[9px] font-black px-2.5 py-1.5 rounded-xl backdrop-blur-sm uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+                        <span className="text-red-500">{getCategoryIcon(post.category, 10)}</span> {post.category}
                       </span>
 
                       {/* Floating Like button */}
