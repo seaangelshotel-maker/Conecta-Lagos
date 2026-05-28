@@ -38,6 +38,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -143,8 +144,10 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       try {
           const highData = await getHomeHighlights();
           const collData = await getCollections();
+          const postsData = await getBlogPosts();
           setHighlights(highData);
           setCollections(collData.filter(c => c.active));
+          setBlogPosts(postsData || []);
       } catch (e) {
           console.error("Failed to load home data", e);
       } finally {
@@ -350,7 +353,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                         if (n.includes('festa') || n.includes('evento')) emoji = '🎉';
                         
                         return (
-                            <div key={cat.id} className="flex flex-col items-center gap-2 min-w-[72px] cursor-pointer group shrink-0" onClick={() => onNavigate('guide', { category: cat.name })} >
+                           <div key={cat.id} className="flex flex-col items-center gap-2 min-w-[72px] cursor-pointer group shrink-0" onClick={() => onNavigate('guide', { category: cat.name })} >
                                 <div className="w-[72px] h-[72px] rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center justify-center text-red-500 overflow-hidden relative active:scale-95 transition-transform group-hover:bg-slate-50">
                                    <div className="text-3xl relative z-10 drop-shadow-sm">{emoji}</div>
                                 </div>
@@ -361,6 +364,76 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 </div>
             )}
         </div>
+
+        {/* DICAS & NOTÍCIAS LOCAIS (Premium Feed Section) */}
+        {blogPosts.length > 0 && (
+            <div className="px-4">
+                <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-slate-900 font-extrabold text-lg px-0.5 tracking-tight flex items-center gap-1.5">
+                       📰 Dicas e Notícias Locais
+                    </h3>
+                    <button 
+                        className="text-[13px] font-black text-red-500 hover:text-red-700 active:scale-95 transition-transform" 
+                        onClick={() => onNavigate('blog')}
+                    >
+                        Ver feed completo
+                    </button>
+                </div>
+                
+                {/* Scrollable grid matching the mobile/desktop layout of modern city feeds */}
+                <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                    {blogPosts.slice(0, 4).map(post => {
+                        const getEmoji = (cat: string) => {
+                            const c = cat.toLowerCase();
+                            if (c.includes('roteiro')) return '🗺️';
+                            if (c.includes('gastro')) return '🍽️';
+                            if (c.includes('evento')) return '🎉';
+                            if (c.includes('notícia')) return '📰';
+                            if (c.includes('dica')) return '💡';
+                            return '✨';
+                        };
+                        return (
+                            <div 
+                                key={post.id}
+                                onClick={() => onNavigate('blog-detail', { postId: post.id })}
+                                className="w-[190px] md:w-[280px] h-[250px] md:h-[320px] rounded-[1.8rem] flex-shrink-0 p-4 flex flex-col justify-between cursor-pointer relative overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-98 bg-slate-900 group"
+                            >
+                                {/* Cover Image */}
+                                <img 
+                                    src={post.imageUrl} 
+                                    referrerPolicy="no-referrer"
+                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                    alt={post.title} 
+                                />
+                                
+                                {/* Gradient Tinted Dark Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                                
+                                {/* Top tag */}
+                                <span className="absolute top-3.5 left-3.5 bg-white/90 text-slate-800 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide shadow-sm z-10">
+                                   {getEmoji(post.category)} {post.category}
+                                </span>
+                                
+                                {/* Bottom contents */}
+                                <div className="mt-auto relative z-10">
+                                    <div className="flex items-center gap-1.5 text-amber-300 text-[9px] font-bold mb-1 font-mono uppercase">
+                                       <span>⏱️ 5 MIN READ</span>
+                                       <span className="w-1 h-1 bg-amber-300 rounded-full"></span>
+                                       <span>{post.date}</span>
+                                    </div>
+                                    <h4 className="text-white font-extrabold text-sm md:text-base leading-snug drop-shadow-sm group-hover:text-amber-200 transition-colors line-clamp-2">
+                                       {post.title}
+                                    </h4>
+                                    <p className="text-slate-300 text-[10px] md:text-xs font-medium mt-1 leading-none">
+                                       Por {post.author}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        )}
 
         {/* BIG CARDS / HITS (Vale conhecer - Collections) */}
         {uniqueCollections.length > 0 && (

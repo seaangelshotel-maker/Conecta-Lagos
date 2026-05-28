@@ -639,10 +639,234 @@ export const searchBusinesses = async (searchQuery: string, category?: string, l
     return results;
 };
 
+const DEFAULT_DICAS_CATEGORIES = [
+    { id: 'cat_roteiros', name: 'Roteiros' },
+    { id: 'cat_gastronomia', name: 'Gastronomia' },
+    { id: 'cat_eventos', name: 'Eventos' },
+    { id: 'cat_noticias', name: 'Notícias' },
+    { id: 'cat_dicas_uteis', name: 'Dicas Úteis' }
+];
+
+const DEFAULT_POSTS: BlogPost[] = [
+    {
+        id: 'roteiro-3-dias-paraiso',
+        title: 'O Roteiro Perfeito de 3 Dias em Arraial do Cabo',
+        excerpt: 'Se você tem apenas um fim de semana para aproveitar o Caribe Brasileiro, este guia passo a passo vai garantir que você conheça as melhores praias, mirantes e restaurantes sem pressa.',
+        content: `Arraial do Cabo é conhecida mundialmente por suas águas cristalinas, praias paradisíacas e vida marinha pulsante. Mas como organizar tudo de forma ideal em apenas 3 dias?
+
+### Dia 1: O Clássico Passeio de Barco e Pôr do Sol no Pontal
+Comece cedo pegando o barco na Praia dos Anjos. O roteiro obrigatório inclui a Ilha do Farol, as Prainhas do Pontal do Atalaia e a Praia do Forno. À tarde, relaxe na Praia do Forno e caminhe de volta pela trilha ecológica. Para encerrar o dia com chave de ouro, suba até o Pontal do Atalaia para assistir ao pôr do sol mais espetacular do Brasil.
+
+### Dia 2: Aventura nas Prainhas e Mergulho Autônomo
+Dedique o segundo dia para descer a famosa escadaria de madeira das Prainhas do Pontal do Atalaia logo às 8h da manhã para pegá-la deserta. Se você gosta de vida selvagem, faça um mergulho de batismo operado pelas excelentes agências locais. É comum encontrar tartarugas marinhas de perto!
+
+### Dia 3: Praia Grande e Mirantes Ecológicos
+Reserve a manhã para caminhar pela areia branquíssima e fina da imensa Praia Grande. Faça uma parada para saborear petiscos nos quiosques à beira-mar e conhecer a estátua de Flávia Alessandra. Termine seu dia com uma caminhada rústica até a Praia do Amor.`,
+        imageUrl: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&w=800&q=80',
+        category: 'Roteiros',
+        date: '2026-05-27',
+        author: 'Ana Souza',
+        authorId: 'auth_ana',
+        tags: ['Arraial do Cabo', 'Roteiro', 'Praia', 'Destaque'],
+        status: 'published'
+    },
+    {
+        id: 'passeio-barco-secreto',
+        title: 'Passeio de Barco em Arraial: Rotas Tradicionais vs. Alternativas',
+        excerpt: 'Descubra como fugir das aglomerações e encontrar praias praticamente desertas, como a Fenda do Nefilim e a Gruta Azul com operadoras exclusivas.',
+        content: `O passeio de barco é a atração nº 1 de Arraial do Cabo, mas o que muitos visitantes não sabem é que existem grandes diferenças entre embarcar em uma escuna coletiva animada ou em um barco privativo personalizado de pescadores.
+
+### A Rota Tradicional
+A maioria das escunas sai da Praia dos Anjos e segue uma ordem rígida: Ilha do Farol (tempo de permanência restrito pela Marinha), Prainhas do Pontal e Praia do Forno. É uma experiência incrível, cheia de música e animação.
+
+### A Rota de Exploração / Alternativa
+Ao optar por barcos de menor porte (taxis-boat ou operadoras ecológicas exclusivas), você pode personalizar o horário de saída (saia às 7h30, trinta minutos antes das escunas!).
+
+Além das paradas tradicionais, essas embarcações conseguem adentrar de forma segura áreas geológicas fascinantes, como a Fenda de Nossa Senhora, o perfil esculpido pelo vento na Fenda do Nefilim, e flutuar com snorkel em águas profundas na majestosa Gruta Azul quando as condições de vento estão calmas. Essa perspectiva exclusiva transforma sua viagem!`,
+        imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=800&q=80',
+        category: 'Roteiros',
+        date: '2026-05-26',
+        author: 'Carlos Drummond',
+        authorId: 'auth_carlos',
+        tags: ['Passeio', 'Barco', 'Gruta Azul'],
+        status: 'published'
+    },
+    {
+        id: 'melhores-frutos-mar',
+        title: 'Top 5 Restaurantes de Frutos do Mar que Você Precisa Conhecer',
+        excerpt: 'Da tradicional moqueca praiana ao polvo grelhado na brasa, listamos os verdadeiros tesouros gastronômicos que valorizam a pesca local da Região dos Lagos.',
+        content: `A culinária de Arraial do Cabo é intrinsecamente ligada à sua história pesqueira. Pratos frescos, peixe pescado no dia e o afeto da cozinha litorânea criam vivências gastronômicas memoráveis após um dia dourado de sol.
+
+### 1. Restaurante Flutuante (Praia do Forno)
+Alcançar o restaurante flutuante já é metade da diversão. Você pode saborear ostras frescas que são cultivadas logo abaixo da sua mesa com uma cerveja gelada enquanto aprecia a calma baía do Forno.
+
+### 2. Saint Tropez (Orla da Praia dos Anjos)
+Especialista em moquecas e caldeiradas fartas, este restaurante tem o ambiente ideal para um almoço longo em família. A moqueca de peixe com camarão servida na panela de barro é inigualável.
+
+### 3. Bacalhau do Tuga (Orla da Prainha)
+Uma combinação perfeita de sabores portugueses tradicionais e frutos do mar locais. Sob a batuta do amigável chef luso, o polvo cozido de forma impecável e regado com azeite extravirgem é um prato obrigatório.
+
+### 4. Meu Querido Cabofriense (Rua Principal)
+Conhecido por suas generosidades de camarão à milanesa e arroz de frutos do mar bem temperado.
+
+### 5. Cantinho do Pescador (Centro)
+Um local rústico e amado pelos moradores locais onde o cardápio secreto do chef varia dependendo do peixe fresco recolhido nas redes dos barcos pesqueiros pela manhã.`,
+        imageUrl: 'https://images.unsplash.com/photo-1534080391025-a77b068740e4?auto=format&fit=crop&w=800&q=80',
+        category: 'Gastronomia',
+        date: '2026-05-25',
+        author: 'Daniela Chef',
+        authorId: 'auth_daniela',
+        tags: ['Gastronomia', 'Frutos do Mar', 'Restaurantes'],
+        status: 'published'
+    },
+    {
+        id: 'cafes-charme-centro',
+        title: 'Cafés Charmosos para um Final de Tarde Inesquecível',
+        excerpt: 'Lugares aconchegantes com cafés especiais, bolos caseiros e decoração rústica que são a cara do sossego de Arraial após um dia inteiro de praia.',
+        content: `Fugir do sol de meio-dia ou se preparar para o anoitecer fica muito melhor com uma pausa para o café. Arraial vem desenvolvendo uma rota deliciosa de pequenas cafeterias rústicas e empórios gourmet com um charme inigualável.
+
+### O Café do Canal
+Perfeito para quem busca pães artesanais de fermentação natural com crosta crocante e recheio arejado. O espresso tirado no ponto exato acompanha perfeitamente uma fatia generosa de bolo de banana com canela quentinho.
+
+### Santo Grão das Ondas
+Localizado em uma simpática galeria artística próxima à Praia Grande, este café oferece métodos de extração variados (V60, Aeropress, Prensa Francesa) e opções veganas deliciosas, como cappuccinos de leite de aveia com cacau 100% puro.`,
+        imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
+        category: 'Gastronomia',
+        date: '2026-05-24',
+        author: 'Daniela Chef',
+        authorId: 'auth_daniela',
+        tags: ['Cafés', 'Sobremesas', 'Centro'],
+        status: 'published'
+    },
+    {
+        id: 'festival-bossa-jazz',
+        title: 'Arraial Bossa & Jazz: Edição de Inverno Confirmada!',
+        excerpt: 'O festival mais charmoso da Região dos Lagos está de volta. Confira a programação completa das apresentações ao vivo que acontecerão na Orla da Praia dos Anjos.',
+        content: `A Secretaria de Cultura confirmou a volta anual do tão aguardado Festival Arraial Bossa & Jazz, um evento que une música erudita e gastronomia sofisticada nas belas paisagens de Arraial do Cabo.
+
+O festival contará com dois palcos montados estrategicamente de frente para o mar, na Praia dos Anjos. O acesso é totalmente gratuito e contará com postos de arrecadação de alimentos não perecíveis.
+
+Entre as atrações estão confirmados ícones nacionais da MPB e do Bossa Nova, além de instrumentistas locais que apresentarão as tradicionais melodias litorâneas com roupagem jazz contemporânea. Haverá também um circuito gastronômico especial com food trucks gourmet servindo vinhos artesanais, queijos finos e sobremesas locais de renome internacional.`,
+        imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+        category: 'Eventos',
+        date: '2026-05-23',
+        author: 'Guilherme Santos',
+        authorId: 'auth_guilherme',
+        tags: ['Festival', 'Jazz', 'Bossa Nova', 'Música'],
+        status: 'published'
+    },
+    {
+        id: 'festas-luau-praia',
+        title: 'A Magia dos Luaus na Praia do Pontal do Atalaia',
+        excerpt: 'Uma curadoria das noites musicais sob as estrelas, onde músicos locais reúnem moradores e turistas ao redor de fogueiras e boa energia.',
+        content: `Nada define melhor o espírito livre de Arraial do Cabo do que o calor das fogueiras na praia acompanhado pelo ritmo rítmico de violões acústicos e vozes sob as estrelas. Os luaus reúnem pessoas de todas as idades ao anoitecer para celebrar as boas vibrações.
+
+### Onde e Quando Encontrar?
+Embora aconteçam de forma esporádica e informal, a comunidade artística de Cabo Frio e Arraial costuma atualizar as reuniões através das redes sociais locais. O destino preferido é a extensão das areias mais protegidas do Pontal, que por não ter postes elétricos oferece as vistas perfeitas da abóbada celeste e de chuvas de meteoros brilhantes.
+
+Vista uma peça de roupa aconchegante, leve sua canga mais volumosa, algumas frutas locais para compartilhar e viva Arraial de uma maneira pura, conectada com a natureza deslumbrante e o calor humano local.`,
+        imageUrl: 'https://images.unsplash.com/photo-1496337589254-7e19d01cedee?auto=format&fit=crop&w=800&q=80',
+        category: 'Eventos',
+        date: '2026-05-22',
+        author: 'Guilherme Santos',
+        authorId: 'auth_guilherme',
+        tags: ['Luau', 'Noite', 'Acústico'],
+        status: 'published'
+    },
+    {
+        id: 'nova-orla-prainha',
+        title: 'Revitalização da Orla da Prainha Impulsiona Comércio Local',
+        excerpt: 'Com novas ciclovias, quiosques padronizados e iluminação em LED, a histórica Prainha ganha novo fôlego e atrai famílias para caminhadas noturnas.',
+        content: `O projeto de reurbanização total da Orla da Prainha, um dos principais portões de entrada rodoviários de Arraial do Cabo, foi inaugurado esta semana e já tem recebido aplausos unânimes dos comerciantes de quiosques e de turistas frequentes.
+
+As obras incluíram a unificação do padrão estético de todos os quiosques de alimentação, instalação de decks ecológicos de madeira suspensa protegendo as encostas de vegetação restinga nativa, ciclovias sinalizadas conectadas ao centro urbano e iluminação sustentável de alta eficiência por refletores LED.
+
+De acordo com a prefeitura, o novo visual clean e organizado reduz a poluição visual, garante acessibilidade total para carrinhos de bebê e cadeirantes e prolonga o funcionamento dos estabelecimentos que agora operam com mais conforto e segurança em um ambiente integrado.`,
+        imageUrl: 'https://images.unsplash.com/photo-1548625361-155de0cbb55a?auto=format&fit=crop&w=800&q=80',
+        category: 'Notícias',
+        date: '2026-05-21',
+        author: 'Mariana Repórter',
+        authorId: 'auth_mariana',
+        tags: ['Notícia', 'Prefeitura', 'Obras', 'Prainha'],
+        status: 'published'
+    },
+    {
+        id: 'selo-azul-preservacao',
+        title: 'Arraial Recebe Selo Internacional de Preservação Ambiental',
+        excerpt: 'A qualidade da água exuberante e o controle de resíduos sólidos garantem certificação de excelência para três das praias mais famosas do município.',
+        content: `Uma comissão técnica internacional declarou Arraial do Cabo como vencedora de uma cobiçada insígnia de proteção marinha global. A certificação Bandeira Azul premia a perfeita qualidade ambiental das águas de banho locais, a eficiência do manejo integrado de lixo, campanhas educativas contínuas e segurança para mergulho.
+
+O selo consolida Arraial do Cabo como exemplo internacional de desenvolvimento sustentável onde o fluxo turístico é manejado de forma a proteger os ecossistemas arenosos, recifes de corais preciosos e a fauna de baleias que migra por nossas correntes litorâneas de ressurgência fria ao longo do ano.`,
+        imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+        category: 'Notícias',
+        date: '2026-05-20',
+        author: 'Mariana Repórter',
+        authorId: 'auth_mariana',
+        tags: ['Notícia', 'Selo Azul', 'Natureza'],
+        status: 'published'
+    },
+    {
+        id: 'guia-sobrevivencia-temporada',
+        title: 'Guia de Sobrevivência para a Alta Temporada',
+        excerpt: 'Quer visitar Arraial em feriados ou férias escolares? Veja dicas cruciais sobre horários de trânsito, estacionamento em locais públicos e como evitar longas filas.',
+        content: `Visitar Arraial do Cabo durante o Ano Novo, Carnaval ou feriados ensolarados exige um planejamento um pouco mais rigoroso para que o congestionamento natural nas vias apertadas de paralelepípedo não roube o bom humor das suas merecidas férias.
+
+### 1. O Horário de Ouro
+Em dias cheios, o segredo é inverter a rotina tradicional dos banhistas. Chegue às praias mais famosas como Prainhas ou Praia do Forno antes das 8h. Você desfrutará de praias praticamente desertas, água cristalina e com temperatura super agradável. Ao meio-dia, quando as multidões começarem a chegar em massa, retorne para almoçar nos restaurantes do centro ou descansar.
+
+### 2. Cadastre o Seu Carro
+Lembre-se de verificar as políticas públicas locais de estacionamento rotativo controlado (como o aplicativo Zona Azul da cidade). Guarde sempre o comprovante impresso ou virtual para evitar multas de trânsito estressantes.
+
+### 3. Dê Preferência aos Táxis e Caminhadas
+Como Arraial é uma península pequena, realizar trajetos internos curtos a pé ou através de moto-táxis credenciadas é dez vezes mais rápido e econômico do que gastar trinta minutos procurando por uma vaga de automóvel!`,
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+        category: 'Dicas Úteis',
+        date: '2026-05-19',
+        author: 'Ana Souza',
+        authorId: 'auth_ana',
+        tags: ['Dicas', 'Guia', 'Temporada', 'Trânsito'],
+        status: 'published'
+    },
+    {
+        id: 'mirantes-imperdiveis',
+        title: 'Os 5 Melhores Mirantes para Tirar Fotos de Tirar o Fôlego',
+        excerpt: 'De pontos fáceis na estrada aos picos nas trilhas que exigem caminhada, listamos os mirantes ideais para capturar o pôr do sol dourado e a imensidão azul do oceano.',
+        content: `Os relevos dramáticos de Arraial proporcionam dezenas de mirantes fantásticos com ângulos de visualização espetaculares de trechos turquesa do mar. Listamos os cinco melhores cantinhos para os amantes de fotografia de natureza.
+
+### 1. Mirante do Pontal do Atalaia
+O mirante oficial fica no ápice das estradas asfaltadas do Pontal. O ângulo elevado dá vista integral para as Prainhas, Praia dos Anjos e a Ilha de Cabo Frio. Cartão postal absoluto!
+
+### 2. Encostas da Cabocla
+La trilha até o mirante da Cabocla exige cerca de trinta minutos de esforço moderado, mas recompensa com vistas amplas de 360 graus da encosta oceânica deslumbrante.
+
+### 3. Mirante da Praia do Forno
+No ápice da subida da trilha rápida que inicia no porto, há um mirante que exibe a perfeita baía em ferradura da Praia do Forno moldada de mata atlântica verdejante.`,
+        imageUrl: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
+        category: 'Dicas Úteis',
+        date: '2026-05-18',
+        author: 'Carlos Drummond',
+        authorId: 'auth_carlos',
+        tags: ['Fotografia', 'Mirantes', 'Trilha'],
+        status: 'published'
+    }
+];
+
 export const getBlogPosts = async () => {
     if (_posts.length === 0) {
         const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(20)));
         _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost));
+    }
+    
+    // Auto-seed if there are fewer than 5 posts
+    if (_posts.length < 5) {
+        for (const post of DEFAULT_POSTS) {
+            if (!_posts.find(p => p.id === post.id)) {
+                await setDoc(doc(db, 'blog_posts', post.id), cleanObject(post), { merge: true });
+                _posts.push(post);
+            }
+        }
+        // Re-sort
+        _posts.sort((a, b) => b.date.localeCompare(a.date));
     }
     return _posts;
 };
@@ -827,6 +1051,16 @@ export const getDicasCategories = async () => {
     if (_dicasCategories.length === 0) {
         const snap = await getDocs(collection(db, 'app_categories_dicas'));
         _dicasCategories = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppCategory));
+    }
+    
+    // Auto-seed if empty
+    if (_dicasCategories.length < 5) {
+        for (const cat of DEFAULT_DICAS_CATEGORIES) {
+            if (!_dicasCategories.find(c => c.id === cat.id)) {
+                await setDoc(doc(db, 'app_categories_dicas', cat.id), cleanObject(cat), { merge: true });
+                _dicasCategories.push(cat);
+            }
+        }
     }
     return _dicasCategories;
 };
