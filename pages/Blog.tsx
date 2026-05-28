@@ -187,15 +187,15 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
             </h2>
           </div>
           
-          {/* Scrollable grid for gorgeous full height cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 overflow-x-auto hide-scrollbar">
+          {/* Elegant horizontal scroll on mobile, responsive grid on desktop */}
+          <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
             {hotPosts.map(post => {
               const isLiked = likedPosts.includes(post.id);
               return (
                 <div 
                   key={`hot_${post.id}`}
                   onClick={() => handlePostClick(post.id)}
-                  className="relative h-64 md:h-80 col-span-1 rounded-3xl overflow-hidden shadow-md group cursor-pointer aspect-[3/4] shrink-0 active:scale-98 transition-transform"
+                  className="relative h-72 md:h-80 w-[270px] sm:w-[320px] md:w-full shrink-0 snap-start rounded-[2rem] overflow-hidden shadow-md group cursor-pointer active:scale-98 transition-transform"
                 >
                   <img 
                     src={post.imageUrl} 
