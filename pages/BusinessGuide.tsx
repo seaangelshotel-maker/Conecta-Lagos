@@ -342,13 +342,13 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
           </div>
       </div>
 
-      {/* 2. MAIN SEARCH & FILTERS PANEL (Clean cards containing search, categories flow, selects, and toggles) */}
+      {/* 2. MAIN SEARCH & FILTERS PANEL */}
       <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-          <div className="bg-white p-4.5 sm:p-5 rounded-3xl shadow-sm border border-slate-200/60">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200/60">
               
-              {/* 2a. Real-time Text Input Field */}
+              {/* 2a. Real-time Search Field */}
               <div className="relative flex items-center mb-4">
-                  <Search className="absolute left-4 text-slate-400 pointer-events-none" size={17} />
+                  <Search className="absolute left-4 text-slate-400/85 pointer-events-none" size={16} />
                   <input 
                       type="text" 
                       placeholder="O que você procura?"
@@ -366,8 +366,116 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                   )}
               </div>
 
-              {/* 2b. Rounded Category Circle Slider (Placed below the search field per user request) */}
-              <div className="mb-5 overflow-x-auto hide-scrollbar pb-1 px-0.5 border-b border-dashed border-slate-100">
+              {/* 2b. Dropdowns stacked on mobile, grid side-by-side on desktop (Clean without emojis as requested) */}
+              <div className="flex flex-col md:grid md:grid-cols-3 gap-2.5 md:gap-3 mb-4">
+                  {/* Category Dropdown (Clean, no emojis) */}
+                  <div className="relative w-full">
+                      <select 
+                        className="w-full bg-slate-50/50 hover:bg-slate-100/30 border border-slate-150 rounded-xl px-3 py-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all"
+                        value={selectedCategory} 
+                        onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
+                      >
+                          <option value="Todos">Categorias</option>
+                          {categories.map(cat => (
+                              <option key={cat.id} value={cat.name}>
+                                  {cat.name}
+                              </option>
+                          ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={13} />
+                  </div>
+
+                  {/* Location Dropdown (Clean, no emojis) */}
+                  <div className="relative w-full">
+                      <select 
+                        className="w-full bg-slate-50/50 hover:bg-slate-100/30 border border-slate-150 rounded-xl px-3 py-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all"
+                        value={selectedLocation} 
+                        onChange={(e) => setSelectedLocation(e.target.value)}
+                      >
+                          <option value="Todos">Localização</option>
+                          {cities.map(city => (
+                              <optgroup key={city.id} label={city.name} className="font-extrabold text-xs text-ocean-900 bg-white">
+                                  <option value={city.id}>Toda a cidade</option>
+                                  {neighborhoods.filter(n => n.cityId === city.id).map(n => (
+                                      <option key={n.id} value={n.id} className="font-semibold text-slate-700">
+                                          {n.name}
+                                      </option>
+                                  ))}
+                              </optgroup>
+                          ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={13} />
+                  </div>
+
+                  {/* Filters/Amenities Dropdown (Clean, no emojis) */}
+                  <div className="relative w-full">
+                      <select 
+                        className="w-full bg-slate-50/50 hover:bg-slate-100/30 border border-slate-150 rounded-xl px-3 py-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all"
+                        onChange={(e) => { 
+                            if (e.target.value) { 
+                                const id = e.target.value; 
+                                setSelectedAmenities(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); 
+                                e.target.value = ""; 
+                            } 
+                        }}
+                      >
+                          <option value="">Filtros</option>
+                          {amenities.map(am => <option key={am.id} value={am.id}>{am.label}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={13} />
+                  </div>
+              </div>
+
+              {/* Active amenities indicator bubble tags */}
+              {selectedAmenities.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3 mb-2 items-center">
+                      {selectedAmenities.map(id => (
+                          <button 
+                            key={id} 
+                            onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} 
+                            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-ocean-600 text-white text-[10px] font-bold uppercase tracking-wide hover:bg-ocean-700 transition-colors"
+                          >
+                              <Check size={11} /> {amenities.find(a => a.id === id)?.label || id} 
+                              <X size={9} className="ml-1 opacity-75"/>
+                          </button>
+                      ))}
+                  </div>
+              )}
+
+              {/* 2c. Perto & Aberto Toggle Buttons (Sleek action rows) */}
+              <div className="flex gap-2 items-center mb-4.5">
+                  {/* Perto Action button */}
+                  <button 
+                    onClick={handleNearbyClick} 
+                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+                      nearby 
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 font-extrabold' 
+                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                      {locating ? (
+                          <Loader2 className="animate-spin text-sky-500" size={12}/>
+                      ) : (
+                          <Navigation size={12} className={nearby ? "fill-current animate-pulse text-sky-600" : "text-slate-400"} />
+                      )} 
+                      {locating ? 'GPS...' : 'Perto'}
+                  </button>
+
+                  {/* Aberto Toggle button */}
+                  <button 
+                    onClick={() => setOnlyOpen(!onlyOpen)} 
+                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+                      onlyOpen 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold' 
+                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                      <Clock size={12} className={onlyOpen ? 'text-emerald-500' : 'text-slate-400'} /> Aberto
+                  </button>
+              </div>
+
+              {/* 2d. Horizontal Scrollable Category Slider at the bottom of the card block */}
+              <div className="pt-4 border-t border-dashed border-slate-100 overflow-x-auto hide-scrollbar pb-1 px-0.5 mt-4">
                   <div className="flex gap-4.5">
                     {/* TODOS bubble card */}
                     <div 
@@ -382,7 +490,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                       </span>
                     </div>
                     
-                    {/* Database categories slider */}
+                    {/* Database categories round items slider mapping */}
                     {categories.map(cat => {
                       let emoji = '🧭';
                       const n = cat.name.toLowerCase();
@@ -417,115 +525,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                   </div>
               </div>
 
-              {/* 2c. Filters select selectors row (Categorias, Localização, Filtros +) inline row */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
-                  {/* Category select dropdown */}
-                  <div className="relative">
-                      <select 
-                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
-                        value={selectedCategory} 
-                        onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
-                      >
-                          <option value="Todos">🗂️ Categorias</option>
-                          {categories.map(cat => (
-                              <option key={cat.id} value={cat.name}>
-                                  {cat.name}
-                              </option>
-                          ))}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
-                  </div>
-
-                  {/* Location Select dropdown */}
-                  <div className="relative">
-                      <select 
-                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
-                        value={selectedLocation} 
-                        onChange={(e) => setSelectedLocation(e.target.value)}
-                      >
-                          <option value="Todos">📍 Localização</option>
-                          {cities.map(city => (
-                              <optgroup key={city.id} label={`🌴 ${city.name}`} className="font-extrabold text-xs text-ocean-900 bg-white">
-                                  <option value={city.id}>Toda a cidade</option>
-                                  {neighborhoods.filter(n => n.cityId === city.id).map(n => (
-                                      <option key={n.id} value={n.id} className="font-semibold text-slate-700">
-                                          {n.name}
-                                      </option>
-                                  ))}
-                              </optgroup>
-                          ))}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
-                  </div>
-
-                  {/* Amenities select dropdown */}
-                  <div className="relative">
-                      <select 
-                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
-                        onChange={(e) => { 
-                            if (e.target.value) { 
-                                const id = e.target.value; 
-                                setSelectedAmenities(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); 
-                                e.target.value = ""; 
-                            } 
-                        }}
-                      >
-                          <option value="">⚙️ Filtros +</option>
-                          {amenities.map(am => <option key={am.id} value={am.id}>{am.label}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
-                  </div>
-              </div>
-
-              {/* Advanced amenities tags selected indicator list */}
-              {selectedAmenities.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3 mb-1 items-center">
-                      {selectedAmenities.map(id => (
-                          <button 
-                            key={id} 
-                            onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} 
-                            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-ocean-600 text-white text-[10px] font-bold uppercase tracking-wide shadow-xs hover:bg-ocean-700 transition-colors"
-                          >
-                              <Check size={11} /> {amenities.find(a => a.id === id)?.label || id} 
-                              <X size={9} className="ml-1 opacity-75"/>
-                          </button>
-                      ))}
-                  </div>
-              )}
-
-              {/* 2d. Compact Buttons (Perto, Aberto) row */}
-              <div className="flex gap-2 items-center">
-                  {/* Perto Action button */}
-                  <button 
-                    onClick={handleNearbyClick} 
-                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                      nearby 
-                        ? 'bg-sky-50 border-sky-200 text-sky-700' 
-                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
-                    }`}
-                  >
-                      {locating ? (
-                          <Loader2 className="animate-spin text-sky-500" size={12}/>
-                      ) : (
-                          <Navigation size={12} className={nearby ? "fill-current animate-pulse text-sky-500" : "text-slate-400"} />
-                      )} 
-                      {locating ? 'GPS...' : 'Perto'}
-                  </button>
-
-                  {/* Aberto Toggle button */}
-                  <button 
-                    onClick={() => setOnlyOpen(!onlyOpen)} 
-                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                      onlyOpen 
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
-                    }`}
-                  >
-                      <Clock size={12} className={onlyOpen ? 'text-emerald-500' : 'text-slate-400'} /> Aberto
-                  </button>
-              </div>
-
-              {/* 2e. Subcategory chips within deep categories selector mapping scope */}
+              {/* 2e. Subcategory chips mapping scope */}
               {currentSubcategories.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 border-t border-slate-100/75 mt-3.5 items-center">
                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">Ramos:</span>
