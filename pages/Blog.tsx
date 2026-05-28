@@ -8,6 +8,33 @@ interface BlogProps {
   onNavigate?: (page: string, params?: any) => void;
 }
 
+const DEFAULT_ADS: BlogAd[] = [
+  {
+    id: 'ad1',
+    title: 'Passeio de Barco VIP com Capitão Arraial • 15% OFF',
+    subtitle: 'Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.',
+    imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Patrocinado',
+    actionLabel: 'Ver Passeios',
+    badgeColor: 'bg-amber-500/95 text-white',
+    targetCategory: 'Passeios',
+    active: true,
+    order: 0
+  },
+  {
+    id: 'ad2',
+    title: 'Festival da Lagosta em Arraial do Cabo',
+    subtitle: 'Neste final de semana, venha saborear pratos exclusivos nos melhores restaurantes com preços especiais!',
+    imageUrl: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Destaque Gastronômico',
+    actionLabel: 'Ver Gastronomia',
+    badgeColor: 'bg-red-500/95 text-white',
+    targetCategory: 'Gastronomia',
+    active: true,
+    order: 1
+  }
+];
+
 export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -18,7 +45,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [adsSlides, setAdsSlides] = useState<BlogAd[]>([]);
+  const [adsSlides, setAdsSlides] = useState<BlogAd[]>(DEFAULT_ADS);
 
   useEffect(() => {
     if (adsSlides.length === 0) return;
@@ -30,18 +57,29 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [p, u, c, ads] = await Promise.all([
-        getBlogPosts(),
-        getAllUsers(),
-        getDicasCategories(),
-        getBlogAds()
-      ]);
-      setPosts(p);
-      setUsers(u);
-      setCategories(c);
-      setAdsSlides(ads.filter(a => a.active));
+      try {
+        const [p, u, c, ads] = await Promise.all([
+          getBlogPosts().catch(err => { console.error("Error fetching blog posts:", err); return []; }),
+          getAllUsers().catch(err => { console.error("Error fetching users:", err); return []; }),
+          getDicasCategories().catch(err => { console.error("Error fetching categories:", err); return []; }),
+          getBlogAds().catch(err => { console.error("Error fetching blog ads:", err); return []; })
+        ]);
+        setPosts(p || []);
+        setUsers(u || []);
+        setCategories(c || []);
+        if (ads && ads.filter(a => a.active).length > 0) {
+          setAdsSlides(ads.filter(a => a.active));
+        } else {
+          setAdsSlides(DEFAULT_ADS);
+        }
+      } catch (err) {
+        console.error("Critical error in fetchData on Blog page:", err);
+      }
     };
     fetchData();
+
+    // Listen to real-time events from administrative updates
+    window.addEventListener('dataUpdated', fetchData);
 
     // Load liked posts from localStorage
     try {
@@ -52,6 +90,10 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
     } catch (e) {
       console.warn("Could not load liked posts", e);
     }
+
+    return () => {
+      window.removeEventListener('dataUpdated', fetchData);
+    };
   }, []);
 
   const handlePostClick = (postId: string) => {

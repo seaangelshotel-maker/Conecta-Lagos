@@ -318,126 +318,132 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
 
   return (
     <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
-      
-      {/* 1. HEADER SECTION (Typography & GPS Polish) */}
-      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 pb-3 border-b border-slate-100">
-              <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase font-black text-ocean-600 tracking-widest flex items-center gap-1">
-                      <Sparkles size={11} className="fill-current" /> Guia de Serviços e Estadia
-                  </span>
-                  <h1 className="text-3xl md:text-3.5xl font-black text-slate-900 tracking-tight leading-none">
+      {/* 1. HEADER SECTION (Typography & GPS Polish matching user screenshot) */}
+      <div className="px-4 mb-5 max-w-7xl mx-auto w-full">
+          <div className="flex justify-between items-start gap-3 pb-3 border-b border-slate-100">
+              <div className="space-y-1">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">
                       Guia Comercial
                   </h1>
-                  <p className="text-xs text-slate-500 font-medium leading-none">
-                      Os melhores lugares da <strong className="text-slate-800">Região dos Lagos</strong> na palma da sua mão.
+                  <p className="text-xs text-slate-400 font-semibold leading-none mt-1">
+                      Os melhores lugares da <strong className="text-slate-600">Região dos Lagos</strong> na palma da sua mão.
                   </p>
               </div>
 
-              {/* Dynamic GPS indicator and details */}
+              {/* Dynamic GPS indicator shown as a pill matching user design */}
               <button 
                 onClick={handleNearbyClick}
-                className="flex items-center gap-2 self-start bg-white border border-slate-200/80 p-2.5 rounded-2xl shadow-xs hover:border-ocean-300 hover:bg-ocean-50/30 transition-all cursor-pointer active:scale-95 text-left shrink-0"
+                className="flex items-center gap-1.5 bg-sky-50/70 border border-sky-100 px-3 py-1.5 rounded-full text-xs font-semibold text-sky-700 hover:bg-sky-100/60 transition-all cursor-pointer active:scale-95 shrink-0 select-none shadow-2xs"
               >
-                  <div className={`p-1.5 rounded-xl ${nearby ? 'bg-ocean-100 text-ocean-600' : 'bg-slate-50 text-slate-400'}`}>
-                      <MapPin size={16} className={nearby ? 'fill-current' : ''} />
-                  </div>
-                  <div className="flex flex-col justify-center select-none pr-2">
-                      <span className="text-[8px] uppercase font-black text-slate-400 leading-none tracking-wide">Foco de busca</span>
-                      <span className="font-extrabold text-[11px] text-slate-800 leading-tight mt-0.5 flex items-center gap-1 text-ocean-600">
-                          {currentLocationName}
-                          {nearby && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />}
-                      </span>
-                  </div>
+                  <MapPin size={13} className={nearby ? 'fill-current animate-pulse text-sky-600' : 'text-sky-500'} />
+                  <span>{currentLocationName === 'Todas as Regiões' ? 'Todas as Regiões' : currentLocationName}</span>
+                  {nearby && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />}
               </button>
           </div>
       </div>
 
-      {/* 2. ROUND ICON CATEGORY SLIDER (Consistent alignment with home styling) */}
+      {/* 2. MAIN SEARCH & FILTERS PANEL (Clean cards containing search, categories flow, selects, and toggles) */}
       <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-          <div className="flex gap-4.5 overflow-x-auto hide-scrollbar pb-3 px-0.5">
-            {/* TODOS bubble map */}
-            <div 
-              onClick={() => { setSelectedCategory('Todos'); setSelectedSubCategory('Todos'); }} 
-              className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
-            >
-              <div className={`w-[66px] h-[66px] rounded-2xl flex items-center justify-center transition-all ${selectedCategory === 'Todos' ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white shadow-md shadow-ocean-500/20 scale-103' : 'bg-white border border-slate-100 text-slate-400 group-hover:bg-slate-100/50'}`}>
-                <Compass size={24} className={selectedCategory === 'Todos' ? 'animate-[spin_4s_linear_infinite]' : ''} />
-              </div>
-              <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider text-center leading-tight ${selectedCategory === 'Todos' ? 'text-ocean-600' : 'text-slate-500 group-hover:text-slate-800'}`}>
-                Todos
-              </span>
-            </div>
-            
-            {/* Database categories round items slider mapping */}
-            {categories.map(cat => {
-              let emoji = '🧭';
-              const n = cat.name.toLowerCase();
-              if (n.includes('gastro') || n.includes('restaurante') || n.includes('comida')) emoji = '🍔';
-              else if (n.includes('hospedagem') || n.includes('hotel') || n.includes('pousada')) emoji = '🛌';
-              else if (n.includes('passeio') || n.includes('barco') || n.includes('ilha')) emoji = '⛵';
-              else if (n.includes('serviço') || n.includes('delivery')) emoji = '🛵';
-              else if (n.includes('praia')) emoji = '⛱️';
-              else if (n.includes('festa') || n.includes('evento')) emoji = '🎉';
-              else if (n.includes('comércio') || n.includes('loja')) emoji = '🛍️';
-
-              const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
-
-              return (
-                <div 
-                  key={cat.id} 
-                  onClick={() => { setSelectedCategory(cat.name); setSelectedSubCategory('Todos'); }} 
-                  className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
-                >
-                  <div className={`w-[66px] h-[66px] rounded-2xl flex items-center justify-center text-3xl transition-all relative ${isActive ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 shadow-md shadow-ocean-500/25 scale-103 text-white' : 'bg-white border border-slate-100 text-slate-700 group-hover:bg-slate-100/50'}`}>
-                    <span className="relative z-10 drop-shadow-sm select-none">{emoji}</span>
-                    {isActive && (
-                      <div className="absolute inset-0 bg-white/10 rounded-2xl animate-pulse"></div>
-                    )}
-                  </div>
-                  <span className={`text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 max-w-[72px] ${isActive ? 'text-ocean-600 font-black' : 'text-slate-500 group-hover:text-slate-800'}`}>
-                    {cat.name}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-      </div>
-
-      {/* 3. CONSOLIDATED FILTER PANEL (iFood/Konecta style) */}
-      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
-          <div className="bg-white p-4 sm:p-5 rounded-[2.2rem] shadow-sm border border-slate-100/85">
+          <div className="bg-white p-4.5 sm:p-5 rounded-3xl shadow-sm border border-slate-200/60">
               
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                  
-                  {/* Free text search bar */}
-                  <div className="relative md:col-span-2">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-                      <input 
-                          type="text" 
-                          placeholder="Tem fome de quê? Busque por lugar, nicho ou prato..."
-                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-10 pr-4 outline-none focus:ring-4 focus:ring-ocean-500/10 focus:border-ocean-300 font-semibold text-xs text-slate-800 placeholder-slate-400 transition-all shadow-inner"
-                          value={query} 
-                          onChange={(e) => setQuery(e.target.value)}
-                      />
-                      {query && (
-                          <button 
-                            onClick={() => setQuery('')}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                          >
-                              <X size={14} />
-                          </button>
-                      )}
-                  </div>
+              {/* 2a. Real-time Text Input Field */}
+              <div className="relative flex items-center mb-4">
+                  <Search className="absolute left-4 text-slate-400 pointer-events-none" size={17} />
+                  <input 
+                      type="text" 
+                      placeholder="O que você procura?"
+                      className="w-full bg-slate-50/50 border border-slate-100/90 rounded-2xl py-3.5 pl-11 pr-11 outline-none text-sm font-semibold text-slate-700 placeholder-slate-400/80 focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all shadow-2xs"
+                      value={query} 
+                      onChange={(e) => setQuery(e.target.value)}
+                  />
+                  {query && (
+                      <button 
+                        onClick={() => setQuery('')}
+                        className="absolute right-4 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                          <X size={15} />
+                      </button>
+                  )}
+              </div>
 
-                  {/* Grouped Location Select Selector */}
+              {/* 2b. Rounded Category Circle Slider (Placed below the search field per user request) */}
+              <div className="mb-5 overflow-x-auto hide-scrollbar pb-1 px-0.5 border-b border-dashed border-slate-100">
+                  <div className="flex gap-4.5">
+                    {/* TODOS bubble card */}
+                    <div 
+                      onClick={() => { setSelectedCategory('Todos'); setSelectedSubCategory('Todos'); }} 
+                      className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
+                    >
+                      <div className={`w-[60px] h-[60px] rounded-2xl flex items-center justify-center transition-all ${selectedCategory === 'Todos' ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white shadow-md shadow-ocean-500/20 scale-103' : 'bg-white border border-slate-100 text-slate-400 group-hover:bg-slate-100/50 shadow-2xs'}`}>
+                        <Compass size={22} className={selectedCategory === 'Todos' ? 'animate-[spin_4s_linear_infinite]' : ''} />
+                      </div>
+                      <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider text-center leading-tight ${selectedCategory === 'Todos' ? 'text-ocean-600' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                        Todos
+                      </span>
+                    </div>
+                    
+                    {/* Database categories slider */}
+                    {categories.map(cat => {
+                      let emoji = '🧭';
+                      const n = cat.name.toLowerCase();
+                      if (n.includes('gastro') || n.includes('restaurante') || n.includes('comida')) emoji = '🍔';
+                      else if (n.includes('hospedagem') || n.includes('hotel') || n.includes('pousada')) emoji = '🛌';
+                      else if (n.includes('passeio') || n.includes('barco') || n.includes('ilha')) emoji = '⛵';
+                      else if (n.includes('serviço') || n.includes('delivery')) emoji = '🛵';
+                      else if (n.includes('praia')) emoji = '⛱️';
+                      else if (n.includes('festa') || n.includes('evento')) emoji = '🎉';
+                      else if (n.includes('comércio') || n.includes('loja')) emoji = '🛍️';
+
+                      const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+
+                      return (
+                        <div 
+                          key={cat.id} 
+                          onClick={() => { setSelectedCategory(cat.name); setSelectedSubCategory('Todos'); }} 
+                          className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
+                        >
+                          <div className={`w-[60px] h-[60px] rounded-2xl flex items-center justify-center text-2.5xl transition-all relative ${isActive ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 shadow-md shadow-ocean-500/25 scale-103 text-white' : 'bg-white border border-slate-100 text-slate-700 group-hover:bg-slate-100/50 shadow-2xs'}`}>
+                            <span className="relative z-10 drop-shadow-xs select-none">{emoji}</span>
+                            {isActive && (
+                              <div className="absolute inset-0 bg-white/10 rounded-2xl animate-pulse"></div>
+                            )}
+                          </div>
+                          <span className={`text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 max-w-[72px] ${isActive ? 'text-ocean-600 font-extrabold' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                            {cat.name}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+              </div>
+
+              {/* 2c. Filters select selectors row (Categorias, Localização, Filtros +) inline row */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+                  {/* Category select dropdown */}
                   <div className="relative">
                       <select 
-                        className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-2xl pl-3.5 pr-8 py-3 outline-none text-xs font-bold text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/10 transition-all"
+                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
+                        value={selectedCategory} 
+                        onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
+                      >
+                          <option value="Todos">🗂️ Categorias</option>
+                          {categories.map(cat => (
+                              <option key={cat.id} value={cat.name}>
+                                  {cat.name}
+                              </option>
+                          ))}
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+                  </div>
+
+                  {/* Location Select dropdown */}
+                  <div className="relative">
+                      <select 
+                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
                         value={selectedLocation} 
                         onChange={(e) => setSelectedLocation(e.target.value)}
                       >
-                          <option value="Todos">📍 Toda a Região</option>
+                          <option value="Todos">📍 Localização</option>
                           {cities.map(city => (
                               <optgroup key={city.id} label={`🌴 ${city.name}`} className="font-extrabold text-xs text-ocean-900 bg-white">
                                   <option value={city.id}>Toda a cidade</option>
@@ -449,64 +455,13 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                               </optgroup>
                           ))}
                       </select>
-                      <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
                   </div>
 
-                  {/* SWR Category selector backup */}
+                  {/* Amenities select dropdown */}
                   <div className="relative">
                       <select 
-                        className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-2xl pl-3.5 pr-8 py-3 outline-none text-xs font-bold text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/10 transition-all"
-                        value={selectedCategory} 
-                        onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory('Todos'); }}
-                      >
-                          <option value="Todos">🗂️ Todas as Categorias</option>
-                          {categories.map(cat => (
-                              <option key={cat.id} value={cat.name} className="font-semibold">
-                                  {cat.name}
-                              </option>
-                          ))}
-                      </select>
-                      <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
-                  </div>
-
-              </div>
-
-              {/* Horizontal Secondary Scrollable Pill filters */}
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3.5 border-t border-slate-50 mt-3.5 items-center">
-                  
-                  {/* Near tracking Toggle Button */}
-                  <button 
-                    onClick={handleNearbyClick} 
-                    className={`shrink-0 px-4 py-2.5 rounded-full text-xs font-extrabold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${nearby ? 'bg-ocean-100/70 border-ocean-200 text-ocean-700' : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'}`}
-                  >
-                      {locating ? <Loader2 className="animate-spin" size={13}/> : <Navigation size={13} className={nearby ? "fill-current animate-pulse" : ""}/>} 
-                      {locating ? 'Buscando...' : 'Mais Perto'}
-                  </button>
-
-                  {/* Active Open scheduling indicator Button */}
-                  <button 
-                    onClick={() => setOnlyOpen(!onlyOpen)} 
-                    className={`shrink-0 px-4 py-2.5 rounded-full text-xs font-extrabold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${onlyOpen ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'}`}
-                  >
-                      <Clock size={13}/> Aberto Agora
-                  </button>
-
-                  {/* Sliced selected amenities indicators */}
-                  {selectedAmenities.map(id => (
-                      <button 
-                        key={id} 
-                        onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} 
-                        className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-ocean-600 text-white text-xs font-extrabold uppercase tracking-wide shadow-sm hover:bg-ocean-700 transition-colors"
-                      >
-                          <Check size={13} /> {amenities.find(a => a.id === id)?.label || id} 
-                          <X size={11} className="ml-0.5 opacity-70"/>
-                      </button>
-                  ))}
-
-                  {/* Inline micro select for Amenity tagging expansion */}
-                  <div className="relative shrink-0">
-                      <select 
-                        className="bg-white hover:bg-slate-50 text-slate-500 border border-slate-200/80 rounded-full px-4.5 py-2.5 outline-none text-xs font-extrabold appearance-none pr-8 cursor-pointer shadow-sm"
+                        className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-150 rounded-xl px-2.5 sm:px-3 pb-3 pt-3.5 outline-none text-xs font-bold tracking-tight text-slate-700 appearance-none cursor-pointer focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all text-ellipsis"
                         onChange={(e) => { 
                             if (e.target.value) { 
                                 const id = e.target.value; 
@@ -515,30 +470,78 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                             } 
                         }}
                       >
-                          <option value="">Filtros Avançados +</option>
+                          <option value="">⚙️ Filtros +</option>
                           {amenities.map(am => <option key={am.id} value={am.id}>{am.label}</option>)}
                       </select>
-                      <ListFilter className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={13} />
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
                   </div>
               </div>
 
-              {/* Dynamic subcategory filtering pills under category scope */}
+              {/* Advanced amenities tags selected indicator list */}
+              {selectedAmenities.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3 mb-1 items-center">
+                      {selectedAmenities.map(id => (
+                          <button 
+                            key={id} 
+                            onClick={() => setSelectedAmenities(p => p.filter(x => x !== id))} 
+                            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-ocean-600 text-white text-[10px] font-bold uppercase tracking-wide shadow-xs hover:bg-ocean-700 transition-colors"
+                          >
+                              <Check size={11} /> {amenities.find(a => a.id === id)?.label || id} 
+                              <X size={9} className="ml-1 opacity-75"/>
+                          </button>
+                      ))}
+                  </div>
+              )}
+
+              {/* 2d. Compact Buttons (Perto, Aberto) row */}
+              <div className="flex gap-2 items-center">
+                  {/* Perto Action button */}
+                  <button 
+                    onClick={handleNearbyClick} 
+                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+                      nearby 
+                        ? 'bg-sky-50 border-sky-200 text-sky-700' 
+                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                      {locating ? (
+                          <Loader2 className="animate-spin text-sky-500" size={12}/>
+                      ) : (
+                          <Navigation size={12} className={nearby ? "fill-current animate-pulse text-sky-500" : "text-slate-400"} />
+                      )} 
+                      {locating ? 'GPS...' : 'Perto'}
+                  </button>
+
+                  {/* Aberto Toggle button */}
+                  <button 
+                    onClick={() => setOnlyOpen(!onlyOpen)} 
+                    className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+                      onlyOpen 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                        : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                      <Clock size={12} className={onlyOpen ? 'text-emerald-500' : 'text-slate-400'} /> Aberto
+                  </button>
+              </div>
+
+              {/* 2e. Subcategory chips within deep categories selector mapping scope */}
               {currentSubcategories.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 border-t border-slate-50/50 mt-3.5 items-center">
+                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 border-t border-slate-100/75 mt-3.5 items-center">
                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">Ramos:</span>
                       
                       <button 
                         onClick={() => setSelectedSubCategory('Todos')} 
-                        className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${selectedSubCategory === 'Todos' ? 'bg-ocean-950 text-white border-ocean-950' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100/50'}`}
+                        className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${selectedSubCategory === 'Todos' ? 'bg-ocean-950 text-white border-ocean-950 shadow-2xs' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100/50'}`}
                       >
-                          Todos Subramos
+                          Todos
                       </button>
 
                       {currentSubcategories.map(sub => (
                           <button 
                             key={sub.id} 
                             onClick={() => setSelectedSubCategory(selectedSubCategory === sub.name ? 'Todos' : sub.name)} 
-                            className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${selectedSubCategory === sub.name ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white border-transparent shadow-sm' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100'}`}
+                            className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${selectedSubCategory === sub.name ? 'bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white border-transparent shadow-2xs' : 'bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100'}`}
                           >
                               {sub.name}
                           </button>

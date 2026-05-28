@@ -149,6 +149,10 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
+    match /blog_ads/{adId} {
+      allow read, write: if true;
+    }
+    
     match /app_amenities/{docId} {
       allow read, write: if true;
     }
