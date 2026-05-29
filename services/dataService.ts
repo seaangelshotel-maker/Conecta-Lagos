@@ -374,7 +374,7 @@ export const loginWithGoogle = async (): Promise<User | null> => {
         
         // IRON-CLAD PROTECTION: Ensure master admins are ALWAYS SUPER_ADMIN
         const emailLower = (userData.email || '').toLowerCase();
-        if (emailLower === 'sea.angelshotel@gmail.com' || emailLower === 'admin@lagosgo.org' || emailLower === 'admin@conectario.com') {
+        if (emailLower === 'sea.angelshotel@gmail.com' || emailLower === 'admin@lagosgo.org' || emailLower === 'admin@conectario.com' || emailLower === 'contato.yuriguida@gmail.com') {
             if (userData.role !== UserRole.SUPER_ADMIN) {
                 userData.role = UserRole.SUPER_ADMIN;
                 await updateDoc(doc(db, 'users', userData.id), { role: UserRole.SUPER_ADMIN });
@@ -389,7 +389,8 @@ export const loginWithGoogle = async (): Promise<User | null> => {
     } else {
         const email = (res.user.email || '').toLowerCase();
         const isAdminEmail = email === 'sea.angelshotel@gmail.com' || 
-                           email === 'admin@lagosgo.org';
+                           email === 'admin@lagosgo.org' ||
+                           email === 'contato.yuriguida@gmail.com';
         const role = isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
 
         userData = {
@@ -849,24 +850,263 @@ No ápice da subida da trilha rápida que inicia no porto, há um mirante que ex
         authorId: 'auth_carlos',
         tags: ['Fotografia', 'Mirantes', 'Trilha'],
         status: 'published'
+    },
+    {
+        id: 'roteiro-leste-cabofrio',
+        title: 'Guia de 1 Dia em Cabo Frio: Do Forte à Passagem',
+        excerpt: 'Se você tem pouco tempo em Cabo Frio, este roteiro otimizado reúne as atrações históricas no Bairro da Passagem, a deslumbrante Praia do Forte e o polo gastronômico do Canal.',
+        content: `Cabo Frio é a maior cidade da Região dos Lagos, e mistura de forma única o patrimônio histórico colonial com praias de areia incrivelmente branca e fina. Se você só tem 24 horas, este é o guia perfeito.
+
+### Manhã: Praia do Forte e Forte de São Mateus
+Comece o seu dia bem cedo caminhando pela areia refrescante da Praia do Forte. Siga em direção ao lado esquerdo até o icônico Forte de São Mateus, uma das fortificações mais antigas do país (construída no século XVII para proteger das invasões francesas). A subida até os canhões de bronze originais proporciona um panorama deslumbrante de toda a praia e do mar turquesa.
+
+### Almoço: Polo Gastronômico do Canal Itajuru
+Para o almoço, siga até o Boulevard Canal. Lá você encontrará ótimas opções de peixe na telha e bobó de camarão fresco. Uma excelente indicação é saborear uma autêntica refeição com vista direta para a movimentação suave das embarcações que navegam pelo canal.
+
+### Tarde: O Encanto Colonial do Bairro da Passagem
+Após o almoço, siga para o histórico Bairro da Passagem, o berço de fundação de Cabo Frio. Caminhar por suas ruelas de paralelepípedo, rodeadas por casarios do período colonial pintados em tons pastéis e com portas coloridas, é uma autêntica viagem no tempo. Não deixe de fotografar a simpática Igreja de São Benedito.
+
+### Fim de Tarde: Pôr do Sol na Capela do Morro da Guia
+Para encerrar a sua jornada com chave de ouro, suba o Morro da Guia logo ao lado. A Capela de Nossa Senhora da Guia é o ponto de observação mais alto do centro comercial, proporcionando um pôr do sol inesquecível que doura toda a lagoa e a cidade em 360 graus.`,
+        imageUrl: 'https://images.unsplash.com/photo-1589979482837-e74f2e145060?auto=format&fit=crop&w=800&q=80',
+        category: 'Roteiros',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Cabo Frio', 'Roteiro', 'Praia do Forte', 'História'],
+        status: 'published'
+    },
+    {
+        id: 'gastronomia-buzios-orlabardot',
+        title: 'Os 5 Melhores Restaurantes em Búzios na famosa Orla Bardot',
+        excerpt: 'Uma seleção imperdível de restaurantes onde a gastronomia internacional encontra a calmaria da baía da Armação. Conheça pratos de peixe fresco com visual estonteante.',
+        content: `A charmosa Armação dos Búzios consolidou-se como um polo gourmet cosmopolita na Região dos Lagos. Na mítica Orla Bardot, comer bem é uma arte que vem acompanhada pelo balanço romântico dos barcos coloridos de pescadores.
+
+Aqui estão 5 restaurantes imperdíveis ao longo da Orla Bardot:
+
+### 1. Bar do Zé
+O queridinho da orla. Com luz de velas acolhedora, foca em pratos contemporâneos excepcionais. O risoto de camarão com aspargos frescos e o polvo grelhado são carros-chefes de sabor incomparável.
+
+### 2. Cigalon
+Para quem deseja um toque sofisticado francês misturado à frescura dos ingredientes tropicais brasileiros. Localizado de frente para a enseada interna da praia, é destino ideal para noites especiais a dois.
+
+### 3. Satélite Búzios
+Um local informal e muito tradicional que serve excelentes petiscos de boteco praiano requintados, caipirinhas fantásticas de frutas da estação e pastéis de siri crocantes que merecem aplausos.
+
+### 4. Estância Don Otávio
+Se você deseja intercalar os peixes e frutos do mar com cortes nobres de carnes grelhadas à perfeição na parrilla, esta é a melhor opção. O bife de chorizo derrete na boca.
+
+### 5. Salt Restaurante
+Focado em gastronomia contemporânea inovadora com insumos regionais. O peixe curado com ervas da horta local purifica o paladar de quem busca inovação e sabor autêntico.`,
+        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+        category: 'Gastronomia',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Búzios', 'Gastronomia', 'Orla Bardot', 'Restaurantes'],
+        status: 'published'
+    },
+    {
+        id: 'pontal-atalaia-sem-estresse',
+        title: 'Pôr do Sol no Pontal do Atalaia: Como Visitar sem Trânsito e Filas',
+        excerpt: 'O entardecer mais espetacular do Brasil pode se tornar um desafio na temporada. Saiba as regras de controle de veículos terrestres e as alternativas inteligentes.',
+        content: `Quem visita Arraial do Cabo sabe que o pôr do sol assistido das encostas do Pontal do Atalaia é um rito de passagem obrigatório. Contudo, em decorrência da alta preservação ecológica do local, a prefeitura aplica regras restritas para o acesso.
+
+### Regras de Acesso de Veículos
+Durante as temporadas turísticas e feriados, existe uma barreira de controle na guarita que limita o número diário de carros particulares autorizados. Para quem chega tarde, o tempo de fila na entrada pode ultrapassar uma hora de espera.
+
+### 1. Vá de Jardineira ou Táxi Credenciado
+O meio de transporte mais prático e inteligente é utilizar as caminhonetes estilo "Jardineira" credenciadas que partem do centro da cidade (frequentemente próximas à Praia dos Anjos). Elas têm passe livre na barreira e sobem com rapidez, sem que você se preocupe em encontrar uma das poucas vagas públicas na encosta.
+
+### 2. Visite Fora da Alta Temporada
+Se puder, conheça Arraial entre março e junho. A temperatura continua agradável, as chuvas diminuem e a tranquilidade do Pontal permite sentar nas rochas para escutar apenas o barulho do mar sob um céu incrivelmente limpo.
+
+### 3. Leve Casaco e Água
+A altitude elevada do local propicia ventos constantes e frios assim que o sol se esconde atrás da linha do horizonte oceânico. Nunca suba sem uma garrafa d'água e um casaco leve!`,
+        imageUrl: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=800&q=80',
+        category: 'Dicas Úteis',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Arraial do Cabo', 'Pontal do Atalaia', 'Pôr do Sol', 'Dicas'],
+        status: 'published'
+    },
+    {
+        id: 'trilha-maravilhosa-lagoinha',
+        title: 'Guia da Trilha da Ponta da Lagoinha em Búzios',
+        excerpt: 'Conheça um recanto geológico apelidado cientificamente de Himalaia Brasileiro pelas semelhanças das placas tectônicas originais de mais de 500 milhões de anos.',
+        content: `A Ponta da Lagoinha é uma das atrações mais subestimadas e fascinantes de toda Búzios. Situada na costa sudeste da península, a região guarda segredos geológicos que contam a história da separação dos continentes sul-americano e africano de forma visível.
+
+### O Santuário Geológico
+Cientistas de várias partes do mundo visitam o local devido às rochas formadas há cerca de 500 milhões de anos sob pressões continentais dramáticas (características geológicas que também ergueram a cordilheira do Himalaia). Placas informativas rústicas espalhadas explicam as origens das dobras.
+
+### As Piscinas Naturais
+O grande prêmio de fazer essa caminhada ecológica suave e de curtíssima duração (menos de 10 minutos a partir do estacionamento próximo à Praia da Ferradura) é encontrar as piscinas naturais que se formam entre as depressões rochosas na maré alta.
+
+São verdadeiras banheiras térmicas onde a água do mar entra com suavidade, apresentando tons verdes e azuis translúcidos. É o local ideal para registrar memórias visuais incríveis.
+
+### Dicas de Segurança:
+* Nunca se aproxime das bordas externas de rocha durante marés bravias, pois ondas inesperadas podem subir repentinamente.
+* Vá com calçados fechados e antiderrapantes para evitar cortes no calcário cru áspero.`,
+        imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+        category: 'Roteiros',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Búzios', 'Trilha', 'Ponta da Lagoinha', 'Placas Tectônicas'],
+        status: 'published'
+    },
+    {
+        id: 'compras-ruabiquinis',
+        title: 'Guia de Compras na Histórica Rua dos Biquínis em Cabo Frio',
+        excerpt: 'O maior shopping de moda praia a céu aberto da América Latina. Saiba os melhores horários para fazer ótimas compras, marcas locais e opções de lazer.',
+        content: `Se há um local comercial icônico em Cabo Frio que transcende as belezas das praias, esse local é a Rua dos Biquínis (oficialmente chamada de Shopping de Moda Praia Gamboa). Trata-se do verdadeiro polo de confecção que abastece boutiques de luxo do país inteiro.
+
+### Mais de 100 Lojas Especializadas
+Cruzando a ponte do canal em direção ao bairro Gamboa, você entra em um calçadão turístico climatizado e colorido composto inteiramente por mais de uma centena de lojas com venda no varejo e atacado. 
+
+Há opções para todos os estilos, tamanhos e bolsos: bikinis de alta qualidade, saídas de praia finas, bermudas casuais masculinas e chapéus personalizados com proteção solar certificada.
+
+### Como Comprar com Conforto
+* **Os Melhores Horários:** Evite visitar nos dias nublados e finais de tarde de verão intenso, que são os momentos mais concorridos. Prefira ir nas primeiras horas da manhã de dias ensolarados, quando as vendedoras oferecem atenção total.
+* **Preços de Fábrica:** Como os proprietários costumam manter as oficinas de costura logo atrás das fachadas das lojas, é possível pechinchar bons descontos para compras em maior quantidade!`,
+        imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80',
+        category: 'Dicas Úteis',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Cabo Frio', 'Moda Praia', 'Rua dos Biquínis', 'Compras'],
+        status: 'published'
+    },
+    {
+        id: 'festival-gastronomico-cabofrio',
+        title: 'Festival Gastronômico de Cabo Frio: Sabores e Programação',
+        excerpt: 'A rica culinária local da terra das dunas de sal em evidência total neste inverno. Saiba as datas oficiais e os pratos concorrentes desta nova edição de sucesso.',
+        content: `O renomado Festival Gastronômico de Cabo Frio é o maior evento culinário anual da costa do estado, trazendo uma perfeita mistura de identidade regional de pescadores antigos com a técnica moderna das renomadas escolas de culinária nacionais.
+
+Durante o festival, dezenas de restaurantes no Boulevard Canal, Bairro da Passagem e centro comercial criam pratos originais que utilizam temperos da restinga e peixes abundantes das nossas correntes frias de ressurgência.
+
+### O Formato de Sucesso
+O evento funciona em duas modalidades integradas:
+1. **Prato Principal nos Estabelecimentos:** Os restaurantes oficiais servem porções exclusivas no almoço ou jantar com preços fixos promocionais.
+2. **Espaço Degustação Integrado:** Uma feira gastronômica com tendas rústicas instaladas nas calçadas coloniais do Boulevard Canal vendendo deliciosas petiscos de degustação rápidos, doces tradicionais e rótulos de vinhos locais autorais para harmonizar.
+
+É a desculpa perfeita para visitar Cabo Frio com a família nos simpáticos fins de semana de vento ameno do inverno fluminense.`,
+        imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80',
+        category: 'Eventos',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Cabo Frio', 'Eventos', 'Festival Gastronômico', 'Alimentação'],
+        status: 'published'
+    },
+    {
+        id: 'praias-escondidas-arraial',
+        title: 'As Praias Escondidas de Arraial do Cabo que as Escunas não Revelam',
+        excerpt: 'Fuja do óbvio. Conheça a Praia da Graçainha e a Praia dos Anjos secreta: recantos de águas absolutamente cristalinas para praticar snorkel e encontrar tartarugas.',
+        content: `As grandes fotos turísticas mostram quase sempre a areia intocável das Prainhas do Pontal ou o acesso à Praia do Forno. No entanto, Arraial do Cabo guarda cantos quase secretos onde moradores se escondem do movimento intenso do verão.
+
+Aqui estão duas maravilhas secretas que você pode explorar gratuitamente:
+
+### 1. Praia da Graçainha
+Uma graciosa enseada minúscula localizada logo no início da subida curva da estrada que leva ao Pontal do Atalaia. Na maré baixa, a praia se revela cercada por piscinas naturais ricas em algas e estrelas-do-mar.
+
+O segredo aqui é levar sua máscara de flutuação e snorkel: devido à abundância de algas nas pedras polidas, a Graçainha é um verdadeiro restaurante para tartarugas marinhas de todos os portes. É comum flutuar ao lado de dezenas delas em poucos minutos de imersão!
+
+### 2. A Praia Escondida do Farol Velho
+Alcançada exclusivamente através de trilhas mais fechadas partindo da Praia dos Anjos com guias cadastrados. Suas águas calmas e cercadas de mata preservada proporcionam o silêncio acolhedor de uma island particular desabitada.`,
+        imageUrl: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
+        category: 'Roteiros',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Arraial do Cabo', 'Praias Secretas', 'Snorkel', 'Tartarugas'],
+        status: 'published'
+    },
+    {
+        id: 'gastronomia-bairro-passagem',
+        title: 'Gastronomia Histórica: Bistrôs e Bares Culturais na Passagem',
+        excerpt: 'O bairro colonial de Cabo Frio consolidou-se como o polo boêmio mais charmoso. Conheça ruelas iluminadas cheias de música de raiz e mesas românticas.',
+        content: `O Bairro da Passagem, em Cabo Frio, já foi abrigo de valentes pescadores coloniais no século XVII. Hoje, as históricas casinhas de janelas de madeira pintadas com cores vibrantes abrigam o polo boêmio e gastronômico mais badalado e charmoso da região.
+
+Ao cair da noite, o tráfego de carros é fechado em algumas vias principais e as ruas iluminadas por postes coloniais ganham mesas ao ar livre que parecem extraídas de uma charmosa vila portuguesa antiga.
+
+### Dicas de Paradas para Saborear
+* **Bistrô do Poeta:** Especializado em cozinha contemporânea requintada com toques locais. O risotto de lula fresca ao molho pesto de manjericão e ervas marinhas da restinga é memorável.
+* **Armazém da Passagem:** Para quem gosta de pratos fartos de frango ao pesto, carpaccio de carne, cervejas artesanais geladas de microcervejarias da serra carioca e música ao vivo tocando MPB e bossa acústica suave em volume agradável para conversar.
+* **Sorveterias Gourmet:** Encerre o passeio saboreando deliciosos gelatos caseiros de frutas nativas tropicais como graviola, cupuaçu e jabuticaba colhidas na região próxima do bioma.`,
+        imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+        category: 'Gastronomia',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Cabo Frio', 'Bairro da Passagem', 'Bistrôs', 'Boêmia'],
+        status: 'published'
+    },
+    {
+        id: 'surf-praia-forte-campeonato',
+        title: 'Campeonato de Surf Masculino e Feminino agita a Praia do Forte',
+        excerpt: 'Os melhores atletas do circuito nacional se reúnem na areia fina da Praia do Forte para disputar a cobiçada coroa das ondas neste final de semana de sol.',
+        content: `As famosas dunas e a água azul vibrante da Praia do Forte, em Cabo Frio, serão o cenário perfeito para a etapa de inverno do circuito regional de surf. Con previsão de swell forte e vento constante vindo do quadrante leste, as condições para as pranchas serão ideais!
+
+O evento é aberto ao público e contará com acampamentos esportivos montados próximos ao monumento histórico do Forte. Haverá sorteio de brindes ecológicos, aulas de iniciação de prancha para crianças locais carentes e palestras contínuas de preservação da orla marinha.
+
+### Pontos de Observação
+O trecho de praia conhecido como "Lido" (próximo à praça das águas) é o local mais cotado para o palanque principal dos juízes, onde as ondas formam séries rápidas ideais para manobras radicais aéreas. Vista seus óculos escuros, traga seu protetor de pele e venha prestigiar o esporte brasileiro com a gente!`,
+        imageUrl: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80',
+        category: 'Eventos',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Cabo Frio', 'Surf', 'Praia do Forte', 'Esportes'],
+        status: 'published'
+    },
+    {
+        id: 'ressurgencia-aquario-natural',
+        title: 'Ressurgência Marinha: O Segredo do Mar Caribe de Arraial',
+        excerpt: 'Saiba o que é esse intrigante fenômeno natural científico responsável por trazer correntes polares profundas ricas em nutrientes fundamentais para a nossa fauna.',
+        content: `É impossível navegar pelas águas de Arraial do Cabo sem se surpreender com a tonalidade de azul neon transparente inexplicável que compete com praias caribenhas tropicais clássicas. Porém, ao primeiro mergulho, a temperatura fria da água traz uma grande dúvida ao visitante científico. 
+
+Esse mistério tem nome oficial: **Ressurgência Marinha**.
+
+### Correntes Polares Profundas
+Em áreas marinhas específicas no cabo geográfico de Arraial, correntes submersas vindas diretamente de profundezas polares do sul esbarram no paredão continental elevado da península de Arraial. Empurradas pelos fortes ventos do quadrante leste (constantes no ano inteiro), essas águas profundas e gélidas sobem até a superfície.
+
+### Biodiversidade e Transparência
+Como as águas profundas submersas não recebem luz solar direta, elas não têm proliferação exagerada de algas escuras microscópicas (daí a transparência cristalina do mar). Elas também trazem consigo minerais fundamentais que alimentam siris, peixes e tartarugas marinhas em abundância.
+
+Por isso, Arraial do Cabo é conhecida orgulhosamente como a **Capital Nacional do Mergulho**. É um aquário selvagem a céu aberto!`,
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+        category: 'Notícias',
+        date: '2026-05-28',
+        author: 'Yuri Guida',
+        authorId: 'yuri_guida',
+        tags: ['Arraial do Cabo', 'Ressurgência', 'Ciência', 'Mergulho'],
+        status: 'published'
     }
 ];
 
 export const getBlogPosts = async () => {
     if (_posts.length === 0) {
-        const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(20)));
+        const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(50)));
         _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost));
     }
     
-    // Auto-seed if there are fewer than 5 posts
-    if (_posts.length < 5) {
-        for (const post of DEFAULT_POSTS) {
-            if (!_posts.find(p => p.id === post.id)) {
+    // Auto-seed checking: ensure ALL default seed posts exist in the database and local array
+    let seededNew = false;
+    for (const post of DEFAULT_POSTS) {
+        if (!_posts.find(p => p.id === post.id)) {
+            try {
                 await setDoc(doc(db, 'blog_posts', post.id), cleanObject(post), { merge: true });
                 _posts.push(post);
+                seededNew = true;
+            } catch (seedErr) {
+                console.warn(`Could not seed post ${post.id}:`, seedErr);
             }
         }
-        // Re-sort
+    }
+    
+    if (seededNew) {
         _posts.sort((a, b) => b.date.localeCompare(a.date));
     }
     return _posts;

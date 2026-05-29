@@ -85,7 +85,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
 
       <button onClick={() => onNavigate('blog')} className={navItemClass('blog')}>
         <BookOpen size={20} />
-        <span className="text-[9px]">Dicas</span>
+        <span className="text-[9px]">Feed</span>
       </button>
 
       {currentUser?.role === UserRole.SUPER_ADMIN ? (
@@ -151,7 +151,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
                 </span>
             )}
         </button>
-        <button onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${currentPage === 'blog' ? 'text-ocean-950' : 'text-slate-500'}`}>Dicas & Blog</button>
+        <button onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${currentPage === 'blog' ? 'text-ocean-950' : 'text-slate-500'}`}>Feed & Dicas</button>
         
         <button 
           onClick={() => onNavigate('pricing-plans')} 
