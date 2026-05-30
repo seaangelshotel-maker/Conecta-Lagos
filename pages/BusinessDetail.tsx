@@ -216,38 +216,43 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             image={business.coverImage}
             url={`/business/${businessId}`}
         />
-        <div className="relative h-[35vh] w-full bg-slate-900 flex items-center justify-center">
+        <div className="relative h-[38vh] min-h-[300px] w-full bg-slate-950 flex items-center justify-center overflow-hidden">
             {business.coverImage ? (
-                <img src={business.coverImage} className="w-full h-full object-cover opacity-80" alt={business.name} />
+                <img src={business.coverImage} className="w-full h-full object-cover opacity-90 transition-transform duration-700 hover:scale-102" alt={business.name} />
             ) : (
-                <div className="flex flex-col items-center text-slate-400 z-10">
+                <div className="flex flex-col items-center text-slate-500 z-10">
                     <Store size={48} className="mb-2 opacity-50" />
                     <span className="text-sm font-medium">Sem imagem</span>
                 </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
-            <div className="absolute top-10 left-0 w-full px-4 flex justify-between z-20">
-                <button onClick={() => window.history.back()} className="bg-white/20 text-white p-3 rounded-2xl backdrop-blur-xl hover:bg-white/40 transition-all"><ArrowLeft size={24} /></button>
+            {/* Deep Dark Gradient Overlay to ensure flawless text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-black/30" />
+            
+            {/* Elegant Floating Header Buttons */}
+            <div className="absolute top-6 left-0 w-full px-6 flex justify-between z-20">
+                <button onClick={() => window.history.back()} className="bg-black/30 hover:bg-black/55 text-white p-3 rounded-2xl backdrop-blur-md hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"><ArrowLeft size={20} /></button>
                 <div className="flex gap-2">
-                    <button onClick={() => handleAction('share')} className="bg-white/20 text-white p-3 rounded-2xl backdrop-blur-xl hover:bg-white/40 transition-all"><Share2 size={24} /></button>
-                    <button onClick={handleToggleFavorite} className={`p-3 rounded-2xl backdrop-blur-xl transition-all ${isFav ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/40'}`}><Heart className={isFav ? 'fill-white' : ''} size={24} /></button>
+                    <button onClick={() => handleAction('share')} className="bg-black/30 hover:bg-black/55 text-white p-3 rounded-2xl backdrop-blur-md hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"><Share2 size={20} /></button>
+                    <button onClick={handleToggleFavorite} className={`p-3 rounded-2xl backdrop-blur-md hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm ${isFav ? 'bg-red-500 text-white' : 'bg-black/30 text-white hover:bg-red-500'}`}><Heart className={isFav ? 'fill-white' : ''} size={20} /></button>
                 </div>
             </div>
-            <div className="absolute bottom-6 left-6 z-10">
-                <span className="bg-ocean-600 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase mb-2 inline-block tracking-wider shadow-lg">{business.category}</span>
-                <h1 className="text-4xl font-black text-ocean-950 mb-1 drop-shadow-sm flex items-center gap-3">
+            
+            {/* Title, Category & Status Metadata block */}
+            <div className="absolute bottom-6 left-6 right-6 z-10 text-white max-w-4xl">
+                <span className="bg-ocean-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase mb-3 inline-block tracking-wider shadow-lg">{business.category}</span>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2 leading-tight tracking-tight drop-shadow-md flex flex-wrap items-center gap-3">
                     {business.name}
                     {business.deliveryUrl && (
-                        <span title="Delivery Disponível" className="bg-ocean-50 text-ocean-600 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 shadow-sm">
+                        <span title="Delivery Disponível" className="bg-red-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 shadow-md">
                             Tem Entrega
                         </span>
                     )}
                 </h1>
-                <div className="flex items-center gap-4">
-                    <p className="text-sm text-slate-500 font-bold flex items-center gap-1"><MapPin size={14} className="text-ocean-500"/> {business.address}</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                    <p className="text-xs sm:text-sm text-slate-200 font-bold flex items-center gap-1.5"><MapPin size={14} className="text-ocean-400 shrink-0"/> {business.address}</p>
                     {isOpen !== null && (
-                        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div className={`flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full shadow-md ${isOpen ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                             {isOpen ? 'Aberto Agora' : 'Fechado'}
                         </div>
                     )}

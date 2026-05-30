@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BlogPost, User as UserType } from '../types';
-import { getBlogPostById, getAllUsers } from '../services/dataService';
+import { getBlogPostById, getAllUsers, getCurrentUser, getBlogPostComments, addBlogPostComment } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
 
 interface BlogDetailProps {
@@ -17,10 +17,61 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
   const [showAuthorModal, setShowAuthorModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
+  const [comments, setComments] = useState<any[]>([]);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [guestName, setGuestName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCommentText.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      let finalName = guestName.trim() || 'Usuário Anônimo';
+      let avatar = '';
+      let uid = 'guest';
+
+      if (currentUser) {
+        finalName = `${currentUser.name} ${currentUser.surname || ''}`.trim();
+        avatar = currentUser.avatarUrl || '';
+        uid = currentUser.id;
+      }
+
+      const newComm = await addBlogPostComment(postId, {
+        userId: uid,
+        userName: finalName,
+        userAvatar: avatar,
+        content: newCommentText.trim()
+      });
+
+      setComments(prev => [newComm, ...prev]);
+      setNewCommentText('');
+      setGuestName('');
+      notify('success', 'Comentário enviado com sucesso!');
+    } catch (error) {
+      console.error(error);
+      notify('error', 'Erro ao enviar comentário.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await getBlogPostById(postId);
       setPost(data);
+
+      try {
+         const comms = await getBlogPostComments(postId);
+         setComments(comms || []);
+         const user = getCurrentUser();
+         setCurrentUser(user);
+      } catch (err) {
+         console.warn("Could not load comments/user:", err);
+      }
+
       if (data?.authorId) {
           const users = await getAllUsers();
           let foundAuthor = users.find(u => u.id === data.authorId);
@@ -353,6 +404,87 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
             >
               Conhecer Estabelecimentos
             </button>
+          </div>
+        </div>
+
+        {/* COMMENTS SECTION (Direct and highly elegant) */}
+        <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100 mt-6 animate-in fade-in">
+          <h3 className="font-extrabold text-slate-900 text-lg mb-6 flex items-center gap-2">
+            <MessageSquare size={20} className="text-[#ff5a1f]" /> Comentários e Dicas ({comments.length})
+          </h3>
+
+          {/* New Comment Input Box */}
+          <form onSubmit={handleCommentSubmit} className="mb-8 space-y-4">
+             {!currentUser && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Seu Nome *</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Ex: João Silva" 
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:bg-white transition-all shadow-2xs"
+                    />
+                  </div>
+                </div>
+             )}
+             
+             <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Sua Mensagem *</label>
+                <textarea 
+                  required
+                  rows={3}
+                  placeholder={currentUser ? `Comentar como ${currentUser.name}...` : "Escreva o seu comentário ou dica sobre este post..."}
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:bg-white transition-all shadow-2xs resize-none"
+                />
+             </div>
+             
+             <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-[#ff5a1f] hover:bg-[#e0450f] disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  {isSubmitting ? 'Enviando...' : (
+                    <>
+                      <Send size={14} /> Enviar Comentário
+                    </>
+                  )}
+                </button>
+             </div>
+          </form>
+
+          {/* List of individual Comments */}
+          <div className="space-y-4 divide-y divide-slate-100">
+             {comments.length > 0 ? (
+                [...comments].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((comment, index) => (
+                  <div key={comment.id || index} className="pt-4 first:pt-0 flex gap-4 items-start pb-4 last:border-none last:pb-0">
+                     <img 
+                       src={comment.userAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'} 
+                       referrerPolicy="no-referrer"
+                       className="w-10 h-10 rounded-full object-cover border border-slate-100 shrink-0" 
+                       alt={comment.userName}
+                     />
+                     <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-1 gap-2">
+                           <span className="font-extrabold text-slate-800 text-sm truncate">{comment.userName}</span>
+                           <span className="text-[10px] text-slate-400 font-mono font-semibold shrink-0">
+                             {new Date(comment.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                           </span>
+                        </div>
+                        <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{comment.content}</p>
+                     </div>
+                  </div>
+                ))
+             ) : (
+                <div className="text-center py-8 text-slate-400 font-medium text-sm">
+                   Nenhum comentário por enquanto. Deixe suas dicas e impressões!
+                </div>
+             )}
           </div>
         </div>
       </div>

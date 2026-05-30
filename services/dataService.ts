@@ -2508,3 +2508,49 @@ export const savePaymentSettings = async (settings: PaymentSettings): Promise<vo
         throw new Error(`Erro ao salvar configurações: ${error.message}`);
     }
 };
+
+export interface BlogComment {
+    id: string;
+    postId: string;
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    content: string;
+    date: string;
+}
+
+export const getBlogPostComments = async (postId: string): Promise<BlogComment[]> => {
+    try {
+        const q = query(
+            collection(db, 'blog_comments'), 
+            where('postId', '==', postId),
+            orderBy('date', 'desc')
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogComment));
+    } catch (e: any) {
+        console.warn("Could not query comments directly with index, falling back to client-side sort:", e);
+        try {
+            const qFallback = query(collection(db, 'blog_comments'), where('postId', '==', postId));
+            const snapFallback = await getDocs(qFallback);
+            const list = snapFallback.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogComment));
+            return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        } catch (err) {
+            console.error("Failed to fetch blog comments:", err);
+            return [];
+        }
+    }
+};
+
+export const addBlogPostComment = async (postId: string, commentData: Omit<BlogComment, 'id' | 'date' | 'postId'>): Promise<BlogComment> => {
+    const commentId = doc(collection(db, 'blog_comments')).id;
+    const newComment: BlogComment = {
+        ...commentData,
+        id: commentId,
+        postId: postId,
+        date: new Date().toISOString()
+    };
+    await setDoc(doc(db, 'blog_comments', commentId), cleanObject(newComment));
+    return newComment;
+};
+

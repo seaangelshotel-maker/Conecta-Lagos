@@ -287,6 +287,31 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
 
       <div className="max-w-7xl mx-auto pt-4 relative z-10 space-y-8">
         
+        {/* CARTEIRA DE ECONOMIA (Delicate & Discrete) */}
+        {currentUser && (
+            <div className="px-4">
+              <div className="bg-white border border-emerald-100 p-3 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-shadow">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                     <Gem size={16} className="fill-emerald-50 text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-0.5">Minha Carteira de Economia</span>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {currentUser.savedAmount && currentUser.savedAmount > 0 
+                        ? 'Veja o quanto você já poupou usando nossos cupons!' 
+                        : 'Ative cupons grátis e comece a economizar!'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end shrink-0 pl-2">
+                   <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">Total Economizado</div>
+                   <div className="text-base font-black text-emerald-600 font-sans leading-tight mt-0.5">R$ {(currentUser.savedAmount || 0).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+        )}
+
         {/* CAROUSEL / BANNERS */}
         <div className="px-4">
             <div className="relative w-full h-40 sm:h-52 md:h-[350px] rounded-2xl overflow-hidden shadow-sm bg-slate-100">
