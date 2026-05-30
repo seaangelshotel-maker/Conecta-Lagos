@@ -165,6 +165,9 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   // Hot right now / Destaques: First 3 posts matching category or general
   const hotPosts = posts.slice(0, 3);
+  
+  // Próximos Eventos
+  const eventPosts = posts.filter(post => post.category === 'Eventos').slice(0, 5);
 
   // Beautiful vector Lucide Icon mapping for categories (super elegant outline branding)
   const getCategoryIcon = (catName: string, size = 12) => {
@@ -359,6 +362,50 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                       </div>
                     </p>
                     <h3 className="text-white font-extrabold text-sm md:text-base leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
+                      {post.title}
+                    </h3>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* EVENTS SECTION - Screen mockup exact match */}
+      {selectedCategory === 'Todos' && !showOnlyLiked && searchQuery === '' && eventPosts.length > 0 && (
+        <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
+          <div className="flex justify-between items-center mb-4 px-1">
+            <h2 className="text-md font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Sparkles size={16} className="text-amber-500 animate-pulse" /> Agenda de Eventos <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-600 px-2 py-0.5 rounded-md">Vem aí</span>
+            </h2>
+          </div>
+          
+          <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 -mx-4 px-4 md:mx-0 md:px-0 gap-4">
+            {eventPosts.map(post => {
+              return (
+                <div 
+                  key={`event_${post.id}`}
+                  onClick={() => handlePostClick(post.id)}
+                  className="relative h-44 w-44 md:h-52 md:w-52 shrink-0 snap-start rounded-[2rem] overflow-hidden shadow-sm group cursor-pointer active:scale-95 transition-transform border border-slate-100"
+                >
+                  <img 
+                    src={post.imageUrl} 
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    alt={post.title}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                  
+                  <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[9px] font-black text-slate-800 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                    EVENTOS
+                  </span>
+
+                  <div className="absolute bottom-0 left-0 w-full p-3">
+                    <p className="text-[9px] text-amber-400 font-bold mb-1 flex items-center gap-1 font-mono uppercase">
+                      <Clock size={10} /> {post.date}
+                    </p>
+                    <h3 className="text-white font-extrabold text-xs md:text-sm leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
                       {post.title}
                     </h3>
                   </div>
