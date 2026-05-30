@@ -296,9 +296,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                      <Gem size={18} className="fill-emerald-50 text-emerald-600" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-1">{t('Minha Carteira de Economia')}</span>
-                    <span className="text-xs text-slate-500 font-medium block leading-normal">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <span className="text-[9px] md:text-[10px] text-emerald-700 font-extrabold uppercase tracking-wider block mb-0.5 line-clamp-1">{t('Minha Carteira de Economia')}</span>
+                    <span className="text-[11px] md:text-xs text-slate-500 font-medium block leading-snug">
                       {currentUser.savedAmount && currentUser.savedAmount > 0 
                         ? t('Veja o quanto você já poupou usando nossos cupons!') 
                         : t('Ative cupons grátis e comece a economizar!')}

@@ -54,8 +54,8 @@ service cloud.firestore {
     
     match /businesses/{businessId} {
       allow read: if true;
-      allow create: if isAuthenticated() && (isOwner(businessId) || isAdmin());
-      allow update: if isAuthenticated() && (isOwner(businessId) || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
     
@@ -65,16 +65,11 @@ service cloud.firestore {
     
     match /coupons/{couponId} {
       allow read: if true;
-      allow create: if isAuthenticated() && (isCompany() || isAdmin());
-      // Permitir que usuários incrementem o contador ao resgatar
-      allow update: if isAuthenticated() && (
-        isOwner(resource.data.companyId) || 
-        isAdmin() ||
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentRedemptions']))
-      );
-      allow delete: if isAuthenticated() && (isOwner(resource.data.companyId) || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
     }
-
+    
     // ===============================================================
     // Redemptions Collection (🔒 Segurança Refinada)
     // ===============================================================
@@ -83,7 +78,7 @@ service cloud.firestore {
       allow read: if true; // Resiliência para leitura de cupons (master bypass)
       allow create: if true; // Resiliência para criação de cupons (master bypass)
       allow update: if true; // Resiliência para validação de cupons (master bypass)
-      allow delete: if isAdmin() || true;
+      allow delete: if true;
     }
     
     // ===============================================================
@@ -93,7 +88,7 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAdmin();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
     

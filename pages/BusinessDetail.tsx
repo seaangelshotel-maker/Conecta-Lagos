@@ -12,9 +12,11 @@ import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementB
 import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 import { useNotification } from '../components/NotificationSystem';
+import { useLanguage, Translate } from '../hooks/useLanguage';
 
 export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, onNavigate }) => {
   const { notify } = useNotification();
+  const { t } = useLanguage();
   const [business, setBusiness] = useState<BusinessProfile | undefined>(undefined);
   const [plan, setPlan] = useState<PricingPlan | undefined>(undefined);
   const [coupons, setCoupons] = useState<Coupon[]>([]);

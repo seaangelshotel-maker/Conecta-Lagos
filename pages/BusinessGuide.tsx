@@ -809,7 +809,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                           <div>
                               <div className="flex justify-between items-start gap-1 pb-1">
                                   <h3 className="font-extrabold text-slate-800 text-[16px] md:text-lg line-clamp-1 flex items-center gap-1.5 leading-snug">
-                                      {business.name}
+                                      {t(business.name)}
                                       {business.isFeatured && (
                                           <span className="text-amber-500 hover:scale-110 transition-transform shrink-0" title="Parceiro Destaque Premium">
                                               <Crown size={14} className="fill-current" />
@@ -826,12 +826,12 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                               
                               {/* Category and neighborhood markers */}
                               <p className="text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2 select-none">
-                                  {business.category} • {neighborhoods.find(n => n.id === business.neighborhoodId)?.name || cities.find(c => c.id === business.cityId)?.name || 'Região dos Lagos'}
+                                  {t(business.category)} • {neighborhoods.find(n => n.id === business.neighborhoodId)?.name || cities.find(c => c.id === business.cityId)?.name || 'Região dos Lagos'}
                               </p>
 
                               {/* Core short description with ellipsis line Clamp */}
                               <p className="text-slate-500 text-xs font-medium leading-relaxed line-clamp-2 md:line-clamp-3 mb-4">
-                                  {business.description || 'Dica exclusiva Konecta de entretenimento e turismo, agende já a sua viagem.'}
+                                  <Translate text={business.description || 'Dica exclusiva Konecta de entretenimento e turismo, agende já a sua viagem.'} />
                               </p>
                           </div>
 
