@@ -1207,12 +1207,66 @@ export const getBlogPosts = async () => {
     if (seededNew) {
         _posts.sort((a, b) => b.date.localeCompare(a.date));
     }
+
+    // Dynamic creator mapping (link seed data's 'yuri_guida' to Yuri's actual logged in account ID)
+    const usersSnap = await getAllUsers();
+    const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+    if (realYuri) {
+        _posts = _posts.map(post => {
+            if (post.authorId === 'yuri_guida' && realYuri.id !== 'yuri_guida') {
+                return { ...post, authorId: realYuri.id };
+            }
+            return post;
+        });
+    }
+
     return _posts;
 };
 
 export const getAllUsers = async () => {
     const snap = await getDocs(collection(db, 'users'));
-    _users = snap.docs.map(d => ({ id: d.id, ...d.data() } as User));
+    let usersList = snap.docs.map(d => ({ id: d.id, ...d.data() } as User));
+
+    // De-duplicate and cleanse Yuri Guida accounts to prevent 'yuri_guida' vs 'real-google-uid' conflicts
+    const yuriUsers = usersList.filter(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+    
+    if (yuriUsers.length > 1) {
+        const realYuri = yuriUsers.find(u => u.id !== 'yuri_guida');
+        if (realYuri) {
+            // Drop old seed fallback from memory list
+            usersList = usersList.filter(u => u.id !== 'yuri_guida');
+            // Permanently clear 'yuri_guida' duplicate placeholder document in Firestore
+            try {
+                await deleteDoc(doc(db, 'users', 'yuri_guida'));
+            } catch (e) {
+                // Ignore silent delete/permission limits
+            }
+        }
+    } else if (yuriUsers.length === 0) {
+        // Safe auto-seed of the default Yuri journalist profile for guests to view him before he logs in
+        const fallbackYuri: User = {
+            id: 'yuri_guida',
+            name: 'Yuri Guida',
+            email: 'contato.yuriguida@gmail.com',
+            role: UserRole.JOURNALIST,
+            favorites: { coupons: [], businesses: [] },
+            history: [],
+            savedAmount: 0,
+            manualPassword: '123456',
+            avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
+            profession: 'Editor-Chefe / Lagos GO Feed',
+            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
+            instagram: 'yuriguida'
+        };
+        usersList.push(fallbackYuri);
+        try {
+            await setDoc(doc(db, 'users', 'yuri_guida'), cleanObject(fallbackYuri));
+        } catch (e) {
+            console.warn("Could not seed default yuri_guida account:", e);
+        }
+    }
+
+    _users = usersList;
     return _users;
 };
 
@@ -1628,6 +1682,14 @@ export const getBlogPostById = async (id: string) => {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const post = { id: docSnap.id, ...docSnap.data() } as BlogPost;
+        
+        // Dynamically map fallback 'yuri_guida' author IDs to his real authenticated Google/manual account ID
+        const usersSnap = await getAllUsers();
+        const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+        if (realYuri && post.authorId === 'yuri_guida' && realYuri.id !== 'yuri_guida') {
+            post.authorId = realYuri.id;
+        }
+
         if (!_posts.find(p => p.id === post.id)) {
             _posts.push(post);
         }
