@@ -29,7 +29,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                   id: 'yuri_guida',
                   name: 'Yuri Guida',
                   email: 'contato.yuriguida@gmail.com',
-                  role: 'SUPER_ADMIN',
+                  role: 'JOURNALIST',
                   avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
                   profession: 'Editor-Chefe / Lagos GO Feed',
                   bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',

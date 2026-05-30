@@ -40,7 +40,7 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
       getBlogPosts(),
       getDicasCategories()
     ]);
-    const myPosts = allPosts.filter(p => p.authorId === currentUser.id);
+    const myPosts = allPosts.filter(p => p.authorId === currentUser.id || (currentUser.email?.toLowerCase() === 'contato.yuriguida@gmail.com' && p.authorId === 'yuri_guida'));
     setPosts(myPosts);
     setCategories(cats);
   };
