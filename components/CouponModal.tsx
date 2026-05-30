@@ -179,7 +179,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                               <div className="bg-ocean-50 p-2 rounded-lg text-ocean-500"><Clock size={20} /></div>
                               <div>
                                   <p className="font-bold text-ocean-900 text-sm">Validade</p>
-                                  <p className="text-slate-500 text-xs">Até {new Date(coupon.expiryDate).toLocaleDateString('pt-BR')}</p>
+                                  <p className="text-slate-500 text-xs">Até {new Date(coupon.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</p>
                               </div>
                           </div>
                           <div className="flex items-start gap-3">

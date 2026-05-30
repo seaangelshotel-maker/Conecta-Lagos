@@ -2837,7 +2837,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       <h3 className="font-black text-lg text-ocean-950">{coupon.title}</h3>
                                       <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{coupon.companyName}</p>
                                       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                          <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock size={12} /> Expira em: {new Date(coupon.expiryDate).toLocaleDateString()}</p>
+                                          <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock size={12} /> Expira em: {new Date(coupon.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</p>
                                           <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Zap size={12} /> {coupon.currentRedemptions || 0} resgates</p>
                                       </div>
                                   </div>

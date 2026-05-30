@@ -384,7 +384,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                                               <span className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock size={12} /> {new Date(record.date).toLocaleDateString('pt-BR')}</span>
                                               {record.expiryDate && (
-                                                  <span className="text-[9px] md:text-[10px] text-amber-600 flex items-center gap-1 font-bold"><Zap size={12} /> Expira em {new Date(record.expiryDate).toLocaleDateString('pt-BR')}</span>
+                                                  <span className="text-[9px] md:text-[10px] text-amber-600 flex items-center gap-1 font-bold"><Zap size={12} /> Expira em {new Date(record.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
                                               )}
                                           </div>
                                       </div>
