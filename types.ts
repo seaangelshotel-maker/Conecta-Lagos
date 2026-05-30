@@ -275,6 +275,9 @@ export interface BlogPost {
   metaDescription?: string;
   metaKeywords?: string;
   status?: 'draft' | 'published';
+  eventDate?: string;
+  eventLocation?: string;
+  connectedUsers?: string[];
 }
 
 export interface Collection {

@@ -59,7 +59,10 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
       tags: [],
       metaDescription: '',
       metaKeywords: '',
-      status: 'draft'
+      status: 'draft',
+      eventDate: '',
+      eventLocation: '',
+      connectedUsers: []
     });
     setIsEditing(true);
   };
@@ -98,7 +101,10 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
       metaTitle: currentPost.metaTitle || currentPost.title || '',
       metaDescription: currentPost.metaDescription || currentPost.excerpt || '',
       metaKeywords: currentPost.metaKeywords || '',
-      status: currentPost.status || 'draft'
+      status: currentPost.status || 'draft',
+      eventDate: currentPost.eventDate || '',
+      eventLocation: currentPost.eventLocation || '',
+      connectedUsers: currentPost.connectedUsers || []
     };
 
     try {
@@ -163,9 +169,17 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
                 <input
                   type="text"
                   placeholder="Título da Matéria"
-                  className="w-full text-3xl font-bold border-none focus:ring-0 p-0 mb-4 placeholder-gray-300"
+                  className="w-full text-3xl font-bold border-none focus:ring-0 p-0 mb-3 placeholder-gray-300"
                   value={currentPost.title || ''}
                   onChange={e => setCurrentPost({ ...currentPost, title: e.target.value })}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Resumo ou Subtítulo Breve (Será exibido nos cards)"
+                  className="w-full text-base font-semibold text-slate-500 border-none focus:ring-0 p-0 mb-4 placeholder-gray-300 border-b border-slate-100 pb-2"
+                  value={currentPost.excerpt || ''}
+                  onChange={e => setCurrentPost({ ...currentPost, excerpt: e.target.value })}
                 />
                 
                 <div className="flex flex-wrap gap-2 mb-2 bg-gray-50 p-2 rounded-lg">
@@ -204,6 +218,35 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
                     <option value="">Selecione uma subcategoria</option>
                     {categories.find(c => c.name.toLowerCase() === currentPost.category?.toLowerCase())?.subcategories?.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
+
+                {/* Conditional fields for Agenda and Roteiro */}
+                {['agenda', 'roteiro', 'evento', 'eventos', 'roteiro', 'roteiros'].some(word => (currentPost.category || '').toLowerCase().includes(word)) && (
+                  <div className="mt-6 pt-4 border-t border-slate-100 space-y-4">
+                    <div className="text-xs font-black uppercase text-orange-600 tracking-wider flex items-center gap-1">
+                      <Clock size={12} className="text-orange-500 shrink-0" /> Alimentação do Guia / Agenda
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Data de Realização / Evento *</label>
+                      <input 
+                        type="date" 
+                        required
+                        className="w-full p-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-orange-500" 
+                        value={currentPost.eventDate || ''} 
+                        onChange={e => setCurrentPost({...currentPost, eventDate: e.target.value})} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Local / Endereço do Evento</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Arena de Eventos, Centro"
+                        className="w-full p-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-orange-500" 
+                        value={currentPost.eventLocation || ''} 
+                        onChange={e => setCurrentPost({...currentPost, eventLocation: e.target.value})} 
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <ImageUpload currentImage={currentPost.imageUrl} onImageSelect={base64 => setCurrentPost({...currentPost, imageUrl: base64})} label="Imagem de Capa" />
               

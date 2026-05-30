@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send, Zap } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BlogPost, User as UserType } from '../types';
-import { getBlogPostById, getAllUsers, getCurrentUser, getBlogPostComments, addBlogPostComment } from '../services/dataService';
+import { getBlogPostById, getAllUsers, getCurrentUser, getBlogPostComments, addBlogPostComment, saveBlogPost } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
 
 interface BlogDetailProps {
@@ -22,6 +22,97 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
   const [guestName, setGuestName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+
+  const [showConnectNameModal, setShowConnectNameModal] = useState(false);
+  const [connectNameInput, setConnectNameInput] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+
+  const handleToggleConnect = async (customName?: string) => {
+    if (!post) return;
+    
+    let finalName = '';
+    if (currentUser) {
+      finalName = `${currentUser.name} ${currentUser.surname || ''}`.trim();
+    } else if (customName) {
+      finalName = customName.trim();
+    } else {
+      setShowConnectNameModal(true);
+      return;
+    }
+
+    const currentList = post.connectedUsers || [];
+    let newList: string[] = [];
+    let localConnected = false;
+
+    if (currentList.includes(finalName)) {
+      newList = currentList.filter(name => name !== finalName);
+      localConnected = false;
+      notify('success', 'Você se desconectou deste evento/roteiro.');
+    } else {
+      newList = [...currentList, finalName];
+      localConnected = true;
+      notify('success', `Sucesso! Você se conectou ao evento/roteiro como ${finalName}.`);
+    }
+
+    const updatedPost: BlogPost = {
+      ...post,
+      connectedUsers: newList
+    };
+
+    try {
+      await saveBlogPost(updatedPost);
+      setPost(updatedPost);
+      setIsConnected(localConnected);
+
+      const savedConnections = localStorage.getItem('lagos_go_connected_posts');
+      let parsed: string[] = [];
+      if (savedConnections) {
+        parsed = JSON.parse(savedConnections) as string[];
+      }
+      if (localConnected) {
+        if (!parsed.includes(postId)) parsed.push(postId);
+      } else {
+        parsed = parsed.filter(id => id !== postId);
+      }
+      localStorage.setItem('lagos_go_connected_posts', JSON.stringify(parsed));
+    } catch (err) {
+      console.error(err);
+      notify('error', 'Erro ao processar sua conexão.');
+    }
+  };
+
+  const getSocialProofText = () => {
+    const realList = post?.connectedUsers || [];
+    const baseSeedCount = Math.abs(postId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+    
+    if (realList.length === 0) {
+      const seeds = ['Lucas', 'Gabriela', 'Felipe', 'Mariana', 'Thiago', 'Beatriz', 'Rodrigo', 'Juliana', 'Bruno', 'Camila'];
+      const seed1 = seeds[baseSeedCount % seeds.length];
+      const seed2 = seeds[(baseSeedCount + 3) % seeds.length];
+      const totalCount = baseSeedCount;
+      return (
+        <span className="text-xs text-slate-600 font-medium leading-relaxed">
+          💙 <b>{seed1}</b>, <b>{seed2}</b> e outras <b>{totalCount} pessoas</b> se conectaram a este roteiro/evento
+        </span>
+      );
+    } else if (realList.length === 1) {
+      const totalCount = baseSeedCount;
+      return (
+        <span className="text-xs text-slate-600 font-medium leading-relaxed">
+          💙 <b>{realList[0]}</b> e outras <b>{totalCount} pessoas</b> se conectaram a este roteiro/evento
+        </span>
+      );
+    } else {
+      const firstUser = realList[realList.length - 1];
+      const secondUser = realList[realList.length - 2];
+      const remainingCount = baseSeedCount + realList.length - 2;
+      return (
+        <span className="text-xs text-slate-600 font-medium leading-relaxed">
+          💙 <b>{firstUser}</b>, <b>{secondUser}</b> e outras <b>{remainingCount} pessoas</b> se conectaram a este roteiro/evento
+        </span>
+      );
+    }
+  };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +159,16 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
          setComments(comms || []);
          const user = getCurrentUser();
          setCurrentUser(user);
+
+         const savedConnections = localStorage.getItem('lagos_go_connected_posts');
+         let localConnected = false;
+         if (savedConnections) {
+           const parsed = JSON.parse(savedConnections) as string[];
+           localConnected = parsed.includes(postId);
+         }
+         const finalName = user ? `${user.name} ${user.surname || ''}`.trim() : '';
+         const userConnected = finalName && data?.connectedUsers?.includes(finalName);
+         setIsConnected(!!(localConnected || userConnected));
       } catch (err) {
          console.warn("Could not load comments/user:", err);
       }
@@ -287,12 +388,16 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
             {post.title}
           </h1>
           
-          <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
-            <MapPin size={13} className="text-red-400" />
-            <span>Arraial do Cabo, RJ</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-300 text-xs font-semibold">
+            <MapPin size={13} className="text-red-400 shrink-0" />
+            <span>{post.eventLocation || 'Região dos Lagos, RJ'}</span>
             <span className="w-1 h-1 bg-slate-500 rounded-full"></span>
-            <Calendar size={13} />
-            <span>{post.date}</span>
+            <Calendar size={13} className="shrink-0" />
+            <span>
+              {post.eventDate 
+                ? new Date(post.eventDate + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                : new Date(post.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </span>
           </div>
         </div>
       </div>
@@ -399,11 +504,26 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
               <Share2 size={18} /> Compartilhar Roteiro
             </button>
             <button 
-              onClick={() => onNavigate('guide')}
-              className="w-full bg-slate-950 text-white hover:bg-slate-900 py-4 px-6 rounded-2xl font-black text-sm tracking-widest uppercase shadow-sm active:scale-98 transition-all flex items-center justify-center gap-2"
+              onClick={() => handleToggleConnect()}
+              className={`w-full py-4 px-6 rounded-2xl font-black text-sm tracking-widest uppercase active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md ${
+                isConnected 
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10' 
+                  : 'bg-slate-950 hover:bg-slate-900 text-white shadow-sm'
+              }`}
             >
-              Conhecer Estabelecimentos
+              <Zap size={18} className={isConnected ? "fill-current" : ""} /> {isConnected ? 'Konectado!' : 'Konectar-se!'}
             </button>
+            
+            {post && (
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3 mt-1.5 animate-in fade-in duration-300">
+                <div className="flex -space-x-1.5 shrink-0">
+                  <img className="w-6 h-6 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=60&q=80" alt="avatar" />
+                  <img className="w-6 h-6 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=60&q=80" alt="avatar" />
+                  <img className="w-6 h-6 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=60&q=80" alt="avatar" />
+                </div>
+                {getSocialProofText()}
+              </div>
+            )}
           </div>
         </div>
 
@@ -547,6 +667,58 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sleek Custom Connection Name Modal */}
+      {showConnectNameModal && (
+        <div className="fixed inset-0 bg-black/60 shadow-2xl flex items-center justify-center z-50 p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-[2.2rem] border border-slate-100 p-6 max-w-sm w-full space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-start">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+                <Zap size={18} className="fill-orange-50" />
+              </div>
+              <button 
+                onClick={() => setShowConnectNameModal(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div>
+              <h4 className="text-lg font-black text-slate-800 tracking-tight leading-snug">Konectar-se ao Roteiro / Evento</h4>
+              <p className="text-xs text-slate-500 font-medium mt-1">Insira seu nome para aparecer no painel de conexões deste evento.</p>
+            </div>
+            <input 
+              type="text" 
+              placeholder="Seu Nome Completo"
+              value={connectNameInput}
+              onChange={e => setConnectNameInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  if (connectNameInput.trim()) {
+                    handleToggleConnect(connectNameInput);
+                    setShowConnectNameModal(false);
+                    setConnectNameInput('');
+                  }
+                }
+              }}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:bg-white transition-all shadow-2xs"
+              autoFocus
+            />
+            <button 
+              onClick={() => {
+                if (connectNameInput.trim()) {
+                  handleToggleConnect(connectNameInput);
+                  setShowConnectNameModal(false);
+                  setConnectNameInput('');
+                }
+              }}
+              className="w-full bg-[#ff5a1f] hover:bg-[#e0450f] text-white py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all cursor-pointer shadow-sm"
+            >
+              Confirmar Conexão
+            </button>
           </div>
         </div>
       )}
