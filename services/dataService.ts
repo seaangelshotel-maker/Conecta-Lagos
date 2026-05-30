@@ -1388,17 +1388,33 @@ export const getReviewsByBusinessId = (businessId: string) => {
 };
 
 export const approveReview = async (reviewId: string) => {
-    const review = _reviews.find(r => r.id === reviewId);
-    if (!review || !review.businessId) throw new Error('Avaliação não encontrada.');
+    let review = _reviews.find(r => r.id === reviewId);
+    
+    // Fallback to fetch from Firestore if not in cache
+    if (!review) {
+        const docRef = await getDoc(doc(db, 'reviews', reviewId));
+        if (docRef.exists()) {
+            review = { id: docRef.id, ...docRef.data() } as Review;
+        } else {
+            throw new Error('Avaliação não encontrada.');
+        }
+    }
+    
+    if (!review.businessId) throw new Error('A avaliação não possui associação com uma empresa.');
 
     review.status = 'approved';
     await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
 
-    const business = _businesses.find(b => b.id === review.businessId);
+    let business = _businesses.find(b => b.id === review!.businessId);
     if (!business) {
-        // Business was deleted, we already updated the review status in DB
-        notifyListeners();
-        return;
+        const bDoc = await getDoc(doc(db, 'businesses', review.businessId));
+        if (bDoc.exists()) {
+            business = { id: bDoc.id, ...bDoc.data() } as BusinessProfile;
+            _businesses.push(business);
+        } else {
+             notifyListeners();
+             return;
+        }
     }
 
     // Filter out the review if it already exists in the array (to avoid duplicates) and add the updated one
@@ -1418,15 +1434,30 @@ export const approveReview = async (reviewId: string) => {
 };
 
 export const rejectReview = async (reviewId: string) => {
-    const review = _reviews.find(r => r.id === reviewId);
-    if (!review) throw new Error('Avaliação não encontrada.');
+    let review = _reviews.find(r => r.id === reviewId);
+    
+    if (!review) {
+         const docRef = await getDoc(doc(db, 'reviews', reviewId));
+         if (docRef.exists()) {
+              review = { id: docRef.id, ...docRef.data() } as Review;
+         } else {
+              throw new Error('Avaliação não encontrada.');
+         }
+    }
 
     review.status = 'rejected';
     await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
     
     // If it was already in a business, remove it
     if (review.businessId) {
-        const business = _businesses.find(b => b.id === review.businessId);
+        let business = _businesses.find(b => b.id === review!.businessId);
+        if (!business) {
+             const bDoc = await getDoc(doc(db, 'businesses', review.businessId));
+             if (bDoc.exists()) {
+                 business = { id: bDoc.id, ...bDoc.data() } as BusinessProfile;
+             }
+        }
+        
         if (business && business.reviews) {
             business.reviews = business.reviews.filter(r => r.id !== reviewId);
             business.reviewCount = business.reviews.length;
