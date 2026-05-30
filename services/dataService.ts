@@ -135,14 +135,44 @@ const notifyListeners = () => {
 export const ensureCorrectRole = async (userData: User): Promise<User> => {
     const emailLower = (userData.email || '').toLowerCase();
     let changed = false;
+    const updates: any = {};
+    
     if (emailLower === 'sea.angelshotel@gmail.com' || emailLower === 'admin@lagosgo.org' || emailLower === 'admin@conectario.com') {
         if (userData.role !== UserRole.SUPER_ADMIN) {
             userData.role = UserRole.SUPER_ADMIN;
+            updates.role = UserRole.SUPER_ADMIN;
             changed = true;
         }
     } else if (emailLower === 'contato.yuriguida@gmail.com') {
         if (userData.role !== UserRole.JOURNALIST) {
             userData.role = UserRole.JOURNALIST;
+            updates.role = UserRole.JOURNALIST;
+            changed = true;
+        }
+        if (userData.manualPassword !== '123456') {
+            userData.manualPassword = '123456';
+            updates.manualPassword = '123456';
+            changed = true;
+        }
+        // Prefill nice default journalist profile details for Yuri if blank
+        if (!userData.bio) {
+            userData.bio = 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.';
+            updates.bio = userData.bio;
+            changed = true;
+        }
+        if (!userData.profession) {
+            userData.profession = 'Editor-Chefe / Lagos GO Feed';
+            updates.profession = userData.profession;
+            changed = true;
+        }
+        if (!userData.instagram) {
+            userData.instagram = 'yuriguida';
+            updates.instagram = userData.instagram;
+            changed = true;
+        }
+        if (!userData.avatarUrl) {
+            userData.avatarUrl = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80';
+            updates.avatarUrl = userData.avatarUrl;
             changed = true;
         }
     }
@@ -150,12 +180,13 @@ export const ensureCorrectRole = async (userData: User): Promise<User> => {
     // Fix for yurirmg@gmail.com who was accidentally made SUPER_ADMIN
     if (emailLower === 'yurirmg@gmail.com' && userData.role === UserRole.SUPER_ADMIN) {
         userData.role = UserRole.COMPANY;
+        updates.role = UserRole.COMPANY;
         changed = true;
     }
 
-    if (changed) {
+    if (changed && Object.keys(updates).length > 0) {
         try {
-            await updateDoc(doc(db, 'users', userData.id), { role: userData.role });
+            await updateDoc(doc(db, 'users', userData.id), updates);
         } catch (e) {
             console.error("Error updating user role in Firestore:", e);
         }
@@ -453,8 +484,7 @@ export const loginWithGoogle = async (): Promise<User | null> => {
         userData = await ensureCorrectRole(userData);
     } else {
         const email = (res.user.email || '').toLowerCase();
-        const isAdminEmail = email === 'sea.angelshotel@gmail.com' || 
-                           email === 'admin@lagosgo.org';
+        const isAdminEmail = email === 'admin@lagosgo.org' || email === 'sea.angelshotel@gmail.com' || email === 'admin@conectario.com';
         let role = isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
         if (email === 'contato.yuriguida@gmail.com') {
             role = UserRole.JOURNALIST;
@@ -2133,8 +2163,7 @@ export const registerUser = async (name: string, email: string, pass: string): P
     
     // Check if this is an admin email
     const emailLower = email.toLowerCase();
-    const isAdminEmail = emailLower === 'sea.angelshotel@gmail.com' || 
-                       emailLower === 'admin@lagosgo.org';
+    const isAdminEmail = emailLower === 'admin@lagosgo.org';
     const role = isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
     
     const newUser: User = { id: res.user.uid, name, email, role, favorites: { coupons: [], businesses: [] }, history: [], savedAmount: 0 };
