@@ -156,12 +156,12 @@ export const ensureCorrectRole = async (userData: User): Promise<User> => {
         }
         // Prefill nice default journalist profile details for Yuri if blank
         if (!userData.bio) {
-            userData.bio = 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.';
+            userData.bio = 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.';
             updates.bio = userData.bio;
             changed = true;
         }
         if (!userData.profession) {
-            userData.profession = 'Editor-Chefe / Lagos GO Feed';
+            userData.profession = 'Editor-Chefe / Konecta Rio Feed';
             updates.profession = userData.profession;
             changed = true;
         }
@@ -408,8 +408,8 @@ export const login = async (email: string, pass: string): Promise<User | null> =
             savedAmount: 0,
             manualPassword: '123456',
             avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-            profession: 'Editor-Chefe / Lagos GO Feed',
-            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
+            profession: 'Editor-Chefe / Konecta Rio Feed',
+            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
             instagram: 'yuriguida'
         };
         try {
@@ -1254,8 +1254,8 @@ export const getAllUsers = async () => {
             savedAmount: 0,
             manualPassword: '123456',
             avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-            profession: 'Editor-Chefe / Lagos GO Feed',
-            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
+            profession: 'Editor-Chefe / Konecta Rio Feed',
+            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
             instagram: 'yuriguida'
         };
         usersList.push(fallbackYuri);

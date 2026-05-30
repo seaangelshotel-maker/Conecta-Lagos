@@ -189,8 +189,8 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                   email: 'contato.yuriguida@gmail.com',
                   role: 'JOURNALIST',
                   avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-                  profession: 'Editor-Chefe / Lagos GO Feed',
-                  bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
+                  profession: 'Editor-Chefe / Konecta Rio Feed',
+                  bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
                   instagram: 'yuriguida'
               } as any;
           }
@@ -280,7 +280,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
       return [
         'Acesso gratuito ou ingressos antecipados exclusivos.',
         'Cortesias exclusivas de boas-vindas na entrada de luaus.',
-        'Áreas vip/reservadas para membros ativos do Lagos GO.'
+        'Áreas vip/reservadas para membros ativos do Konecta Rio.'
       ];
     }
     return [
@@ -640,7 +640,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                   {author.isPrime && <Award size={18} className="text-amber-500 fill-amber-500" />}
                 </h2>
                 <p className="text-red-500 font-extrabold text-[10px] uppercase tracking-widest mb-3">
-                  {author.profession || 'Colunista de Lagos GO'}
+                  {author.profession || 'Colunista de Konecta Rio'}
                 </p>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed italic px-2 font-light">
                   &ldquo;{author.bio || 'Compartilhando as melhores e mais seguras experiências escondidas na histórica Região dos Lagos.'}&rdquo;

@@ -289,7 +289,7 @@ export const AIAgentTeam: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Ambiente de Comando Administrativo</span>
             </div>
             <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-3">
-              Célula <span className="text-ocean-500">Inteligente</span> Lagos GO
+              Célula <span className="text-ocean-500">Inteligente</span> Konecta Rio
             </h1>
           </div>
         </div>

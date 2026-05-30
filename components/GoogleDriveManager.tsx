@@ -256,7 +256,7 @@ export const GoogleDriveManager: React.FC = () => {
           <div className="space-y-3">
             <h3 className="text-2xl font-black text-ocean-950">Conectar com o Google Drive</h3>
             <p className="text-slate-600 font-medium leading-relaxed text-sm md:text-base">
-              Vincule seu Google Drive ao painel do <b>Lagos GO</b>. Isso permitirá que você adicione e gerencie arquivos, fotos de estabelecimentos, PDFs de cardápios ou panfletos diretamente dos seus arquivos com total facilidade.
+              Vincule seu Google Drive ao painel do <b>Konecta Rio</b>. Isso permitirá que você adicione e gerencie arquivos, fotos de estabelecimentos, PDFs de cardápios ou panfletos diretamente dos seus arquivos com total facilidade.
             </p>
           </div>
 

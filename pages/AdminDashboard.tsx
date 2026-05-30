@@ -639,7 +639,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <div className="space-y-2">
                                   <div className="flex items-center gap-3">
                                       <span className="bg-ocean-500/20 text-ocean-400 text-[10px] font-black px-3 py-1 rounded-full border border-ocean-500/20 uppercase tracking-widest">Protocolo Alpha</span>
-                                      <h3 className="font-black text-white text-xl uppercase tracking-tighter">Célula de Inteligência Lagos GO</h3>
+                                      <h3 className="font-black text-white text-xl uppercase tracking-tighter">Célula de Inteligência Konecta Rio</h3>
                                   </div>
                                   <p className="text-slate-400 font-medium max-w-xl leading-relaxed text-sm md:text-base">
                                       Acione nossa equipe de 5 agentes especialistas (Pesquisador, Analista, Decisor, Copy e Revisor) para criar novos pontos turísticos com qualidade máxima.
@@ -754,7 +754,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </div>
                                       <p className="text-amber-50 font-medium text-sm md:text-lg mb-6 md:mb-8 max-w-xl leading-relaxed">
                                           Nossa equipe recebeu suas informações e está revisando os dados. 
-                                          Sua empresa aparecerá automaticamente no Guia Lagos GO assim que for aprovada!
+                                          Sua empresa aparecerá automaticamente no Guia Konecta Rio assim que for aprovada!
                                       </p>
                                       <div className="flex items-center gap-4">
                                           <div className="flex -space-x-2">

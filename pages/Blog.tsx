@@ -142,8 +142,8 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
         email: 'contato.yuriguida@gmail.com',
         role: 'JOURNALIST',
         avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-        profession: 'Editor-Chefe / Lagos GO Feed',
-        bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Lagos GO, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
+        profession: 'Editor-Chefe / Konecta Rio Feed',
+        bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
         instagram: 'yuriguida'
       } as any;
     }
@@ -242,7 +242,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       <div className="px-4 mb-8 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-            Lagos GO Feed
+            Konecta Rio Feed
           </h2>
           <p className="text-xs text-slate-500 font-medium">Informação premium, agenda local e os melhores roteiros.</p>
         </div>
@@ -345,11 +345,18 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                     <p className="text-[10px] text-amber-400 font-bold mb-1 flex flex-wrap items-center gap-1.5 font-mono uppercase">
                       <Clock size={10} /> 5 MIN LEITURA
                       <span className="w-1 h-1 bg-amber-450 rounded-full"></span>
-                      <span className="text-orange-400 font-extrabold flex items-center gap-0.5">⚡ {(() => {
-                        const realList = post.connectedUsers || [];
-                        const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                        return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                      })()} KONECTADOS</span>
+                      <div className="flex items-center gap-1">
+                        <div className="flex -space-x-1 border border-transparent">
+                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                        </div>
+                        <span className="text-[#ff5a1f] font-extrabold flex items-center gap-0.5 mt-0.5">{(() => {
+                          const realList = post.connectedUsers || [];
+                          const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                          return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                        })()} KONECTADOS</span>
+                      </div>
                     </p>
                     <h3 className="text-white font-extrabold text-sm md:text-base leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
                       {post.title}
@@ -416,13 +423,20 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
                           <span>{post.date}</span>
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                          <span className="text-[#ff5a1f] font-black text-[11px] uppercase tracking-wide flex items-center gap-0.5">
-                            ⚡ {(() => {
-                              const realList = post.connectedUsers || [];
-                              const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                              return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                            })()} Konectados
-                          </span>
+                          <div className="flex items-center gap-1 mr-0.5">
+                            <div className="flex -space-x-1.5 border border-transparent">
+                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                            </div>
+                            <span className="text-[#ff5a1f] font-black text-[11px] uppercase tracking-wide flex items-center gap-0.5 mt-0.5">
+                              {(() => {
+                                const realList = post.connectedUsers || [];
+                                const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                                return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                              })()} Konectados
+                            </span>
+                          </div>
                         </div>
 
                         <h3 className="font-extrabold text-slate-900 mb-2 leading-snug text-lg group-hover:text-red-500 transition-colors line-clamp-2">
@@ -451,7 +465,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                               {post.author}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium">
-                              {author?.profession || 'Membro do Lagos GO'}
+                              {author?.profession || 'Membro do Konecta Rio'}
                             </span>
                           </div>
                         </div>

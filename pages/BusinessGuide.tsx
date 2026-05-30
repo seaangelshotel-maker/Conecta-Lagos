@@ -623,13 +623,20 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 leading-none select-none">
                                       📖 Ver Roteiro
                                   </p>
-                                  <span className="text-[#ff5a1f] font-black text-[9px] uppercase tracking-wider flex items-center gap-0.5">
-                                      ⚡ {(() => {
-                                        const realList = post.connectedUsers || [];
-                                        const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                                        return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                                      })()}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <div className="flex -space-x-1 border border-transparent mr-0.5">
+                                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                    </div>
+                                    <span className="text-[#ff5a1f] font-black text-[9px] uppercase tracking-wider flex items-center mt-px">
+                                        {(() => {
+                                          const realList = post.connectedUsers || [];
+                                          const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                                          return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                                        })()}
+                                    </span>
+                                  </div>
                               </div>
                           </div>
                       </div>

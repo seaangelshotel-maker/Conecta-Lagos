@@ -272,7 +272,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                           <div className="bg-white/20 p-3 rounded-2xl"><Star size={24} className="text-white" /></div>
                           <div className="text-left">
                               <p className="text-xs font-black text-gold-100 uppercase">Evolua seu negócio</p>
-                              <h3 className="font-bold">Ver Planos do Lagos GO</h3>
+                              <h3 className="font-bold">Ver Planos do Konecta Rio</h3>
                           </div>
                       </div>
                       <ChevronRight className="group-hover:translate-x-1 transition-transform" />
@@ -305,7 +305,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                       <div className="relative z-10">
                         <p className="text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 md:mb-2">Passaporte de Economia</p>
                         <h2 className="text-4xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">R$ {savedAmount.toFixed(2)}</h2>
-                        <p className="text-xs md:text-base text-slate-300 font-medium">Total economizado no Lagos GO.</p>
+                        <p className="text-xs md:text-base text-slate-300 font-medium">Total economizado no Konecta Rio.</p>
                       </div>
                       <div className="absolute -right-20 -bottom-20 w-64 h-64 md:w-96 md:h-96 bg-ocean-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                   </div>

@@ -625,7 +625,7 @@ export const SuperAdminDashboard: React.FC<{ onNavigate: (page: string) => void;
                               </div>
                               <div>
                                   <h3 className="text-xl font-black text-ocean-950">Configurações Globais</h3>
-                                  <p className="text-sm text-slate-400 font-medium">Controle os parâmetros gerais do sistema Lagos GO.</p>
+                                  <p className="text-sm text-slate-400 font-medium">Controle os parâmetros gerais do sistema Konecta Rio.</p>
                               </div>
                           </div>
 

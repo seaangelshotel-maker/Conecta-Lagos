@@ -448,11 +448,18 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                        <span className="w-1 h-1 bg-amber-300 rounded-full"></span>
                                        <span>{post.date}</span>
                                        <span className="w-1 h-1 bg-amber-300 rounded-full"></span>
-                                       <span className="text-orange-400 font-extrabold flex items-center gap-0.5">⚡ {(() => {
-                                          const realList = post.connectedUsers || [];
-                                          const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                                          return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                                       })()} KONECTADOS</span>
+                                       <div className="flex items-center gap-1">
+                                         <div className="flex -space-x-1 border border-transparent mr-0.5">
+                                           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-[14px] h-[14px] md:w-3.5 md:h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-[14px] h-[14px] md:w-3.5 md:h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-[14px] h-[14px] md:w-3.5 md:h-3.5 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
+                                         </div>
+                                         <span className="text-[#ff5a1f] font-extrabold flex items-center gap-0.5 mt-px">{(() => {
+                                            const realList = post.connectedUsers || [];
+                                            const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                                            return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                                         })()} KONECTADOS</span>
+                                       </div>
                                     </div>
                                     <h4 className="text-white font-extrabold text-sm md:text-base leading-snug drop-shadow-sm group-hover:text-amber-200 transition-colors line-clamp-2">
                                        {post.title}

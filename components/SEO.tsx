@@ -18,8 +18,8 @@ export const SEO: React.FC<SEOProps> = ({
   url, 
   type = 'website' 
 }) => {
-  const siteTitle = 'Lagos GO';
-  const fullTitle = title ? `${title} | ${siteTitle}` : `Lagos GO - Guia Oficial da Região dos Lagos`;
+  const siteTitle = 'Konecta Rio';
+  const fullTitle = title ? `${title} | ${siteTitle}` : `Konecta Rio - Guia Oficial da Região dos Lagos`;
   const defaultDescription = 'O guia definitivo da Região dos Lagos. Encontre os melhores lugares, cupons de desconto exclusivos e notícias locais.';
   const siteUrl = 'https://lagosgo.com.br';
   const defaultImage = `${siteUrl}/logo.png`;

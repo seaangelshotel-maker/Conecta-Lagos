@@ -29,7 +29,7 @@ export const INITIAL_STEPS: AgentStep[] = [
 ];
 
 const SYSTEM_PROMPTS = {
-  researcher: `Você é o Pesquisador-Chefe do LAGOS GO. 
+  researcher: `Você é o Pesquisador-Chefe do KONECTA RIO. 
 Sua missão é fornecer informações REAIS, VIBRANTES e COMPLETAS sobre locais na Região dos Lagos.
 REGRAS DE OURO:
 1. RESPEITE A CIDADE: Se o Comandante pediu [Cidade], você NUNCA deve sugerir nada em outra cidade.
@@ -86,7 +86,7 @@ export async function runAgentStep(role: string, input: string, context?: string
   
   const prompt = `
 CONTEXTO DO PROJETO:
-Você trabalha para o "LAGOS GO", o maior guia turístico da Região dos Lagos (RJ). 
+Você trabalha para o "KONECTA RIO", o maior guia turístico da Região dos Lagos (RJ). 
 Sua missão é criar postagens com QUALIDADE DE REVISTA, RIQUEZA DE DADOS e OTIMIZAÇÃO SEO.
 
 Instrução do seu Papel:

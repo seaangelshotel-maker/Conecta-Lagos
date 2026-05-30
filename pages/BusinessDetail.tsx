@@ -170,7 +170,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                   </div>
                   <div className="space-y-2">
                       <h2 className="text-3xl font-black text-ocean-950">Empresa não encontrada</h2>
-                      <p className="text-slate-500 font-medium">O perfil que você está procurando não existe ou foi removido do Lagos GO.</p>
+                      <p className="text-slate-500 font-medium">O perfil que você está procurando não existe ou foi removido do Konecta Rio.</p>
                   </div>
                   <button onClick={() => onNavigate('home')} className="w-full bg-ocean-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-ocean-200 hover:bg-ocean-700 transition-all flex items-center justify-center gap-2">
                       <ArrowLeft size={20} /> VOLTAR AO INÍCIO
@@ -198,7 +198,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                       </p>
                       <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
                           <p className="text-amber-800 text-sm font-bold">
-                              Em breve ela estará disponível no Guia Lagos GO!
+                              Em breve ela estará disponível no Guia Konecta Rio!
                           </p>
                       </div>
                   </div>

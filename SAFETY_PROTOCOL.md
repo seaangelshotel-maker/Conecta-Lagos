@@ -1,6 +1,6 @@
-# 🛡️ PROTOCOLO DE SEGURANÇA E INTEGRIDADE - LAGOS GO
+# 🛡️ PROTOCOLO DE SEGURANÇA E INTEGRIDADE - KONECTA RIO
 
-Este documento é a "Constituição" do Lagos GO. Qualquer alteração no código deve respeitar estas regras para evitar quebras em produção e perda de dados históricos acumulados durante todo o desenvolvimento.
+Este documento é a "Constituição" do Konecta Rio. Qualquer alteração no código deve respeitar estas regras para evitar quebras em produção e perda de dados históricos acumulados durante todo o desenvolvimento.
 
 ## 1. 🎟️ CUPONS E OFERTAS (Regra de Ouro)
 *   **Compatibilidade Legada:** Cupons sem o campo `status` ou `active` DEVEM ser tratados como **Aprovados** e **Ativos**. 
