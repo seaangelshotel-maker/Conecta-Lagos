@@ -18,8 +18,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
   const [query, setQuery] = useState(initialQuery || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'Todos');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('Todos');
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [filteredCoupons, setFilteredCoupons] = useState<any[]>([]);
   const [categories, setCategories] = useState<AppCategory[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,11 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
       
       const mappedCoupons = couponData.map(c => {
           const biz = businesses.find(b => b.id === c.companyId);
-          return { ...c, subcategory: biz?.subcategory };
+          return { 
+              ...c, 
+              subcategory: biz?.subcategory,
+              isCompanyFeatured: biz?.isFeatured || false
+          };
       });
       
       const activeData = mappedCoupons.filter(c => c.active !== false);
@@ -94,6 +98,17 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
                 .filter(c => (c.distance || 9999) < 15) 
                 .sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
         }
+    } else {
+        // Prioritize coupons of featured companies first, then sort by highest rating
+        result.sort((a: any, b: any) => {
+            const featA = a.isCompanyFeatured ? 1 : 0;
+            const featB = b.isCompanyFeatured ? 1 : 0;
+            if (featB !== featA) return featB - featA;
+            
+            const rA = a.rating || 5.0;
+            const rB = b.rating || 5.0;
+            return rB - rA;
+        });
     }
 
     setFilteredCoupons(result);

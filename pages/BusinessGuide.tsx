@@ -54,6 +54,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
   const [selectedLocation, setSelectedLocation] = useState('Todos');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [onlyOpen, setOnlyOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<'recommended' | 'rating' | 'featured_only'>('recommended');
   const [nearby, setNearby] = useState(false);
   const [locating, setLocating] = useState(false);
   const [currentLocationName, setCurrentLocationName] = useState('Todas as Regiões');
@@ -281,11 +282,29 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
             }
         }
     } else {
-        result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0) || (b.reviewCount || 0) - (a.reviewCount || 0));
+        if (sortBy === 'featured_only') {
+            result = result.filter(b => b.isFeatured);
+            result.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviewCount || 0) - (a.reviewCount || 0));
+        } else if (sortBy === 'rating') {
+            result.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviewCount || 0) - (a.reviewCount || 0));
+        } else {
+            // default/recommended: prioritize featured first, then sort by rating, then by review count
+            result.sort((a, b) => {
+                const featA = a.isFeatured ? 1 : 0;
+                const featB = b.isFeatured ? 1 : 0;
+                if (featB !== featA) return featB - featA;
+                
+                const rA = a.rating || 0;
+                const rB = b.rating || 0;
+                if (rB !== rA) return rB - rA;
+                
+                return (b.reviewCount || 0) - (a.reviewCount || 0);
+            });
+        }
     }
 
     setFiltered(result);
-  }, [query, selectedCategory, selectedSubCategory, selectedLocation, onlyOpen, selectedAmenities, nearby, businesses, cities, neighborhoods]);
+  }, [query, selectedCategory, selectedSubCategory, selectedLocation, onlyOpen, selectedAmenities, nearby, businesses, cities, neighborhoods, sortBy]);
 
   const handleToggleFavorite = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
@@ -641,13 +660,47 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
       {/* 6. BUSINESS RESULTS GRID (With robust card layout) */}
       <div className="px-4 max-w-7xl mx-auto w-full relative">
           
-          <div className="mb-4 flex justify-between items-center px-1">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5 leading-none">
-                  <Store size={15} className="text-slate-400" /> Recomendados Disponíveis
-              </h2>
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase bg-slate-100 px-2 py-1 rounded-md tracking-wider">
-                  Encontrados: {filtered.length}
-              </span>
+          <div className="mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-[1.8rem] border border-slate-200/80 shadow-2xs w-full">
+              <div className="flex items-center gap-2">
+                  <Store size={15} className="text-ocean-600 shrink-0" />
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none">
+                      Recomendados Comercial ({filtered.length})
+                  </span>
+              </div>
+              
+              {/* Fluid Sorting Segment Selector Control */}
+              <div className="flex bg-slate-100 p-1 rounded-2xl self-stretch sm:self-auto overflow-x-auto hide-scrollbar shrink-0 gap-1">
+                  <button
+                    onClick={() => setSortBy('recommended')}
+                    className={`px-3.5 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      sortBy === 'recommended' 
+                        ? 'bg-white text-ocean-700 shadow-xs' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                      <Crown size={11} className={sortBy === 'recommended' ? 'text-amber-500 fill-amber-500/10' : ''} /> Destaques Premium
+                  </button>
+                  <button
+                    onClick={() => setSortBy('rating')}
+                    className={`px-3.5 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      sortBy === 'rating' 
+                        ? 'bg-white text-ocean-700 shadow-xs' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                      <Star size={11} className={sortBy === 'rating' ? 'text-amber-500 fill-amber-500/10' : ''} /> Avaliação
+                  </button>
+                  <button
+                    onClick={() => setSortBy('featured_only')}
+                    className={`px-3.5 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      sortBy === 'featured_only' 
+                        ? 'bg-white text-ocean-700 shadow-xs' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                      <Crown size={11} className="text-amber-500" /> Ver Destaques
+                  </button>
+              </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 relative">
@@ -686,8 +739,8 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                   >
                       {/* Premium feature designation label */}
                       {business.isFeatured && (
-                          <div className="absolute top-3.5 left-4 bg-gradient-to-r from-gold-500 to-amber-600 text-white text-[9px] font-black tracking-widest px-3.5 py-1 rounded-full z-20 shadow-md uppercase flex items-center gap-1.5">
-                              <Crown size={10} className="fill-current" /> Destaque
+                          <div className="absolute top-3.5 left-4 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-slate-950 text-[9px] font-black tracking-widest px-3.5 py-1 rounded-xl z-20 shadow-lg uppercase flex items-center gap-1 leading-none select-none">
+                              <Crown size={10} className="fill-slate-950 text-slate-950 shrink-0" /> Parceiro Destaque
                           </div>
                       )}
 
@@ -743,6 +796,11 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                               <div className="flex justify-between items-start gap-1 pb-1">
                                   <h3 className="font-extrabold text-slate-800 text-[16px] md:text-lg line-clamp-1 flex items-center gap-1.5 leading-snug">
                                       {business.name}
+                                      {business.isFeatured && (
+                                          <span className="text-amber-500 hover:scale-110 transition-transform shrink-0" title="Parceiro Destaque Premium">
+                                              <Crown size={14} className="fill-current" />
+                                          </span>
+                                      )}
                                   </h3>
                                   
                                   {/* Compact Rating Tag indicator */}
