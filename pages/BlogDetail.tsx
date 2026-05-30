@@ -24,7 +24,13 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
       if (data?.authorId) {
           const users = await getAllUsers();
           let foundAuthor = users.find(u => u.id === data.authorId);
-          if (!foundAuthor && data.authorId === 'yuri_guida') {
+          if (!foundAuthor) {
+              const realYuri = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+              if (realYuri && (data.authorId === 'yuri_guida' || data.authorId === realYuri.id)) {
+                  foundAuthor = realYuri;
+              }
+          }
+          if (!foundAuthor && (data.authorId === 'yuri_guida' || data.authorId?.toLowerCase() === 'yuri guida')) {
               foundAuthor = {
                   id: 'yuri_guida',
                   name: 'Yuri Guida',

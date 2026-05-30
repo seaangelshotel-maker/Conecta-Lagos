@@ -1208,17 +1208,17 @@ export const getBlogPosts = async () => {
         _posts.sort((a, b) => b.date.localeCompare(a.date));
     }
 
-    // Dynamic creator mapping (link seed data's 'yuri_guida' to Yuri's actual logged in account ID)
+    // Dynamic creator mapping: Let Yuri Guida have absolute ownership over ALL posts!
     const usersSnap = await getAllUsers();
     const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-    if (realYuri) {
-        _posts = _posts.map(post => {
-            if (post.authorId === 'yuri_guida' && realYuri.id !== 'yuri_guida') {
-                return { ...post, authorId: realYuri.id };
-            }
-            return post;
-        });
-    }
+    const yuriId = realYuri?.id || 'yuri_guida';
+    _posts = _posts.map(post => {
+        return { 
+            ...post, 
+            authorId: yuriId, 
+            author: 'Yuri Guida' 
+        };
+    });
 
     return _posts;
 };
@@ -1676,19 +1676,27 @@ let _posts: BlogPost[] = [];
 
 export const getBlogPostById = async (id: string) => {
     const cached = _posts.find(p => p.id === id);
-    if (cached) return cached;
+    if (cached) {
+        // Enforce Yuri ownership even if returned from memory cache
+        const usersSnap = await getAllUsers();
+        const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+        const yuriId = realYuri?.id || 'yuri_guida';
+        cached.authorId = yuriId;
+        cached.author = 'Yuri Guida';
+        return cached;
+    }
     
     const docRef = doc(db, 'blog_posts', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const post = { id: docSnap.id, ...docSnap.data() } as BlogPost;
         
-        // Dynamically map fallback 'yuri_guida' author IDs to his real authenticated Google/manual account ID
+        // Dynamically map all post author IDs and names to Yuri's actual account
         const usersSnap = await getAllUsers();
         const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-        if (realYuri && post.authorId === 'yuri_guida' && realYuri.id !== 'yuri_guida') {
-            post.authorId = realYuri.id;
-        }
+        const yuriId = realYuri?.id || 'yuri_guida';
+        post.authorId = yuriId;
+        post.author = 'Yuri Guida';
 
         if (!_posts.find(p => p.id === post.id)) {
             _posts.push(post);

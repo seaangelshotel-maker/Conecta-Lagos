@@ -15,9 +15,26 @@ export const JournalistPublicPage: React.FC<JournalistPublicPageProps> = ({ jour
   useEffect(() => {
     const fetchData = async () => {
       const [users, allPosts] = await Promise.all([getAllUsers(), getBlogPosts()]);
-      const journalist = users.find(u => u.id === journalistId);
+      
+      let journalist = users.find(u => u.id === journalistId);
+      // Fallback: Look up by email if finding Yuri Guida by a mismatched internal ID
+      if (!journalist && (journalistId === 'yuri_guida' || journalistId === 'contato.yuriguida@gmail.com')) {
+        journalist = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+      }
+      
       setJournalist(journalist || null);
-      setPosts(allPosts.filter(p => p.authorId === journalistId && p.status === 'published'));
+      
+      if (journalist) {
+        const isYuri = (journalist.email || '').toLowerCase() === 'contato.yuriguida@gmail.com';
+        setPosts(allPosts.filter(p => {
+          const isMatch = isYuri
+            ? (p.authorId === journalist!.id || p.authorId === 'yuri_guida' || (p.author || '').toLowerCase() === 'yuri guida')
+            : (p.authorId === journalist!.id);
+          return isMatch && p.status === 'published';
+        }));
+      } else {
+        setPosts([]);
+      }
     };
     fetchData();
   }, [journalistId]);

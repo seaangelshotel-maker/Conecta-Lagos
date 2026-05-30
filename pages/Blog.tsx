@@ -128,7 +128,14 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   // Helper to find author
   const getAuthor = (authorId?: string) => {
     let found = users.find(u => u.id === authorId);
-    if (!found && authorId === 'yuri_guida') {
+    if (!found) {
+      // Find by email lookup
+      const realYuri = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
+      if (realYuri && (authorId === 'yuri_guida' || authorId === realYuri.id)) {
+        found = realYuri;
+      }
+    }
+    if (!found && (authorId === 'yuri_guida' || authorId?.toLowerCase() === 'yuri guida')) {
       found = {
         id: 'yuri_guida',
         name: 'Yuri Guida',
