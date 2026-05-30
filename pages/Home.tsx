@@ -6,6 +6,7 @@ import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 import { redeemCoupon, getBlogPosts, getCollections, getHomeHighlights, identifyNeighborhood, checkIfOpen } from '../services/dataService';
 import { useBusinesses, useCoupons, useAppCategories } from '../hooks/useFirestore';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface HomeProps {
   currentUser: User | null;
@@ -44,7 +45,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationName, setLocationName] = useState("Região dos Lagos");
   
-  const [currentLang, setCurrentLang] = useState('🇧🇷');
+  const { language: currentLang, setLanguage: setCurrentLang, t } = useLanguage();
   const [showLanguages, setShowLanguages] = useState(false);
   const languages = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
@@ -223,8 +224,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   return (
     <div className="pb-28 bg-[#f7f7f7] min-h-screen font-sans">
       <SEO 
-        title="O Guia Oficial da Região dos Lagos" 
-        description="Descubra o melhor da Região dos Lagos com o Konecta Lagos."
+        title={t("O Guia Oficial da Região dos Lagos")} 
+        description={t("Descubra o melhor da Região dos Lagos com o Konecta Lagos.")}
       />
       
       {/* HEADER (iFood Style - Clean & Vibrant) */}
@@ -240,9 +241,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                    <MapPin size={16} className="fill-current" />
                 </div>
                 <div className="flex flex-col justify-center">
-                    <span className="text-[10px] uppercase font-black text-slate-400 leading-tight tracking-wider">Entregar ou Explorar em</span>
+                    <span className="text-[10px] uppercase font-black text-slate-400 leading-tight tracking-wider">{t('Entregar ou Explorar em')}</span>
                     <div className="flex items-center gap-1">
-                        <span className="font-bold text-sm text-slate-900 leading-tight">{locationName}</span>
+                        <span className="font-bold text-sm text-slate-900 leading-tight">{t(locationName)}</span>
                         <ChevronDown size={14} className="text-red-500 font-bold" />
                     </div>
                 </div>
@@ -296,16 +297,16 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                      <Gem size={16} className="fill-emerald-50 text-emerald-600" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-0.5">Minha Carteira de Economia</span>
+                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-0.5">{t('Minha Carteira de Economia')}</span>
                     <span className="text-xs text-slate-500 font-medium">
                       {currentUser.savedAmount && currentUser.savedAmount > 0 
-                        ? 'Veja o quanto você já poupou usando nossos cupons!' 
-                        : 'Ative cupons grátis e comece a economizar!'}
+                        ? t('Veja o quanto você já poupou usando nossos cupons!') 
+                        : t('Ative cupons grátis e comece a economizar!')}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end shrink-0 pl-2">
-                   <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">Total Economizado</div>
+                   <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">{t('Total Economizado')}</div>
                    <div className="text-base font-black text-emerald-600 font-sans leading-tight mt-0.5">R$ {(currentUser.savedAmount || 0).toFixed(2)}</div>
                 </div>
               </div>
@@ -382,7 +383,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                 <div className="w-[72px] h-[72px] rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center justify-center text-red-500 overflow-hidden relative active:scale-95 transition-transform group-hover:bg-slate-50">
                                    <div className="text-3xl relative z-10 drop-shadow-sm">{emoji}</div>
                                 </div>
-                                <span className="text-[11px] font-semibold text-slate-700 text-center leading-tight line-clamp-2 md:text-xs group-hover:text-red-500">{cat.name}</span>
+                                <span className="text-[11px] font-semibold text-slate-700 text-center leading-tight line-clamp-2 md:text-xs group-hover:text-red-500">{t(cat.name)}</span>
                             </div>
                         )
                     })}
@@ -395,13 +396,13 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             <div className="px-4">
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="text-slate-900 font-extrabold text-lg px-0.5 tracking-tight flex items-center gap-1.5">
-                       <Newspaper size={18} className="text-red-500" /> Dicas e Notícias Locais
+                       <Newspaper size={18} className="text-red-500" /> {t('Dicas e Notícias Locais')}
                     </h3>
                     <button 
                         className="text-[13px] font-black text-red-500 hover:text-red-700 active:scale-95 transition-transform" 
                         onClick={() => onNavigate('blog')}
                     >
-                        Ver feed completo
+                        {t('Ver feed completo')}
                     </button>
                 </div>
                 
@@ -471,8 +472,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {uniqueCollections.length > 0 && (
             <div className="px-4">
                 <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-slate-900 font-bold text-lg px-0.5 tracking-tight">Vale conhecer</h3>
-                    <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('collections')}>Ver todas</button>
+                    <h3 className="text-slate-900 font-bold text-lg px-0.5 tracking-tight">{t('Vale conhecer')}</h3>
+                    <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('collections')}>{t('Ver todas')}</button>
                 </div>
                 <div className="grid grid-flow-col auto-cols-max overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
                     {uniqueCollections.map(collection => {
@@ -505,7 +506,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                 {/* Alternative semi-transparent solid overlay for readability over the whole image */}
                                 <div className="absolute inset-0" style={{ backgroundColor: bgColor, opacity: bgOp * 0.3 }}></div>
 
-                                <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">{collection.title}</span>
+                                <span className="text-white font-bold text-sm md:text-lg leading-tight md:max-w-32 z-10 drop-shadow-md">{t(collection.title)}</span>
                             </div>
                         )
                     })}
@@ -517,8 +518,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {uniqueCoupons.length > 0 && (
             <div>
                 <div className="flex justify-between items-center mb-3 px-4">
-                    <h3 className="text-slate-900 text-lg font-bold tracking-tight">Melhores Cupons</h3>
-                    <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('search')}>Ver todos</button>
+                    <h3 className="text-slate-900 text-lg font-bold tracking-tight">{t('Melhores Cupons')}</h3>
+                    <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('search')}>{t('Ver todos')}</button>
                 </div>
                 <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-4 md:mx-0 md:px-0 md:grid md:grid-cols-4">
                     {uniqueCoupons.slice(0, 5).map(coupon => (
@@ -533,8 +534,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* LIST - Recomendados para você */}
         <div>
             <div className="flex justify-between items-center mb-3 px-4">
-                <h3 className="text-slate-900 font-bold text-lg tracking-tight">Recomendados para você</h3>
-                <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('guide')}>Ver todos</button>
+                <h3 className="text-slate-900 font-bold text-lg tracking-tight">{t('Recomendados para você')}</h3>
+                <button className="text-[13px] font-bold text-red-500 hover:text-red-700 active:scale-95 transition-transform" onClick={() => onNavigate('guide')}>{t('Ver todos')}</button>
             </div>
             
             {/* Quick Filters */}
@@ -545,7 +546,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                       onClick={() => setActiveFilter(tag)}
                       className={`border px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm hover:border-slate-300 cursor-pointer active:scale-95 transition-all text-center ${activeFilter === tag ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-white text-slate-700 border-slate-200'}`}
                    >
-                       {tag}
+                       {t(tag)}
                    </div> 
                 ))}
             </div>
@@ -581,10 +582,10 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                             <span className="font-bold">{biz.rating}</span>
                                         </div>
                                         <span className="text-slate-300">•</span>
-                                        <span className="truncate">{biz.category}</span>
+                                        <span className="truncate">{t(biz.category)}</span>
                                         <span className="text-slate-300">•</span>
                                         <span className={`${isOpen ? 'text-green-600' : 'text-slate-400'}`}>
-                                            {isOpen ? 'Aberto' : 'Fechado'}
+                                            {isOpen ? t('Aberto') : t('Fechado')}
                                         </span>
                                     </div>
                                     
@@ -592,7 +593,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                         <div className="text-slate-500">1.8 km</div>
                                         {bizCoupons.length > 0 && (
                                             <div className="flex items-center gap-1 bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">
-                                                <Ticket size={10} /> Cupom
+                                                <Ticket size={10} /> {t('Cupom')}
                                             </div>
                                         )}
                                     </div>
@@ -603,20 +604,20 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 </div>
             ) : (
                 <div className="text-center py-12 text-slate-400 font-medium text-sm">
-                    Nenhum estabelecimento encontrado nesta categoria.
+                    {t('Nenhum estabelecimento encontrado nesta categoria.')}
                 </div>
             )}
 
             {visibleCount < filteredBusinessesForFeed.length && (
                 <div ref={homeLoaderRef} className="flex flex-col items-center justify-center py-8 text-slate-400 font-semibold text-xs gap-2">
                     <Loader2 className="animate-spin text-red-500" size={24} />
-                    <span>Carregando mais estabelecimentos...</span>
+                    <span>{t('Carregando mais estabelecimentos...')}</span>
                 </div>
             )}
             
             {visibleCount >= filteredBusinessesForFeed.length && filteredBusinessesForFeed.length > 0 && (
                 <div className="text-center py-8 text-slate-400 font-bold text-xs">
-                    Você chegou ao fim dos recomendados.
+                    {t('Você chegou ao fim dos recomendados.')}
                 </div>
             )}
         </div>

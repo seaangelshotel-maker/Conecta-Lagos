@@ -78,12 +78,15 @@ const buildUrl = (page: string, params?: any): string => {
 };
 
 import { HelmetProvider } from 'react-helmet-async';
+import { LanguageProvider } from './hooks/useLanguage';
 
 export default function App() {
   return (
     <HelmetProvider>
       <NotificationProvider>
-        <AppContent />
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
       </NotificationProvider>
     </HelmetProvider>
   );

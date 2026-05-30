@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Home, Ticket, User, Gem, Compass, BookOpen, ShieldCheck, PenTool } from 'lucide-react';
 import { User as UserType, UserRole, AppConfig } from '../types';
 import { getAppConfig, getCoupons } from '../services/dataService';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface NavBarProps {
   currentUser: UserType | null;
@@ -12,6 +13,7 @@ interface NavBarProps {
 }
 
 export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, currentPage, onLogout }) => {
+  const { t } = useLanguage();
   const [config, setConfig] = useState<AppConfig>(getAppConfig());
   const [newCouponsCount, setNewCouponsCount] = useState(0);
 
@@ -63,14 +65,14 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
       
       <button onClick={() => onNavigate('home')} className={navItemClass('home')}>
         <Home size={20} fill={currentPage === 'home' ? "currentColor" : "none"} />
-        <span className="text-[9px]">Início</span>
+        <span className="text-[9px]">{t('Início')}</span>
       </button>
-
+ 
       <button onClick={() => onNavigate('guide')} className={navItemClass('guide')}>
         <Compass size={20} />
-        <span className="text-[9px]">Guia</span>
+        <span className="text-[9px]">{t('Guia')}</span>
       </button>
-
+ 
       <button onClick={handleNavigateToSearch} className={navItemClass('search')}>
         <div className="relative">
             <Ticket size={20} />
@@ -80,28 +82,28 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
                 </span>
             )}
         </div>
-        <span className="text-[9px]">Cupons</span>
+        <span className="text-[9px]">{t('Cupons')}</span>
       </button>
-
+ 
       <button onClick={() => onNavigate('blog')} className={navItemClass('blog')}>
         <BookOpen size={20} />
-        <span className="text-[9px]">Feed</span>
+        <span className="text-[9px]">{t('Feed')}</span>
       </button>
-
+ 
       {currentUser?.role === UserRole.SUPER_ADMIN ? (
           <button onClick={() => onNavigate('admin-dashboard')} className={navItemClass('admin-dashboard')}>
             <ShieldCheck size={20} />
-            <span className="text-[9px]">Admin</span>
+            <span className="text-[9px]">{t('Admin')}</span>
           </button>
       ) : currentUser?.role === UserRole.COMPANY ? (
           <button onClick={() => onNavigate('admin-dashboard')} className={navItemClass('admin-dashboard')}>
             <Gem size={20} />
-            <span className="text-[9px]">Empresa</span>
+            <span className="text-[9px]">{t('Empresa')}</span>
           </button>
       ) : currentUser?.role === UserRole.JOURNALIST ? (
           <button onClick={() => onNavigate('journalist-dashboard')} className={navItemClass('journalist-dashboard')}>
             <PenTool size={20} />
-            <span className="text-[9px]">Jornalista</span>
+            <span className="text-[9px]">{t('Jornalista')}</span>
           </button>
       ) : (
           <button onClick={() => onNavigate('user-dashboard')} className={navItemClass('user-dashboard')}>
@@ -110,13 +112,13 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
             ) : (
                 <User size={20} />
             )}
-            <span className="text-[9px]">{currentUser ? 'Perfil' : 'Entrar'}</span>
+            <span className="text-[9px]">{currentUser ? t('Perfil') : t('Entrar')}</span>
           </button>
       )}
-
+ 
     </div>
   );
-
+ 
   const DesktopNav = () => (
     <div className="hidden md:flex w-full h-16 bg-white border-b border-slate-100 justify-between items-center px-8 fixed top-0 left-0 z-50 shadow-sm">
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('home')}>
@@ -141,23 +143,23 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
       </div>
       
       <div className="flex items-center gap-8">
-        <button onClick={() => onNavigate('home')} className={`font-medium hover:text-gold-500 ${currentPage === 'home' ? 'text-ocean-950' : 'text-slate-500'}`}>Início</button>
-        <button onClick={() => onNavigate('guide')} className={`font-medium hover:text-gold-500 ${currentPage === 'guide' ? 'text-ocean-950' : 'text-slate-500'}`}>Guia</button>
+        <button onClick={() => onNavigate('home')} className={`font-medium hover:text-gold-500 ${currentPage === 'home' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Início')}</button>
+        <button onClick={() => onNavigate('guide')} className={`font-medium hover:text-gold-500 ${currentPage === 'guide' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Guia')}</button>
         <button onClick={handleNavigateToSearch} className={`font-medium hover:text-gold-500 relative ${currentPage === 'search' ? 'text-ocean-950' : 'text-slate-500'}`}>
-            Cupons
+            {t('Cupons')}
             {newCouponsCount > 0 && (
                 <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-pulse border border-white">
                     {newCouponsCount}
                 </span>
             )}
         </button>
-        <button onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${currentPage === 'blog' ? 'text-ocean-950' : 'text-slate-500'}`}>Feed & Dicas</button>
+        <button onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${currentPage === 'blog' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Feed & Dicas')}</button>
         
         <button 
           onClick={() => onNavigate('pricing-plans')} 
           className="text-xs font-black uppercase tracking-widest text-ocean-600 hover:text-ocean-800 bg-ocean-50 px-4 py-2 rounded-xl border border-ocean-100 transition-all active:scale-95"
         >
-          Anuncie Conosco
+          {t('Anuncie Conosco')}
         </button>
         
         {currentUser ? (
@@ -171,11 +173,11 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
                  }
              }} className="flex items-center gap-2 text-ocean-600 font-bold border border-ocean-100 bg-ocean-50 px-4 py-1.5 rounded-full hover:bg-ocean-100">
                 <User size={18} />
-                <span>Perfil</span>
+                <span>{t('Perfil')}</span>
              </button>
         ) : (
              <button onClick={() => onNavigate('login')} className="bg-gradient-to-r from-ocean-500 to-ocean-600 text-white font-bold px-6 py-2 rounded-full hover:shadow-lg hover:shadow-ocean-500/20 transition-all">
-                Entrar
+                {t('Entrar')}
              </button>
         )}
       </div>
