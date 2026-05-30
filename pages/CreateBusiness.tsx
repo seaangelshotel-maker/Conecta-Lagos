@@ -238,7 +238,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Subcategoria (Opcional)</label>
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                                {categories.find(c => c.name.toLowerCase() === formData.category.toLowerCase())?.subcategories.map((sub: any) => (
+                                                {categories.find(c => c.name.toLowerCase() === formData.category.toLowerCase())?.subcategories?.map((sub: any) => (
                                                     <button
                                                         key={sub.id}
                                                         type="button"

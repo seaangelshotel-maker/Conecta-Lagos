@@ -202,7 +202,7 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
                 </select>
                 <select className="w-full p-3 border rounded-lg" value={currentPost.subcategory || ''} onChange={e => setCurrentPost({...currentPost, subcategory: e.target.value})}>
                     <option value="">Selecione uma subcategoria</option>
-                    {categories.find(c => c.name.toLowerCase() === currentPost.category?.toLowerCase())?.subcategories.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    {categories.find(c => c.name.toLowerCase() === currentPost.category?.toLowerCase())?.subcategories?.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
               </div>
               <ImageUpload currentImage={currentPost.imageUrl} onImageSelect={base64 => setCurrentPost({...currentPost, imageUrl: base64})} label="Imagem de Capa" />
@@ -486,10 +486,10 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
                                 <div key={cat.id} className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100 space-y-4">
                                     <div className="flex justify-between items-center">
                                         <h4 className="font-black text-ocean-950 uppercase tracking-tight">{cat.name}</h4>
-                                        <span className="text-[10px] bg-white px-2 py-1 rounded-md text-slate-400 font-black uppercase tracking-widest border border-slate-100">{cat.subcategories.length} SUBS</span>
+                                        <span className="text-[10px] bg-white px-2 py-1 rounded-md text-slate-400 font-black uppercase tracking-widest border border-slate-100">{(cat.subcategories || []).length} SUBS</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {cat.subcategories.map(sub => <span key={sub.id} className="px-3 py-1.5 bg-white rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100">{sub.name}</span>)}
+                                        {(cat.subcategories || []).map(sub => <span key={sub.id} className="px-3 py-1.5 bg-white rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100">{sub.name}</span>)}
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <input type="text" id={`sub-${cat.id}`} placeholder="Nova Subcategoria" className="flex-1 p-3 bg-white border border-slate-100 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-ocean-500/20" />

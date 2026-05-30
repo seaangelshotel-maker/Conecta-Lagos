@@ -844,7 +844,7 @@ export const AIAgentTeam: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {categories.find(c => c.name.toLowerCase() === finalData?.category?.toLowerCase())?.subcategories.map(sub => (
+                    {(categories.find(c => c.name.toLowerCase() === finalData?.category?.toLowerCase())?.subcategories || []).map(sub => (
                       <button 
                         key={sub.id}
                         onClick={() => updateCurrentPlace({ subcategory: sub.name })}
@@ -875,7 +875,7 @@ export const AIAgentTeam: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       </button>
                     </div>
                   </div>
-                  {finalData?.subcategory && !categories.find(c => c.name.toLowerCase() === finalData?.category?.toLowerCase())?.subcategories.some(s => s.name.toLowerCase() === finalData?.subcategory?.toLowerCase()) && (
+                  {finalData?.subcategory && !(categories.find(c => c.name.toLowerCase() === finalData?.category?.toLowerCase())?.subcategories || []).some(s => s.name.toLowerCase() === finalData?.subcategory?.toLowerCase()) && (
                     <p className="text-[9px] text-amber-500 font-bold uppercase italic">* Esta subcategoria será criada e salva no sistema.</p>
                   )}
                 </div>
