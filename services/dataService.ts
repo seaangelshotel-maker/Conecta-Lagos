@@ -1382,9 +1382,21 @@ export const addReview = async (businessId: string, review: Omit<Review, 'id' | 
     return newReview;
 };
 
-export const getReviewsByBusinessId = (businessId: string) => {
-    return _reviews.filter(r => r.businessId === businessId && r.status === 'approved')
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export const getReviewsByBusinessId = async (businessId: string) => {
+    try {
+        const snap = await getDocs(query(collection(db, 'reviews'), where('businessId', '==', businessId), where('status', '==', 'approved')));
+        const fetchedReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+        fetchedReviews.forEach(fr => {
+            const index = _reviews.findIndex(r => r.id === fr.id);
+            if (index === -1) _reviews.push(fr);
+            else _reviews[index] = fr;
+        });
+        return fetchedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch (e) {
+        console.error("Error fetching reviews:", e);
+        return _reviews.filter(r => r.businessId === businessId && r.status === 'approved')
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
 };
 
 export const approveReview = async (reviewId: string) => {
@@ -1395,6 +1407,7 @@ export const approveReview = async (reviewId: string) => {
         const docRef = await getDoc(doc(db, 'reviews', reviewId));
         if (docRef.exists()) {
             review = { id: docRef.id, ...docRef.data() } as Review;
+            _reviews.push(review);
         } else {
             throw new Error('Avaliação não encontrada.');
         }
@@ -1440,6 +1453,7 @@ export const rejectReview = async (reviewId: string) => {
          const docRef = await getDoc(doc(db, 'reviews', reviewId));
          if (docRef.exists()) {
               review = { id: docRef.id, ...docRef.data() } as Review;
+              _reviews.push(review);
          } else {
               throw new Error('Avaliação não encontrada.');
          }
