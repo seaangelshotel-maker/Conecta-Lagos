@@ -12,6 +12,7 @@ import {
   checkIfOpen, getCoupons, getCollections, getBusinessesPaginated, getBlogPosts 
 } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
+import { useLanguage, Translate } from '../hooks/useLanguage';
 
 interface BusinessGuideProps {
   currentUser: User | null;
@@ -20,21 +21,25 @@ interface BusinessGuideProps {
   onNavigate: (page: string, params?: any) => void;
 }
 
-const GuideSplash = () => (
-    <div className="fixed inset-0 z-[100] bg-slate-50/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
-        <div className="relative mb-8 text-center">
-            <div className="absolute inset-0 bg-ocean-200 rounded-full animate-ping opacity-15 duration-1000"></div>
-            <div className="relative w-28 h-28 bg-white rounded-3xl shadow-xl border-4 border-ocean-50/50 flex items-center justify-center mx-auto">
-                <Compass size={56} className="text-ocean-600 animate-[spin_5s_linear_infinite]" />
+const GuideSplash = () => {
+    const { t } = useLanguage();
+    return (
+        <div className="fixed inset-0 z-[100] bg-slate-50/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+            <div className="relative mb-8 text-center">
+                <div className="absolute inset-0 bg-ocean-200 rounded-full animate-ping opacity-15 duration-1000"></div>
+                <div className="relative w-28 h-28 bg-white rounded-3xl shadow-xl border-4 border-ocean-50/50 flex items-center justify-center mx-auto">
+                    <Compass size={56} className="text-ocean-600 animate-[spin_5s_linear_infinite]" />
+                </div>
+                <h2 className="text-2xl font-black text-ocean-950 mt-8 tracking-tight animate-pulse">{t('Explorando os Lagos...')}</h2>
+                <p className="text-slate-400 text-xs mt-2.5 font-bold uppercase tracking-widest">{t('Sincronizando guia oficial')}</p>
             </div>
-            <h2 className="text-2xl font-black text-ocean-950 mt-8 tracking-tight animate-pulse">Explorando os Lagos...</h2>
-            <p className="text-slate-400 text-xs mt-2.5 font-bold uppercase tracking-widest">Sincronizando guia oficial</p>
         </div>
-    </div>
-);
+    );
+};
 
 export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initialCategory, initialSubcategory, onNavigate }) => {
   const { notify } = useNotification();
+  const { t, language } = useLanguage();
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [filtered, setFiltered] = useState<BusinessProfile[]>([]);
   const [isLoadingDB, setIsLoadingDB] = useState(true);

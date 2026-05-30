@@ -291,23 +291,23 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* CARTEIRA DE ECONOMIA (Delicate & Discrete) */}
         {currentUser && (
             <div className="px-4">
-              <div className="bg-white border border-emerald-100 p-3 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-shadow">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                     <Gem size={16} className="fill-emerald-50 text-emerald-600" />
+              <div className="bg-white border border-emerald-100 p-3.5 rounded-2xl flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-shadow">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                     <Gem size={18} className="fill-emerald-50 text-emerald-600" />
                   </div>
-                  <div>
-                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-0.5">{t('Minha Carteira de Economia')}</span>
-                    <span className="text-xs text-slate-500 font-medium">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest block leading-none mb-1">{t('Minha Carteira de Economia')}</span>
+                    <span className="text-xs text-slate-500 font-medium block leading-normal">
                       {currentUser.savedAmount && currentUser.savedAmount > 0 
                         ? t('Veja o quanto você já poupou usando nossos cupons!') 
                         : t('Ative cupons grátis e comece a economizar!')}
                     </span>
                   </div>
                 </div>
-                <div className="flex flex-col items-end shrink-0 pl-2">
-                   <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">{t('Total Economizado')}</div>
-                   <div className="text-base font-black text-emerald-600 font-sans leading-tight mt-0.5">R$ {(currentUser.savedAmount || 0).toFixed(2)}</div>
+                <div className="flex flex-col items-end shrink-0 pl-2 border-l border-slate-100 gap-0.5">
+                   <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider leading-none text-right">{t('Total Economizado')}</div>
+                   <div className="text-base font-black text-emerald-600 font-sans leading-tight">R$ {(currentUser.savedAmount || 0).toFixed(2)}</div>
                 </div>
               </div>
             </div>
