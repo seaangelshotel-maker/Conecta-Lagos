@@ -442,10 +442,16 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                                 
                                 {/* Bottom contents */}
                                 <div className="mt-auto relative z-10">
-                                    <div className="flex items-center gap-1.5 text-amber-300 text-[9px] font-bold mb-1 font-mono uppercase">
+                                    <div className="flex flex-wrap items-center gap-1.5 text-amber-300 text-[9px] font-bold mb-1 font-mono uppercase">
                                        <span>⏱️ 5 MIN READ</span>
                                        <span className="w-1 h-1 bg-amber-300 rounded-full"></span>
                                        <span>{post.date}</span>
+                                       <span className="w-1 h-1 bg-amber-300 rounded-full"></span>
+                                       <span className="text-orange-400 font-extrabold flex items-center gap-0.5">⚡ {(() => {
+                                          const realList = post.connectedUsers || [];
+                                          const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                                          return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                                       })()} KONECTADOS</span>
                                     </div>
                                     <h4 className="text-white font-extrabold text-sm md:text-base leading-snug drop-shadow-sm group-hover:text-amber-200 transition-colors line-clamp-2">
                                        {post.title}

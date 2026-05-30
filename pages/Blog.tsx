@@ -342,8 +342,14 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                   </span>
 
                   <div className="absolute bottom-0 left-0 w-full p-4">
-                    <p className="text-[10px] text-amber-400 font-bold mb-1 flex items-center gap-1 font-mono uppercase">
+                    <p className="text-[10px] text-amber-400 font-bold mb-1 flex flex-wrap items-center gap-1.5 font-mono uppercase">
                       <Clock size={10} /> 5 MIN LEITURA
+                      <span className="w-1 h-1 bg-amber-450 rounded-full"></span>
+                      <span className="text-orange-400 font-extrabold flex items-center gap-0.5">⚡ {(() => {
+                        const realList = post.connectedUsers || [];
+                        const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                        return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                      })()} KONECTADOS</span>
                     </p>
                     <h3 className="text-white font-extrabold text-sm md:text-base leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
                       {post.title}
@@ -405,10 +411,18 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                     {/* Meta and Description card block */}
                     <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
-                        <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold mb-2.5">
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-slate-400 text-xs font-semibold mb-2.5">
                           <span className="flex items-center gap-1 font-mono uppercase"><Clock size={12} /> 5 MIN LEITURA</span>
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
                           <span>{post.date}</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                          <span className="text-[#ff5a1f] font-black text-[11px] uppercase tracking-wide flex items-center gap-0.5">
+                            ⚡ {(() => {
+                              const realList = post.connectedUsers || [];
+                              const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                              return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                            })()} Konectados
+                          </span>
                         </div>
 
                         <h3 className="font-extrabold text-slate-900 mb-2 leading-snug text-lg group-hover:text-red-500 transition-colors line-clamp-2">

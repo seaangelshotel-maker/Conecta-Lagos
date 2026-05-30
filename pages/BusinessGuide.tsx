@@ -614,9 +614,18 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({ currentUser, initi
                                       {post.title}
                                   </h4>
                               </div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 leading-none mt-1.5 select-none">
-                                  📖 Ver Roteiro
-                              </p>
+                              <div className="flex items-center justify-between mt-1.5 flex-wrap gap-1">
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 leading-none select-none">
+                                      📖 Ver Roteiro
+                                  </p>
+                                  <span className="text-[#ff5a1f] font-black text-[9px] uppercase tracking-wider flex items-center gap-0.5">
+                                      ⚡ {(() => {
+                                        const realList = post.connectedUsers || [];
+                                        const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
+                                        return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
+                                      })()}
+                                  </span>
+                              </div>
                           </div>
                       </div>
                   ))}
