@@ -422,7 +422,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                       {post.category}
                     </span>
 
-                    <div className="absolute bottom-0 left-0 w-full p-5.5">
+                    <div className="absolute bottom-0 left-0 w-full p-5">
                       <p className="text-[10px] text-white/60 font-semibold tracking-wider mb-1.5 font-sans uppercase">
                         Feed • 5 min leitura
                       </p>
