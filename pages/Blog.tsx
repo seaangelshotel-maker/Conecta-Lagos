@@ -1,8 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { BlogPost, User, AppCategory, BlogAd } from '../types';
-import { getBlogPosts, getAllUsers, getDicasCategories, getBlogAds } from '../services/dataService';
-import { Calendar, ChevronRight, Search, Heart, Clock, Compass, BookOpen, Share2, Award, User as UserIcon, Utensils, Newspaper, Lightbulb, Layers, Flame, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect } from "react";
+import { BlogPost, User, AppCategory, BlogAd } from "../types";
+import {
+  getBlogPosts,
+  getAllUsers,
+  getDicasCategories,
+  getBlogAds,
+} from "../services/dataService";
+import {
+  Calendar,
+  ChevronRight,
+  Search,
+  Heart,
+  Clock,
+  Compass,
+  BookOpen,
+  Share2,
+  Award,
+  User as UserIcon,
+  Utensils,
+  Newspaper,
+  Lightbulb,
+  Layers,
+  Flame,
+  Sparkles,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface BlogProps {
   onNavigate?: (page: string, params?: any) => void;
@@ -10,38 +32,42 @@ interface BlogProps {
 
 const DEFAULT_ADS: BlogAd[] = [
   {
-    id: 'ad1',
-    title: 'Passeio de Barco VIP com Capitão Arraial • 15% OFF',
-    subtitle: 'Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.',
-    imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Patrocinado',
-    actionLabel: 'Ver Passeios',
-    badgeColor: 'bg-amber-500/95 text-white',
-    targetCategory: 'Passeios',
+    id: "ad1",
+    title: "Passeio de Barco VIP com Capitão Arraial • 15% OFF",
+    subtitle:
+      "Navegue pelo Caribe de Arraial com atendimento classe A e parada exclusiva na Gruta Azul.",
+    imageUrl:
+      "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80",
+    tag: "Patrocinado",
+    actionLabel: "Ver Passeios",
+    badgeColor: "bg-amber-500/95 text-white",
+    targetCategory: "Passeios",
     active: true,
-    order: 0
+    order: 0,
   },
   {
-    id: 'ad2',
-    title: 'Festival da Lagosta em Arraial do Cabo',
-    subtitle: 'Neste final de semana, venha saborear pratos exclusivos nos melhores restaurantes com preços especiais!',
-    imageUrl: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Destaque Gastronômico',
-    actionLabel: 'Ver Gastronomia',
-    badgeColor: 'bg-red-500/95 text-white',
-    targetCategory: 'Gastronomia',
+    id: "ad2",
+    title: "Festival da Lagosta em Arraial do Cabo",
+    subtitle:
+      "Neste final de semana, venha saborear pratos exclusivos nos melhores restaurantes com preços especiais!",
+    imageUrl:
+      "https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=1200&q=80",
+    tag: "Destaque Gastronômico",
+    actionLabel: "Ver Gastronomia",
+    badgeColor: "bg-red-500/95 text-white",
+    targetCategory: "Gastronomia",
     active: true,
-    order: 1
-  }
+    order: 1,
+  },
 ];
 
 export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [categories, setCategories] = useState<AppCategory[]>([]);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -59,16 +85,28 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
     const fetchData = async () => {
       try {
         const [p, u, c, ads] = await Promise.all([
-          getBlogPosts().catch(err => { console.error("Error fetching blog posts:", err); return []; }),
-          getAllUsers().catch(err => { console.error("Error fetching users:", err); return []; }),
-          getDicasCategories().catch(err => { console.error("Error fetching categories:", err); return []; }),
-          getBlogAds().catch(err => { console.error("Error fetching blog ads:", err); return []; })
+          getBlogPosts().catch((err) => {
+            console.error("Error fetching blog posts:", err);
+            return [];
+          }),
+          getAllUsers().catch((err) => {
+            console.error("Error fetching users:", err);
+            return [];
+          }),
+          getDicasCategories().catch((err) => {
+            console.error("Error fetching categories:", err);
+            return [];
+          }),
+          getBlogAds().catch((err) => {
+            console.error("Error fetching blog ads:", err);
+            return [];
+          }),
         ]);
         setPosts(p || []);
         setUsers(u || []);
         setCategories(c || []);
-        if (ads && ads.filter(a => a.active).length > 0) {
-          setAdsSlides(ads.filter(a => a.active));
+        if (ads && ads.filter((a) => a.active).length > 0) {
+          setAdsSlides(ads.filter((a) => a.active));
         } else {
           setAdsSlides(DEFAULT_ADS);
         }
@@ -79,11 +117,11 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
     fetchData();
 
     // Listen to real-time events from administrative updates
-    window.addEventListener('dataUpdated', fetchData);
+    window.addEventListener("dataUpdated", fetchData);
 
     // Load liked posts from localStorage
     try {
-      const savedLikes = localStorage.getItem('lagos_go_liked_posts');
+      const savedLikes = localStorage.getItem("lagos_go_liked_posts");
       if (savedLikes) {
         setLikedPosts(JSON.parse(savedLikes));
       }
@@ -92,20 +130,20 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
     }
 
     return () => {
-      window.removeEventListener('dataUpdated', fetchData);
+      window.removeEventListener("dataUpdated", fetchData);
     };
   }, []);
 
   const handlePostClick = (postId: string) => {
     if (onNavigate) {
-      onNavigate('blog-detail', { postId });
+      onNavigate("blog-detail", { postId });
     }
   };
 
   const handleAuthorClick = (e: React.MouseEvent, authorId?: string) => {
     e.stopPropagation();
     if (onNavigate && authorId) {
-      onNavigate('journalist-profile', { journalistId: authorId });
+      onNavigate("journalist-profile", { journalistId: authorId });
     }
   };
 
@@ -113,13 +151,13 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
     e.stopPropagation();
     let updated: string[];
     if (likedPosts.includes(postId)) {
-      updated = likedPosts.filter(id => id !== postId);
+      updated = likedPosts.filter((id) => id !== postId);
     } else {
       updated = [...likedPosts, postId];
     }
     setLikedPosts(updated);
     try {
-      localStorage.setItem('lagos_go_liked_posts', JSON.stringify(updated));
+      localStorage.setItem("lagos_go_liked_posts", JSON.stringify(updated));
     } catch (e) {
       console.warn("Could not save liked posts", e);
     }
@@ -127,37 +165,46 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   // Helper to find author
   const getAuthor = (authorId?: string) => {
-    let found = users.find(u => u.id === authorId);
+    let found = users.find((u) => u.id === authorId);
     if (!found) {
       // Find by email lookup
-      const realYuri = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-      if (realYuri && (authorId === 'yuri_guida' || authorId === realYuri.id)) {
+      const realYuri = users.find(
+        (u) => (u.email || "").toLowerCase() === "contato.yuriguida@gmail.com",
+      );
+      if (realYuri && (authorId === "yuri_guida" || authorId === realYuri.id)) {
         found = realYuri;
       }
     }
-    if (!found && (authorId === 'yuri_guida' || authorId?.toLowerCase() === 'yuri guida')) {
+    if (
+      !found &&
+      (authorId === "yuri_guida" || authorId?.toLowerCase() === "yuri guida")
+    ) {
       found = {
-        id: 'yuri_guida',
-        name: 'Yuri Guida',
-        email: 'contato.yuriguida@gmail.com',
-        role: 'JOURNALIST',
-        avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-        profession: 'Editor-Chefe / Konecta Rio Feed',
-        bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
-        instagram: 'yuriguida'
+        id: "yuri_guida",
+        name: "Yuri Guida",
+        email: "contato.yuriguida@gmail.com",
+        role: "JOURNALIST",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+        profession: "Editor-Chefe / Konecta Rio Feed",
+        bio: "Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.",
+        instagram: "yuriguida",
       } as any;
     }
     return found;
   };
 
   // Filter posts based on search, category tab, and liked filter
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = 
-      (post.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (post.excerpt || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (post.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === 'Todos' || post.category === selectedCategory;
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
+      (post.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.tags || []).some((t) =>
+        t.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+
+    const matchesCategory =
+      selectedCategory === "Todos" || post.category === selectedCategory;
     const matchesLiked = !showOnlyLiked || likedPosts.includes(post.id);
 
     return matchesSearch && matchesCategory && matchesLiked;
@@ -165,18 +212,20 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   // Hot right now / Destaques: First 3 posts matching category or general
   const hotPosts = posts.slice(0, 3);
-  
+
   // Próximos Eventos
-  const eventPosts = posts.filter(post => post.category === 'Eventos').slice(0, 5);
+  const eventPosts = posts
+    .filter((post) => post.category === "Eventos")
+    .slice(0, 5);
 
   // Beautiful vector Lucide Icon mapping for categories (super elegant outline branding)
   const getCategoryIcon = (catName: string, size = 12) => {
     const c = catName.toLowerCase();
-    if (c.includes('roteiro')) return <Compass size={size} />;
-    if (c.includes('gastro')) return <Utensils size={size} />;
-    if (c.includes('evento')) return <Sparkles size={size} />;
-    if (c.includes('notícia')) return <Newspaper size={size} />;
-    if (c.includes('dica')) return <Lightbulb size={size} />;
+    if (c.includes("roteiro")) return <Compass size={size} />;
+    if (c.includes("gastro")) return <Utensils size={size} />;
+    if (c.includes("evento")) return <Sparkles size={size} />;
+    if (c.includes("notícia")) return <Newspaper size={size} />;
+    if (c.includes("dica")) return <Lightbulb size={size} />;
     return <Layers size={size} />;
   };
 
@@ -190,16 +239,16 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
             {adsSlides.map((slide, index) => {
               const isActive = index === currentSlide;
               return (
-                <div 
+                <div
                   key={slide.id}
                   onClick={() => {
                     if (onNavigate && slide.targetCategory) {
-                      onNavigate('guide', { category: slide.targetCategory });
+                      onNavigate("guide", { category: slide.targetCategory });
                     }
                   }}
-                  className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-95 pointer-events-none'}`}
+                  className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-1000 ease-in-out ${isActive ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-95 pointer-events-none"}`}
                 >
-                  <img 
+                  <img
                     src={slide.imageUrl}
                     referrerPolicy="no-referrer"
                     alt={slide.title}
@@ -207,10 +256,12 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                   />
                   {/* Subtle Premium Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10"></div>
-                  
+
                   {/* Slide Content */}
                   <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 text-white z-20">
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${slide.badgeColor} mb-2.5 shadow-sm`}>
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${slide.badgeColor} mb-2.5 shadow-sm`}
+                    >
                       {slide.tag}
                     </span>
                     <h2 className="text-base sm:text-[19px] md:text-2.5xl font-black tracking-tight leading-snug mb-1 text-white pr-4 drop-shadow">
@@ -234,7 +285,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                   e.stopPropagation();
                   setCurrentSlide(index);
                 }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? 'bg-white w-4' : 'bg-white/40 hover:bg-white/60'}`}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-white w-4" : "bg-white/40 hover:bg-white/60"}`}
               />
             ))}
           </div>
@@ -247,14 +298,16 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
           <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
             Konecta Rio Feed
           </h2>
-          <p className="text-xs text-slate-500 font-medium">Informação premium, agenda local e os melhores roteiros.</p>
+          <p className="text-xs text-slate-500 font-medium">
+            Informação premium, agenda local e os melhores roteiros.
+          </p>
         </div>
 
         <div className="relative w-full md:max-w-xs shadow-sm rounded-2xl">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
             <Search size={15} />
           </span>
-          <input 
+          <input
             type="text"
             placeholder="Buscar notícias, dicas ou roteiros..."
             value={searchQuery}
@@ -265,39 +318,51 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       </div>
 
       {/* QUICK CATEGORY CHIPS */}
-      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-3.5 px-1">
-          <h3 className="text-slate-800 font-bold text-sm tracking-tight flex items-center gap-1.5">
-            <Compass size={15} className="text-red-500" /> Categorias de Exploração
+      <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Categorias de Exploração
           </h3>
-          <button 
+          <button
             onClick={() => {
               setShowOnlyLiked(!showOnlyLiked);
-              setSelectedCategory('Todos');
+              setSelectedCategory("Todos");
             }}
-            className={`text-xs font-semibold flex items-center gap-1 px-3 py-1.5 rounded-full transition-all ${showOnlyLiked ? 'bg-red-50 text-red-500' : 'text-slate-500 hover:text-red-500'}`}
+            className={`text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${showOnlyLiked ? "bg-red-50 text-red-500" : "text-slate-500 hover:text-red-500"}`}
           >
-            <Heart size={12} className={showOnlyLiked ? "fill-red-500 text-red-500" : "text-slate-400"} /> {showOnlyLiked ? "Ver Todos" : "Favoritos"}
+            <Heart
+              size={12}
+              className={
+                showOnlyLiked ? "fill-red-500 text-red-500" : "text-slate-400"
+              }
+            />{" "}
+            {showOnlyLiked ? "Ver Todos" : "Favoritos"}
           </button>
         </div>
 
         {/* Categories Horizontal Carousel */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-          <button 
-            onClick={() => { setSelectedCategory('Todos'); setShowOnlyLiked(false); }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${selectedCategory === 'Todos' && !showOnlyLiked ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800'}`}
+        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+          <button
+            onClick={() => {
+              setSelectedCategory("Todos");
+              setShowOnlyLiked(false);
+            }}
+            className={`px-4.5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 ${selectedCategory === "Todos" && !showOnlyLiked ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
           >
-            <Layers size={13} /> Todos
+            Todos
           </button>
-          {categories.map(cat => {
+          {categories.map((cat) => {
             const isSelected = selectedCategory === cat.name && !showOnlyLiked;
             return (
-              <button 
+              <button
                 key={cat.id}
-                onClick={() => { setSelectedCategory(cat.name); setShowOnlyLiked(false); }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${isSelected ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800'}`}
+                onClick={() => {
+                  setSelectedCategory(cat.name);
+                  setShowOnlyLiked(false);
+                }}
+                className={`px-4.5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 ${isSelected ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
               >
-                <span className={isSelected ? "text-white" : "text-slate-400"}>{getCategoryIcon(cat.name, 13)}</span> {cat.name}
+                {cat.name}
               </button>
             );
           })}
@@ -305,121 +370,123 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       </div>
 
       {/* "HOT RIGHT NOW" SECTION - Screen mockup exact match */}
-      {selectedCategory === 'Todos' && !showOnlyLiked && searchQuery === '' && hotPosts.length > 0 && (
-        <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
-          <div className="flex justify-between items-center mb-4 px-1">
-            <h2 className="text-md font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Flame size={16} className="text-red-500 animate-pulse" /> Mais Lidas Agora <span className="text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-600 px-2 py-0.5 rounded-md">Hot now</span>
-            </h2>
-          </div>
-          
-          {/* Elegant horizontal scroll on mobile, responsive grid on desktop */}
-          <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
-            {hotPosts.map(post => {
-              const isLiked = likedPosts.includes(post.id);
-              return (
-                <div 
-                  key={`hot_${post.id}`}
-                  onClick={() => handlePostClick(post.id)}
-                  className="relative h-72 md:h-80 w-[270px] sm:w-[320px] md:w-full shrink-0 snap-start rounded-[2rem] overflow-hidden shadow-md group cursor-pointer active:scale-98 transition-transform"
-                >
-                  <img 
-                    src={post.imageUrl} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                    alt={post.title}
-                  />
-                  {/* Subtle dark gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent"></div>
-                  
-                  {/* Floating favorite button */}
-                  <button 
-                    onClick={(e) => toggleLike(e, post.id)}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white border border-white/20 active:scale-90 hover:bg-white/40 transition-all shadow-md"
+      {selectedCategory === "Todos" &&
+        !showOnlyLiked &&
+        searchQuery === "" &&
+        hotPosts.length > 0 && (
+          <div className="px-4 mb-12 max-w-7xl mx-auto w-full">
+            <div className="flex justify-between items-center mb-4 px-1 pb-1">
+              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                Mais Lidas Agora{" "}
+                <span className="text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-650 px-2.5 py-0.5 rounded-full">
+                  Hot now
+                </span>
+              </h2>
+            </div>
+
+            {/* Elegant horizontal scroll on mobile, responsive grid on desktop */}
+            <div className="flex md:grid md:grid-cols-3 gap-5 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+              {hotPosts.map((post) => {
+                const isLiked = likedPosts.includes(post.id);
+                return (
+                  <div
+                    key={`hot_${post.id}`}
+                    onClick={() => handlePostClick(post.id)}
+                    className="relative h-72 md:h-80 w-[270px] sm:w-[320px] md:w-full shrink-0 snap-start rounded-[1.75rem] overflow-hidden shadow-xs group cursor-pointer active:scale-98 transition-transform border border-slate-100"
                   >
-                    <Heart size={15} className={`transition-transform duration-200 ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-white'}`} />
-                  </button>
+                    <img
+                      src={post.imageUrl}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
+                      alt={post.title}
+                    />
+                    {/* Subtle dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
 
-                  <span className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm text-[9px] font-black text-slate-800 px-2 py-0.5 rounded-md uppercase tracking-wide">
-                    {post.category}
-                  </span>
+                    {/* Floating favorite button */}
+                    <button
+                      onClick={(e) => toggleLike(e, post.id)}
+                      className="absolute top-4 right-4 w-8.5 h-8.5 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 active:scale-90 hover:bg-white/35 transition-all shadow-sm"
+                    >
+                      <Heart
+                        size={14}
+                        className={`transition-transform duration-200 ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`}
+                      />
+                    </button>
 
-                  <div className="absolute bottom-0 left-0 w-full p-4">
-                    <p className="text-[10px] text-amber-400 font-bold mb-1 flex flex-wrap items-center gap-1.5 font-mono uppercase">
-                      <Clock size={10} /> 5 MIN LEITURA
-                      <span className="w-1 h-1 bg-amber-450 rounded-full"></span>
-                      <div className="flex items-center gap-1">
-                        <div className="flex -space-x-1 border border-transparent">
-                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                        </div>
-                        <span className="text-[#ff5a1f] font-extrabold flex items-center gap-0.5 mt-0.5">{(() => {
-                          const realList = post.connectedUsers || [];
-                          const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                          return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                        })()} KONECTADOS</span>
-                      </div>
-                    </p>
-                    <h3 className="text-white font-extrabold text-sm md:text-base leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
-                      {post.title}
-                    </h3>
+                    <span className="absolute top-4 left-4 bg-white/95 text-[9px] font-black text-slate-800 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs">
+                      {post.category}
+                    </span>
+
+                    <div className="absolute bottom-0 left-0 w-full p-5.5">
+                      <p className="text-[10px] text-white/60 font-semibold tracking-wider mb-1.5 font-sans uppercase">
+                        Feed • 5 min leitura
+                      </p>
+                      <h3 className="text-white font-black text-sm sm:text-base leading-snug group-hover:text-red-400 transition-colors line-clamp-2 drop-shadow-sm">
+                        {post.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* EVENTS SECTION - Screen mockup exact match */}
-      {selectedCategory === 'Todos' && !showOnlyLiked && searchQuery === '' && eventPosts.length > 0 && (
-        <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
-          <div className="flex justify-between items-center mb-4 px-1">
-            <h2 className="text-md font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-500 animate-pulse" /> Agenda de Eventos <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-600 px-2 py-0.5 rounded-md">Vem aí</span>
-            </h2>
-          </div>
-          
-          <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 -mx-4 px-4 md:mx-0 md:px-0 gap-4">
-            {eventPosts.map(post => {
-              return (
-                <div 
-                  key={`event_${post.id}`}
-                  onClick={() => handlePostClick(post.id)}
-                  className="relative h-44 w-44 md:h-52 md:w-52 shrink-0 snap-start rounded-[2rem] overflow-hidden shadow-sm group cursor-pointer active:scale-95 transition-transform border border-slate-100"
-                >
-                  <img 
-                    src={post.imageUrl} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    alt={post.title}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                  
-                  <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[9px] font-black text-slate-800 px-2 py-0.5 rounded-md uppercase tracking-wide">
-                    EVENTOS
-                  </span>
+      {selectedCategory === "Todos" &&
+        !showOnlyLiked &&
+        searchQuery === "" &&
+        eventPosts.length > 0 && (
+          <div className="px-4 mb-12 max-w-7xl mx-auto w-full">
+            <div className="flex justify-between items-center mb-4 px-1">
+              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                Agenda de Eventos{" "}
+                <span className="text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 px-2.5 py-0.5 rounded-full">
+                  Vem aí
+                </span>
+              </h2>
+            </div>
 
-                  <div className="absolute bottom-0 left-0 w-full p-3">
-                    <p className="text-[9px] text-amber-400 font-bold mb-1 flex items-center gap-1 font-mono uppercase">
-                      <Clock size={10} /> {post.date}
-                    </p>
-                    <h3 className="text-white font-extrabold text-xs md:text-sm leading-tight group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow">
-                      {post.title}
-                    </h3>
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 -mx-4 px-4 md:mx-0 md:px-0 gap-5">
+              {eventPosts.map((post) => {
+                return (
+                  <div
+                    key={`event_${post.id}`}
+                    onClick={() => handlePostClick(post.id)}
+                    className="relative h-44 w-44 md:h-52 md:w-52 shrink-0 snap-start rounded-[1.75rem] overflow-hidden shadow-xs group cursor-pointer active:scale-95 transition-transform border border-slate-100"
+                  >
+                    <img
+                      src={post.imageUrl}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      alt={post.title}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
+
+                    <span className="absolute top-3.5 left-3.5 bg-white/95 text-[9px] font-black text-slate-800 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs">
+                      EVENTOS
+                    </span>
+
+                    <div className="absolute bottom-0 left-0 w-full p-4">
+                      <p className="text-[9px] text-white/60 font-semibold tracking-wider mb-1.5 font-sans uppercase">
+                        {post.date}
+                      </p>
+                      <h3 className="text-white font-black text-xs sm:text-sm leading-snug group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow-sm">
+                        {post.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* EXPLORE FEED */}
-      <div className="px-4 max-w-7xl mx-auto w-full">
-        <h3 className="text-slate-900 font-extrabold text-[15px] tracking-tight uppercase mb-4 px-1 flex items-center gap-2">
-          <BookOpen size={18} className="text-red-500" /> Feed da Cidade e Dicas
+      <div className="px-4 max-w-7xl mx-auto w-full mb-12">
+        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 px-1">
+          Feed da Cidade e Dicas
         </h3>
 
         {filteredPosts.length > 0 ? (
@@ -429,61 +496,53 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                 const author = getAuthor(post.authorId);
                 const isLiked = likedPosts.includes(post.id);
                 return (
-                  <motion.div 
+                  <motion.div
                     key={post.id}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                     onClick={() => handlePostClick(post.id)}
-                    className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer h-full group"
+                    className="bg-white rounded-[1.75rem] overflow-hidden shadow-xs border border-slate-100 flex flex-col hover:shadow-md transition-all cursor-pointer h-full group"
                   >
                     {/* Cover image wrap */}
                     <div className="h-52 w-full relative shrink-0 overflow-hidden">
-                      <img 
-                        src={post.imageUrl} 
+                      <img
+                        src={post.imageUrl}
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
                         alt={post.title}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                      
+
                       {/* Floating Category tag */}
-                      <span className="absolute top-4 left-4 bg-white/95 text-slate-800 text-[9px] font-black px-2.5 py-1.5 rounded-xl backdrop-blur-sm uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-                        <span className="text-red-500">{getCategoryIcon(post.category, 10)}</span> {post.category}
+                      <span className="absolute top-4 left-4 bg-white/95 text-slate-800 text-[9px] font-black px-3 py-1.5 rounded-lg shadow-xs uppercase tracking-wider">
+                        {post.category}
                       </span>
 
                       {/* Floating Like button */}
-                      <button 
+                      <button
                         onClick={(e) => toggleLike(e, post.id)}
                         className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center text-slate-700 border border-slate-100 active:scale-90 transition-all shadow-md z-10"
                       >
-                        <Heart size={16} className={isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-600'} />
+                        <Heart
+                          size={16}
+                          className={
+                            isLiked
+                              ? "fill-red-500 text-red-500 scale-110"
+                              : "text-slate-600"
+                          }
+                        />
                       </button>
                     </div>
 
                     {/* Meta and Description card block */}
                     <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
-                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-slate-400 text-xs font-semibold mb-2.5">
-                          <span className="flex items-center gap-1 font-mono uppercase"><Clock size={12} /> 5 MIN LEITURA</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2.5">
+                          <span>5 min leitura</span>
+                          <span className="text-slate-200">•</span>
                           <span>{post.date}</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                          <div className="flex items-center gap-1 mr-0.5">
-                            <div className="flex -space-x-1.5 border border-transparent">
-                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf" className="w-4 h-4 rounded-full border-[1.5px] border-white select-none" alt="user" draggable={false} />
-                            </div>
-                            <span className="text-[#ff5a1f] font-black text-[11px] uppercase tracking-wide flex items-center gap-0.5 mt-0.5">
-                              {(() => {
-                                const realList = post.connectedUsers || [];
-                                const baseSeedCount = Math.abs((post.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-                                return realList.length > 0 ? (baseSeedCount + realList.length) : baseSeedCount;
-                              })()} Konectados
-                            </span>
-                          </div>
                         </div>
 
                         <h3 className="font-extrabold text-slate-900 mb-2 leading-snug text-lg group-hover:text-red-500 transition-colors line-clamp-2">
@@ -496,12 +555,16 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
                       {/* Author mini bio metadata row */}
                       <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
-                        <div 
+                        <div
                           onClick={(e) => handleAuthorClick(e, post.authorId)}
                           className="flex items-center gap-3 cursor-pointer group/author"
                         >
                           {author?.avatarUrl ? (
-                            <img src={author.avatarUrl} className="w-9 h-9 rounded-full object-cover border border-slate-100 shadow-sm" alt={post.author}/>
+                            <img
+                              src={author.avatarUrl}
+                              className="w-9 h-9 rounded-full object-cover border border-slate-100 shadow-sm"
+                              alt={post.author}
+                            />
                           ) : (
                             <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold border border-slate-50 shadow-sm">
                               {post.author.charAt(0)}
@@ -512,7 +575,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                               {post.author}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium">
-                              {author?.profession || 'Membro do Konecta Rio'}
+                              {author?.profession || "Membro do Konecta Rio"}
                             </span>
                           </div>
                         </div>
@@ -530,9 +593,12 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
         ) : (
           <div className="text-center py-20 bg-white rounded-[2rem] border border-slate-100 px-6">
             <div className="text-4xl mb-3">🔍</div>
-            <h4 className="font-extrabold text-slate-800 mb-1">Nenhum resultado encontrado</h4>
+            <h4 className="font-extrabold text-slate-800 mb-1">
+              Nenhum resultado encontrado
+            </h4>
             <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Tente redefinir seus termos de busca ou mude a categoria de exploração selecionada no topo.
+              Tente redefinir seus termos de busca ou mude a categoria de
+              exploração selecionada no topo.
             </p>
           </div>
         )}
