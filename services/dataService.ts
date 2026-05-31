@@ -55,6 +55,37 @@ let _neighborhoods: Neighborhood[] = [];
 const _reviews: Review[] = [];
 let _blogAds: BlogAd[] = [];
 
+let _autoSeeded = false;
+let _seedingPromise: Promise<void> | null = null;
+
+export const ensureAutoSeed = async () => {
+    if (_autoSeeded) return;
+    if (_seedingPromise) return _seedingPromise;
+
+    _seedingPromise = (async () => {
+        try {
+            const q = query(collection(db, 'businesses'), where('name', '==', 'Praia do Pontal'), limit(1));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                console.log('[Auto-seed] Praia do Pontal not found in DB. Triggering seedTouristSpots...');
+                const { seedTouristSpots } = await import('./seedService');
+                await seedTouristSpots((t, m) => console.log(m));
+            } else {
+                console.log('[Auto-seed] Praia do Pontal already exists. Skipping seed.');
+            }
+            _autoSeeded = true;
+        } catch (e) {
+            console.warn('[Auto-seed] Check or seeding failed:', e);
+        }
+    })();
+
+    try {
+        await _seedingPromise;
+    } finally {
+        _seedingPromise = null;
+    }
+};
+
 enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -548,17 +579,7 @@ export const getBusinesses = async (forceRefresh = false) => {
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
     }
     
-    // Auto-seed check for new locations (Paradiso, etc)
-    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
-        try {
-            const { seedTouristSpots } = await import('./seedService');
-            await seedTouristSpots((t, m) => console.log(m));
-            const snap = await getDocs(query(collection(db, 'businesses'), where('isBlocked', '==', false), limit(50)));
-            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
-        } catch (e) {
-            console.warn('Auto-seed failed', e);
-        }
-    }
+    await ensureAutoSeed();
 
     return _businesses.filter(b => !b.status || b.status === 'approved');
 };
@@ -572,17 +593,7 @@ export const getAllBusinesses = async (includePending = false) => {
         _allBusinessesLoaded = true;
     }
     
-    // Auto-seed check for new locations (Caminho do Sol, Paradiso)
-    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
-        try {
-            const { seedTouristSpots } = await import('./seedService');
-            await seedTouristSpots((t, m) => console.log(m));
-            const snap = await getDocs(collection(db, 'businesses'));
-            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
-        } catch (e) {
-            console.warn('Auto-seed failed', e);
-        }
-    }
+    await ensureAutoSeed();
 
     if (includePending) return _businesses;
     return _businesses.filter(b => !b.status || b.status === 'approved');
@@ -606,17 +617,7 @@ export const getBusinessesPaginated = async (
         _allBusinessesLoaded = true;
     }
 
-    // Auto-seed check for new locations (Caminho do Sol, Paradiso)
-    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
-        try {
-            const { seedTouristSpots } = await import('./seedService');
-            await seedTouristSpots((t, m) => console.log(m));
-            const snap = await getDocs(collection(db, 'businesses'));
-            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
-        } catch (e) {
-            console.warn('Auto-seed failed', e);
-        }
-    }
+    await ensureAutoSeed();
 
     // Filter in memory
     let filtered = _businesses.filter(b => {

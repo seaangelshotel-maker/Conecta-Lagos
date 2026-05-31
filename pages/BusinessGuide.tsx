@@ -131,6 +131,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const loaderRef = React.useRef<HTMLDivElement | null>(null);
+  const isSyncingRef = React.useRef(false);
   const [activeModal, setActiveModal] = useState<"location" | "filters" | null>(
     null,
   );
@@ -161,6 +162,9 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
   }, [query]);
 
   const syncData = async (isLoadMore = false) => {
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
+
     if (isLoadMore) setLoadingMore(true);
     else if (!isInitialLoad) setIsFiltering(true);
 
@@ -173,7 +177,14 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
           selectedLocation,
           selectedSubCategory,
         );
-        setBusinesses(results);
+        // Deduplicate
+        const seen = new Set<string>();
+        const uniqueResults = results.filter((b) => {
+          if (seen.has(b.id)) return false;
+          seen.add(b.id);
+          return true;
+        });
+        setBusinesses(uniqueResults);
         setHasMore(false);
       } else {
         const isCity = cities.some((c) => c.id === selectedLocation);
@@ -196,7 +207,15 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
         );
 
         if (isLoadMore) {
-          setBusinesses((prev) => [...prev, ...docs]);
+          setBusinesses((prev) => {
+            const combined = [...prev, ...docs];
+            const seen = new Set<string>();
+            return combined.filter((b) => {
+              if (seen.has(b.id)) return false;
+              seen.add(b.id);
+              return true;
+            });
+          });
         } else {
           setBusinesses(docs);
         }
@@ -211,6 +230,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
       setIsInitialLoad(false);
       setIsFiltering(false);
       setLoadingMore(false);
+      isSyncingRef.current = false;
     }
   };
 
@@ -277,13 +297,22 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
   }, [selectedCategory, selectedSubCategory, selectedLocation, debouncedQuery]);
 
   const handleLoadMore = () => {
-    if (hasMore && !loadingMore && debouncedQuery.length <= 2) {
+    if (
+      hasMore &&
+      !loadingMore &&
+      !isLoadingDB &&
+      !isFiltering &&
+      !isInitialLoad &&
+      !isSyncingRef.current &&
+      debouncedQuery.length <= 2
+    ) {
       syncData(true);
     }
   };
 
   useEffect(() => {
-    if (!hasMore || loadingMore) return;
+    if (!hasMore || loadingMore || isLoadingDB || isFiltering || isInitialLoad)
+      return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -303,7 +332,14 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
         observer.unobserve(currentLoader);
       }
     };
-  }, [hasMore, loadingMore, loaderRef]);
+  }, [
+    hasMore,
+    loadingMore,
+    isLoadingDB,
+    isFiltering,
+    isInitialLoad,
+    loaderRef,
+  ]);
 
   useEffect(() => {
     let result = [...businesses];
