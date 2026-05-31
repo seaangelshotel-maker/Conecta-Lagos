@@ -694,119 +694,119 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
               ))}
             </div>
           )}
-
-          {/* 2e. Sleek Action Row (Perto, Aberto, Location, Filters) */}
-          <div className="flex gap-2 items-center pt-3 border-t border-dashed border-slate-100 overflow-x-auto hide-scrollbar">
-            {/* Perto Action button */}
-            <button
-              onClick={handleNearbyClick}
-              className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                nearby
-                  ? "bg-sky-50 border-sky-200 text-sky-700 font-extrabold"
-                  : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              {locating ? (
-                <Loader2 className="animate-spin text-sky-500" size={12} />
-              ) : (
-                <Navigation
-                  size={12}
-                  className={
-                    nearby
-                      ? "fill-current animate-pulse text-sky-600"
-                      : "text-slate-400"
-                  }
-                />
-              )}
-              {locating ? "GPS..." : "Perto"}
-            </button>
-
-            {/* Aberto Toggle button */}
-            <button
-              onClick={() => setOnlyOpen(!onlyOpen)}
-              className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                onlyOpen
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold"
-                  : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              <Clock
-                size={12}
-                className={onlyOpen ? "text-emerald-500" : "text-slate-400"}
-              />{" "}
-              Aberto
-            </button>
-
-            {/* Location Filter Modal Target */}
-            <button
-              onClick={() => setActiveModal("location")}
-              className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                selectedLocation !== "Todos"
-                  ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
-                  : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              <MapIcon
-                size={12}
-                className={
-                  selectedLocation !== "Todos"
-                    ? "text-ocean-500"
-                    : "text-slate-400"
-                }
-              />
-              {selectedLocation === "Todos"
-                ? "Qualquer Região"
-                : cities.find((c) => c.id === selectedLocation)?.name ||
-                  neighborhoods.find((n) => n.id === selectedLocation)?.name ||
-                  "Local"}
-              <ChevronDown size={10} className="ml-0.5 opacity-60" />
-            </button>
-
-            {/* Filters Modal Target */}
-            <button
-              onClick={() => setActiveModal("filters")}
-              className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-                selectedAmenities.length > 0
-                  ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
-                  : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              <ListFilter
-                size={12}
-                className={
-                  selectedAmenities.length > 0
-                    ? "text-ocean-500"
-                    : "text-slate-400"
-                }
-              />
-              Filtros{" "}
-              {selectedAmenities.length > 0 && `(${selectedAmenities.length})`}
-              <ChevronDown size={10} className="ml-0.5 opacity-60" />
-            </button>
-          </div>
-
-          {/* Active amenities indicator bubble tags (Optional beneath action row) */}
-          {selectedAmenities.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 mt-1 items-center">
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">
-                Temos:
-              </span>
-              {selectedAmenities.map((id) => (
-                <button
-                  key={id}
-                  onClick={() =>
-                    setSelectedAmenities((p) => p.filter((x) => x !== id))
-                  }
-                  className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wide hover:bg-slate-900 transition-colors"
-                >
-                  <Check size={11} />{" "}
-                  {amenities.find((a) => a.id === id)?.label || id}
-                  <X size={9} className="ml-1 opacity-75" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* 2e. Sleek Action Row (Perto, Aberto, Location, Filters) */}
+        <div className="flex gap-2 items-center overflow-x-auto hide-scrollbar mt-4 py-0.5">
+          {/* Perto Action button */}
+          <button
+            onClick={handleNearbyClick}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+              nearby
+                ? "bg-sky-50 border-sky-200 text-sky-700 font-extrabold"
+                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            {locating ? (
+              <Loader2 className="animate-spin text-sky-500" size={12} />
+            ) : (
+              <Navigation
+                size={12}
+                className={
+                  nearby
+                    ? "fill-current animate-pulse text-sky-600"
+                    : "text-slate-400"
+                }
+              />
+            )}
+            {locating ? "GPS..." : "Perto"}
+          </button>
+
+          {/* Aberto Toggle button */}
+          <button
+            onClick={() => setOnlyOpen(!onlyOpen)}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+              onlyOpen
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold"
+                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            <Clock
+              size={12}
+              className={onlyOpen ? "text-emerald-500" : "text-slate-400"}
+            />{" "}
+            Aberto
+          </button>
+
+          {/* Location Filter Modal Target */}
+          <button
+            onClick={() => setActiveModal("location")}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+              selectedLocation !== "Todos"
+                ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
+                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            <MapIcon
+              size={12}
+              className={
+                selectedLocation !== "Todos"
+                  ? "text-ocean-500"
+                  : "text-slate-400"
+              }
+            />
+            {selectedLocation === "Todos"
+              ? "Qualquer Região"
+              : cities.find((c) => c.id === selectedLocation)?.name ||
+                neighborhoods.find((n) => n.id === selectedLocation)?.name ||
+                "Local"}
+            <ChevronDown size={10} className="ml-0.5 opacity-60" />
+          </button>
+
+          {/* Filters Modal Target */}
+          <button
+            onClick={() => setActiveModal("filters")}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
+              selectedAmenities.length > 0
+                ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
+                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            <ListFilter
+              size={12}
+              className={
+                selectedAmenities.length > 0
+                  ? "text-ocean-500"
+                  : "text-slate-400"
+              }
+            />
+            Filtros{" "}
+            {selectedAmenities.length > 0 && `(${selectedAmenities.length})`}
+            <ChevronDown size={10} className="ml-0.5 opacity-60" />
+          </button>
+        </div>
+
+        {/* Active amenities indicator bubble tags (Optional beneath action row) */}
+        {selectedAmenities.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 mt-1 items-center">
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">
+              Temos:
+            </span>
+            {selectedAmenities.map((id) => (
+              <button
+                key={id}
+                onClick={() =>
+                  setSelectedAmenities((p) => p.filter((x) => x !== id))
+                }
+                className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wide hover:bg-slate-900 transition-colors"
+              >
+                <Check size={11} />{" "}
+                {amenities.find((a) => a.id === id)?.label || id}
+                <X size={9} className="ml-1 opacity-75" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 4. INTEGRATED EDITORIAL DICAS CONTENT (Synergy of Commercial + Blog Content) */}
