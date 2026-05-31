@@ -93,6 +93,7 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
 
     await ensureCategory('Passeios', ['Praias', 'Pontos Históricos', 'Natureza', 'Trilhas'], categories);
     await ensureCategory('Gastronomia', ['Centro Histórico', 'Restaurantes', 'Quiosques'], categories);
+    await ensureCategory('Hospedagem', ['Hotéis', 'Pousadas', 'Hostels'], categories);
 
     const spots: Partial<BusinessProfile>[] = [
       // ARRAIAL DO CABO
@@ -211,6 +212,40 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         reviewCount: 1540,
         canBeClaimed: false
       },
+      {
+        name: 'Pousada Caminho do Sol',
+        category: 'Hospedagem',
+        subcategory: 'Pousadas',
+        description: 'Uma pousada de charme exclusiva localizada a poucos passos das areias da Praia Grande, o melhor ponto para assistir ao belíssimo pôr do sol de Arraial do Cabo. Com uma arquitetura que abraça a natureza e ambientes ricamente decorados, a Caminho do Sol oferece uma experiência de relaxamento total. Possui área de lazer completa, restaurante próprio com gastronomia requintada e quartos aconchegantes e serenos com decoração praiana moderna.',
+        address: 'Rua Pedro Alexander, Praia Grande, Arraial do Cabo',
+        cityId: arraial.id,
+        lat: -22.9730,
+        lng: -42.0280,
+        coverImage: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&q=80&w=1200',
+        gallery: [
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1540518614846-7ededdd8ebc3?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1560662105-57f8ad6ae2d1?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1584132905271-512c958d674a?auto=format&fit=crop&q=80&w=1200'
+        ],
+        amenities: ['wifi', 'ac', 'pool', 'breakfast', 'tv', 'bar', 'parking'],
+        openingHours: {
+          seg: { open: '00:00', close: '23:59' },
+          ter: { open: '00:00', close: '23:59' },
+          qua: { open: '00:00', close: '23:59' },
+          qui: { open: '00:00', close: '23:59' },
+          sex: { open: '00:00', close: '23:59' },
+          sab: { open: '00:00', close: '23:59' },
+          dom: { open: '00:00', close: '23:59' }
+        },
+        phone: '(22) 2622-2000',
+        instagram: '@caminhodosolarraial',
+        rating: 4.8,
+        reviewCount: 3125,
+        canBeClaimed: true,
+        plan: 'premium',
+        isFeatured: true
+      },
       // CABO FRIO
       {
         name: 'Forte São Mateus',
@@ -271,6 +306,41 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         rating: 4.6,
         reviewCount: 2800,
         canBeClaimed: false
+      },
+      {
+        name: 'Hotel Paradiso Corporate',
+        category: 'Hospedagem',
+        subcategory: 'Hotéis',
+        description: 'O Hotel Paradiso Corporate é sinônimo de luxo e conforto em Cabo Frio, trazendo um padrão de classe mundial para a Região dos Lagos. Localizado estrategicamente com vista fácil e rápida para a Praia do Forte. A estrutura inclui piscina de borda infinita no rooftop com vista deslumbrante 360º de Cabo Frio, restaurantes de bistronomia internacional, academia requintada completa e suítes espaçosas com varanda. Um refúgio esplêndido para férias espetaculares ou encontros de negócios.',
+        address: 'Avenida Teixeira e Souza, Braga, Cabo Frio',
+        cityId: caboFrio.id,
+        neighborhoodId: nhForte.id,
+        lat: -22.8850,
+        lng: -42.0250,
+        coverImage: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1200',
+        gallery: [
+            'https://images.unsplash.com/photo-1551882547-ff40c0d5b150?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=1200',
+            'https://images.unsplash.com/photo-1535827841776-24afc1e255ac?auto=format&fit=crop&q=80&w=1200'
+        ],
+        amenities: ['wifi', 'ac', 'pool', 'breakfast', 'tv', 'bar', 'access', 'card', 'parking'],
+        openingHours: {
+          seg: { open: '00:00', close: '23:59' },
+          ter: { open: '00:00', close: '23:59' },
+          qua: { open: '00:00', close: '23:59' },
+          qui: { open: '00:00', close: '23:59' },
+          sex: { open: '00:00', close: '23:59' },
+          sab: { open: '00:00', close: '23:59' },
+          dom: { open: '00:00', close: '23:59' }
+        },
+        phone: '(22) 2643-3000',
+        instagram: '@paradisocorporate',
+        rating: 4.9,
+        reviewCount: 4522,
+        canBeClaimed: true,
+        plan: 'premium',
+        isFeatured: true
       },
       {
         name: 'Canal Itajuru',
