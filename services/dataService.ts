@@ -211,7 +211,9 @@ onAuthStateChanged(auth, async (firebaseUser) => {
         }
     } else {
         // Firebase Auth is signed out, ensure local session is cleared
+    if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(SESSION_KEY);
+    }
     }
     _isAuthInitialized = true;
     notifyListeners();

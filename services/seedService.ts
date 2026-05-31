@@ -7,8 +7,35 @@ import {
   getCategories,
   saveCity,
   saveNeighborhood,
-  saveCategory
+  saveCategory,
+  getAllBusinesses,
 } from './dataService';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { db } from './firebase';
+
+export const cleanDuplicates = async () => {
+    const snap = await getDocs(collection(db, 'businesses'));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const nameCounts = new Map<string, string[]>();
+    all.forEach(b => {
+        if (!nameCounts.has(b.name)) nameCounts.set(b.name, []);
+        nameCounts.get(b.name)!.push(b.id);
+    });
+
+    let count = 0;
+    for (const [name, ids] of nameCounts.entries()) {
+        if (ids.length > 1) {
+            console.log(`Duplicated: ${name} (${ids.length})`);
+            // keep the first one
+            for (let i = 1; i < ids.length; i++) {
+                await deleteDoc(doc(db, 'businesses', ids[i]));
+                console.log(`Deleted duplicate ${ids[i]}`);
+                count++;
+            }
+        }
+    }
+    console.log(`Finished duplicate clean. Total deleted: ${count}`);
+};
 
 /**
  * Ensures a city exists, creating it if necessary.
@@ -625,8 +652,12 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
       }
     ];
 
+    const currentPlaces = await getAllBusinesses(true);
+
     for (const spot of spots) {
-      await createAdminPlace(spot);
+      if (!currentPlaces.some(p => p.name === spot.name)) {
+        await createAdminPlace(spot);
+      }
     }
 
     notify('success', `${spots.length} locais oficiais em Arraial e Cabo Frio foram sincronizados com sucesso!`);
