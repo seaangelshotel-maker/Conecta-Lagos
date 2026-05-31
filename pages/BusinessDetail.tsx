@@ -317,6 +317,18 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             </div>
 
+            {/* COMODIDADES VISUAIS */}
+            {business.amenities && business.amenities.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {business.amenities.map(am => (
+                        <div key={am} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <div className="w-2 h-2 rounded-full bg-ocean-500" />
+                            <span className="text-xs font-bold text-slate-600">{AMENITIES_LABELS[am] || am}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <div className="space-y-4">
                 <h3 className="text-xl font-black text-ocean-950">Sobre o Local</h3>
                 <p className="text-slate-600 leading-relaxed text-sm">{business.description}</p>
@@ -341,17 +353,6 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             )}
 
-            {/* COMODIDADES VISUAIS */}
-            {business.amenities && business.amenities.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {business.amenities.map(am => (
-                        <div key={am} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <div className="w-2 h-2 rounded-full bg-ocean-500" />
-                            <span className="text-xs font-bold text-slate-600">{AMENITIES_LABELS[am] || am}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
 
             {!business.isClaimed && business.canBeClaimed !== false && (
                 <div className="bg-amber-50 p-8 rounded-[2rem] border border-amber-100 space-y-4">
