@@ -318,10 +318,11 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       </div>
 
       {/* QUICK CATEGORY CHIPS */}
-      <div className="px-4 mb-10 max-w-7xl mx-auto w-full">
+      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
         <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-            Categorias de Exploração
+          <h3 className="text-slate-800 font-bold text-sm tracking-tight flex items-center gap-1.5">
+            <Compass size={15} className="text-red-500" /> Categorias de
+            Exploração
           </h3>
           <button
             onClick={() => {
@@ -341,15 +342,15 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
         </div>
 
         {/* Categories Horizontal Carousel */}
-        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-2.5 pt-1">
           <button
             onClick={() => {
               setSelectedCategory("Todos");
               setShowOnlyLiked(false);
             }}
-            className={`px-4.5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 ${selectedCategory === "Todos" && !showOnlyLiked ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${selectedCategory === "Todos" && !showOnlyLiked ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
           >
-            Todos
+            <Layers size={13} /> Todos
           </button>
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.name && !showOnlyLiked;
@@ -360,8 +361,11 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                   setSelectedCategory(cat.name);
                   setShowOnlyLiked(false);
                 }}
-                className={`px-4.5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 ${isSelected ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${isSelected ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
               >
+                <span className={isSelected ? "text-white" : "text-slate-400"}>
+                  {getCategoryIcon(cat.name, 13)}
+                </span>{" "}
                 {cat.name}
               </button>
             );
@@ -385,7 +389,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
             </div>
 
             {/* Elegant horizontal scroll on mobile, responsive grid on desktop */}
-            <div className="flex md:grid md:grid-cols-3 gap-5 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex md:grid md:grid-cols-3 gap-5 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0">
               {hotPosts.map((post) => {
                 const isLiked = likedPosts.includes(post.id);
                 return (
@@ -448,7 +452,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
               </h2>
             </div>
 
-            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 -mx-4 px-4 md:mx-0 md:px-0 gap-5">
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 gap-5">
               {eventPosts.map((post) => {
                 return (
                   <div
