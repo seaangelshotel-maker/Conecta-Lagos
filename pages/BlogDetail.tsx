@@ -535,6 +535,36 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
           </div>
         </div>
 
+        {/* RECOMMENDED POSTS */}
+        {recommendedPosts.length > 0 && (
+            <div className="pt-10 mt-6 border-t border-slate-100 mb-6">
+                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">Talvez você goste <Sparkles className="text-red-500" size={20}/></h3>
+                <div className="flex overflow-x-auto gap-4 hide-scrollbar -mx-4 px-4 pb-4 snap-x">
+                    {recommendedPosts.map(relPost => (
+                        <div 
+                            key={`rec_post_${relPost.id}`}
+                            onClick={() => onNavigate('blog_detail', { id: relPost.id })}
+                            className="bg-white shrink-0 snap-start w-[240px] md:w-[280px] rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm shadow-slate-200/50 cursor-pointer group hover:-translate-y-1 transition-transform"
+                        >
+                            <div className="h-40 w-full overflow-hidden relative">
+                                <img src={relPost.imageUrl} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={relPost.title}/>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 flex items-center rounded-lg text-[9px] font-black uppercase text-slate-800 gap-1">
+                                    <Sparkles size={10} className="text-red-500"/> {relPost.category}
+                                </div>
+                            </div>
+                            <div className="p-5">
+                                <h4 className="font-extrabold text-slate-900 text-sm leading-snug line-clamp-2 md:line-clamp-3 group-hover:text-red-500 transition-colors">{relPost.title}</h4>
+                                <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-3 uppercase tracking-wider font-bold">
+                                    <Clock size={12} /> {relPost.date}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
         {/* COMMENTS SECTION (Direct and highly elegant) */}
         <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100 mt-6 animate-in fade-in">
           <h3 className="font-extrabold text-slate-900 text-lg mb-6 flex items-center gap-2">
@@ -616,35 +646,6 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
           </div>
         </div>
 
-        {/* RECOMMENDED POSTS */}
-        {recommendedPosts.length > 0 && (
-            <div className="pt-10 mt-10 border-t border-slate-100">
-                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">Talvez você goste <Sparkles className="text-red-500" size={20}/></h3>
-                <div className="flex overflow-x-auto gap-4 hide-scrollbar -mx-4 px-4 pb-4 snap-x">
-                    {recommendedPosts.map(relPost => (
-                        <div 
-                            key={`rec_post_${relPost.id}`}
-                            onClick={() => onNavigate('blog_detail', { id: relPost.id })}
-                            className="bg-white shrink-0 snap-start w-[240px] md:w-[280px] rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm shadow-slate-200/50 cursor-pointer group hover:-translate-y-1 transition-transform"
-                        >
-                            <div className="h-40 w-full overflow-hidden relative">
-                                <img src={relPost.imageUrl} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={relPost.title}/>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 flex items-center rounded-lg text-[9px] font-black uppercase text-slate-800 gap-1">
-                                    <Sparkles size={10} className="text-red-500"/> {relPost.category}
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                <h4 className="font-extrabold text-slate-900 text-sm leading-snug line-clamp-2 md:line-clamp-3 group-hover:text-red-500 transition-colors">{relPost.title}</h4>
-                                <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-3 uppercase tracking-wider font-bold">
-                                    <Clock size={12} /> {relPost.date}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
       </div>
 
       {/* AUTHOR/JOURNALIST FULL MODAL */}

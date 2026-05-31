@@ -4,7 +4,7 @@ import {
   ArrowLeft, Clock, MapPin, Phone, Instagram, Globe, 
   MessageCircle, Share2, Loader2, Ticket, Search,
   Star, Heart, Utensils, Navigation, X, ShoppingCart, CalendarDays, Building2, ShoppingBag,
-  ChevronLeft, ChevronRight, Store
+  ChevronLeft, ChevronRight, Store, Sparkles
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
