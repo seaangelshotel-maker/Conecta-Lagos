@@ -317,6 +317,11 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             </div>
 
+            <div className="space-y-4">
+                <h3 className="text-xl font-black text-ocean-950">Sobre o Local</h3>
+                <p className="text-slate-600 leading-relaxed text-sm">{business.description}</p>
+            </div>
+
             {/* COMODIDADES VISUAIS */}
             {business.amenities && business.amenities.length > 0 && (
                 <div className="flex flex-wrap gap-2.5 md:gap-3">
@@ -328,11 +333,6 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     ))}
                 </div>
             )}
-
-            <div className="space-y-4">
-                <h3 className="text-xl font-black text-ocean-950">Sobre o Local</h3>
-                <p className="text-slate-600 leading-relaxed text-sm">{business.description}</p>
-            </div>
 
             {/* GALERIA DE FOTOS */}
             {business.gallery && business.gallery.length > 0 && (plan?.showGallery !== false) && (
