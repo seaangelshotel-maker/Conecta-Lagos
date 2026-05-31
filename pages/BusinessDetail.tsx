@@ -319,11 +319,11 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
 
             {/* COMODIDADES VISUAIS */}
             {business.amenities && business.amenities.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="flex flex-wrap gap-2.5 md:gap-3">
                     {business.amenities.map(am => (
-                        <div key={am} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <div className="w-2 h-2 rounded-full bg-ocean-500" />
-                            <span className="text-xs font-bold text-slate-600">{AMENITIES_LABELS[am] || am}</span>
+                        <div key={am} className="flex items-center gap-2.5 bg-white px-4 py-2.5 rounded-full border border-slate-100 shadow-sm shadow-slate-200/30 hover:border-ocean-200 transition-all cursor-default group">
+                            <div className="w-2 h-2 rounded-full bg-ocean-400 group-hover:bg-ocean-500 transition-colors flex-shrink-0" />
+                            <span className="text-[13px] font-extrabold text-slate-600 group-hover:text-ocean-700 transition-colors">{AMENITIES_LABELS[am] || am}</span>
                         </div>
                     ))}
                 </div>
