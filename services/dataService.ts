@@ -545,6 +545,19 @@ export const getBusinesses = async (forceRefresh = false) => {
         const snap = await getDocs(query(collection(db, 'businesses'), where('isBlocked', '==', false), limit(50)));
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
     }
+    
+    // Auto-seed check for new locations (Paradiso, etc)
+    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
+        try {
+            const { seedTouristSpots } = await import('./seedService');
+            await seedTouristSpots((t, m) => console.log(m));
+            const snap = await getDocs(query(collection(db, 'businesses'), where('isBlocked', '==', false), limit(50)));
+            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        } catch (e) {
+            console.warn('Auto-seed failed', e);
+        }
+    }
+
     return _businesses.filter(b => !b.status || b.status === 'approved');
 };
 
@@ -557,6 +570,18 @@ export const getAllBusinesses = async (includePending = false) => {
         _allBusinessesLoaded = true;
     }
     
+    // Auto-seed check for new locations (Caminho do Sol, Paradiso)
+    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
+        try {
+            const { seedTouristSpots } = await import('./seedService');
+            await seedTouristSpots((t, m) => console.log(m));
+            const snap = await getDocs(collection(db, 'businesses'));
+            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        } catch (e) {
+            console.warn('Auto-seed failed', e);
+        }
+    }
+
     if (includePending) return _businesses;
     return _businesses.filter(b => !b.status || b.status === 'approved');
 };
@@ -577,6 +602,18 @@ export const getBusinessesPaginated = async (
         trackRead('businesses', snap.size, 'getBusinessesPaginated_FullLoad');
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
         _allBusinessesLoaded = true;
+    }
+
+    // Auto-seed check for new locations (Caminho do Sol, Paradiso)
+    if (!_businesses.find(b => b.name === 'Praia do Pontal')) {
+        try {
+            const { seedTouristSpots } = await import('./seedService');
+            await seedTouristSpots((t, m) => console.log(m));
+            const snap = await getDocs(collection(db, 'businesses'));
+            _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        } catch (e) {
+            console.warn('Auto-seed failed', e);
+        }
     }
 
     // Filter in memory
