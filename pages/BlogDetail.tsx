@@ -543,7 +543,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                     {recommendedPosts.map(relPost => (
                         <div 
                             key={`rec_post_${relPost.id}`}
-                            onClick={() => onNavigate('blog_detail', { id: relPost.id })}
+                            onClick={() => onNavigate('blog-detail', { postId: relPost.id })}
                             className="bg-white shrink-0 snap-start w-[240px] md:w-[280px] rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm shadow-slate-200/50 cursor-pointer group hover:-translate-y-1 transition-transform"
                         >
                             <div className="h-40 w-full overflow-hidden relative">

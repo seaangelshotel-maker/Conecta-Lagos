@@ -521,7 +521,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                             {recommendedBusinesses.map(relBus => (
                                 <div 
                                     key={relBus.id}
-                                    onClick={() => onNavigate('business', { id: relBus.id })}
+                                    onClick={() => onNavigate('business-detail', { businessId: relBus.id })}
                                     className="w-48 bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm cursor-pointer group hover:-translate-y-1 transition-transform"
                                 >
                                     <div className="h-32 w-full overflow-hidden">

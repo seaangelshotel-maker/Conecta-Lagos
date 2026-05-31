@@ -156,6 +156,61 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         canBeClaimed: false
       },
 
+      {
+        name: 'Praia Grande',
+        category: 'Passeios',
+        subcategory: 'Praias',
+        description: 'Famosa pela extensa faixa de areia branca e por ter um dos pores do sol mais incríveis do mundo, onde o sol se põe diretamente no mar. Suas águas são frias (fenômeno da ressurgência) e frequentemente apresenta ondas fortes, o que atrai muitos surfistas. A orla é urbanizada com vários quiosques e restaurantes.',
+        address: 'Orla Flávia Alessandra, Praia Grande, Arraial do Cabo',
+        cityId: arraial.id,
+        lat: -22.9721,
+        lng: -42.0298,
+        coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1200',
+        rating: 4.8,
+        reviewCount: 3200,
+        canBeClaimed: false
+      },
+      {
+        name: 'Prainha',
+        category: 'Passeios',
+        subcategory: 'Praias',
+        description: 'Primeira praia que se avista ao chegar na cidade. Suas águas são calmas, rasas e de um azul impressionante, tornando-a perfeita para famílias com crianças. Na maré baixa, o contraste da areia com o mar forma um cenário espetacular. O canto direito é ideal para praticar snorkel.',
+        address: 'Prainha, Arraial do Cabo',
+        cityId: arraial.id,
+        lat: -22.9613,
+        lng: -42.0223,
+        coverImage: 'https://images.unsplash.com/photo-1544274483-3652def6d4f9?auto=format&fit=crop&q=80&w=1200',
+        rating: 4.6,
+        reviewCount: 2850,
+        canBeClaimed: false
+      },
+      {
+        name: 'Praia da Graçainha',
+        category: 'Passeios',
+        subcategory: 'Praias',
+        description: 'Uma enseada minúscula e pouco conhecida localizada no início do caminho para o Pontal do Atalaia. Na maré baixa, revela piscinas naturais ricas em algas e estrelas-do-mar. É um dos melhores pontos quase secretos para mergulho livre (snorkel) e observação de tartarugas marinhas, devido à abundância de alimento nas pedras.',
+        address: 'Canto Direito da Prainha, Arraial do Cabo',
+        cityId: arraial.id,
+        lat: -22.9640,
+        lng: -42.0190,
+        rating: 4.9,
+        reviewCount: 412,
+        canBeClaimed: false
+      },
+      {
+        name: 'Praia dos Anjos',
+        category: 'Passeios',
+        subcategory: 'Praias',
+        description: 'A praia com maior importância histórica e o principal ponto de partida dos famosos passeios de barco de Arraial. Normalmente suas águas recebem muitas embarcações e pescadores, mas o canto direito (próximo à trilha do Forno) oferece águas claras para banho. No centro, fica o marco histórico onde a esquadra de Américo Vespúcio aportou em 1503.',
+        address: 'Praia dos Anjos, Arraial do Cabo',
+        cityId: arraial.id,
+        neighborhoodId: nhAnjos.id,
+        lat: -22.9715,
+        lng: -42.0125,
+        rating: 4.5,
+        reviewCount: 1540,
+        canBeClaimed: false
+      },
       // CABO FRIO
       {
         name: 'Forte São Mateus',
