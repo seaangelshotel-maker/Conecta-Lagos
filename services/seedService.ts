@@ -119,7 +119,7 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
     const nhGamboa = await ensureNeighborhood('Gamboa', caboFrio.id, neighborhoods);
 
     await ensureCategory('Passeios', ['Praias', 'Pontos Históricos', 'Natureza', 'Trilhas'], categories);
-    await ensureCategory('Gastronomia', ['Centro Histórico', 'Restaurantes', 'Quiosques'], categories);
+    await ensureCategory('Gastronomia', ['Restaurantes', 'Lanches', 'Pizzarias', 'Açaí', 'Japonês', 'Frutos do Mar', 'Quiosques', 'Centro Histórico'], categories);
     await ensureCategory('Hospedagem', ['Hotéis', 'Pousadas', 'Hostels'], categories);
 
     const spots: Partial<BusinessProfile>[] = [
