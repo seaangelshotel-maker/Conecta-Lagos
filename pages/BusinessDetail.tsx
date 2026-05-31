@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
-import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired } from '../services/dataService';
+import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 import { useNotification } from '../components/NotificationSystem';
@@ -31,6 +31,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
   const [newReviewComment, setNewReviewComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [recommendedBusinesses, setRecommendedBusinesses] = useState<BusinessProfile[]>([]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -63,13 +64,21 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
 
   useEffect(() => {
     const loadInitialData = async () => {
-        const [busData, revs] = await Promise.all([
+        setLoading(true);
+        const [busData, revs, allBusinesses] = await Promise.all([
             getBusinessById(businessId),
-            getReviewsByBusinessId(businessId)
+            getReviewsByBusinessId(businessId),
+            getBusinesses()
         ]);
         setBusiness(busData);
         setReviews(revs);
         if (busData) {
+            const related = allBusinesses
+                .filter(b => b.id !== businessId && b.category === busData.category && !b.isBlocked)
+                .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+                .slice(0, 4);
+            setRecommendedBusinesses(related);
+            
             const [allPlans, allCoupons] = await Promise.all([
                 getPricingPlans(),
                 getCoupons()
@@ -92,13 +101,20 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
     };
     
     const handleDataUpdate = async () => {
-        const [busData, revs] = await Promise.all([
+        const [busData, revs, allBusinesses] = await Promise.all([
             getBusinessById(businessId),
-            getReviewsByBusinessId(businessId)
+            getReviewsByBusinessId(businessId),
+            getBusinesses()
         ]);
         setBusiness(busData);
         setReviews(revs);
         if (busData) {
+            const related = allBusinesses
+                .filter(b => b.id !== businessId && b.category === busData.category && !b.isBlocked)
+                .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+                .slice(0, 4);
+            setRecommendedBusinesses(related);
+            
             const [allPlans, allCoupons] = await Promise.all([
                 getPricingPlans(),
                 getCoupons()
@@ -492,6 +508,32 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                         {reviews.length === 0 && (
                             <p className="text-center text-slate-400 text-sm py-4">Nenhuma avaliação ainda. Seja o primeiro!</p>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* RECOMMENDED BUSINESSES */}
+            {recommendedBusinesses.length > 0 && (
+                <div className="space-y-6 pt-6 border-t border-slate-100">
+                    <h3 className="text-xl font-black text-ocean-950 flex items-center gap-2">Talvez você goste <Sparkles className="text-amber-500" size={20}/></h3>
+                    <div className="overflow-x-auto hide-scrollbar -mx-6 px-6 pb-4">
+                        <div className="flex gap-4 w-max">
+                            {recommendedBusinesses.map(relBus => (
+                                <div 
+                                    key={relBus.id}
+                                    onClick={() => onNavigate('business', { id: relBus.id })}
+                                    className="w-48 bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm cursor-pointer group hover:-translate-y-1 transition-transform"
+                                >
+                                    <div className="h-32 w-full overflow-hidden">
+                                        <img src={relBus.coverImage || relBus.logo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={relBus.name}/>
+                                    </div>
+                                    <div className="p-4">
+                                        <h4 className="font-bold text-ocean-950 text-sm line-clamp-1">{relBus.name}</h4>
+                                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin size={10}/> {relBus.city}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
