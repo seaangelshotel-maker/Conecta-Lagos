@@ -512,7 +512,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* DICAS & NOTÍCIAS LOCAIS (Premium Feed Section) */}
         {blogPosts.length > 0 && (
           <div className="px-4">
-            <div className="flex justify-between items-center mb-4 px-0.5">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {t("Dicas e Notícias Locais")}
               </h3>
@@ -570,7 +570,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {/* BIG CARDS / HITS (Vale conhecer - Collections) */}
         {uniqueCollections.length > 0 && (
           <div className="px-4">
-            <div className="flex justify-between items-center mb-4 px-0.5">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {t("Vale conhecer")}
               </h3>
@@ -641,8 +641,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
 
         {/* HORIZONTAL COUPONS (Promotions) */}
         {uniqueCoupons.length > 0 && (
-          <div>
-            <div className="flex justify-between items-center mb-4 px-4.5">
+          <div className="px-4">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {t("Melhores Cupons")}
               </h3>
@@ -667,8 +667,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         )}
 
         {/* LIST - Recomendados para você */}
-        <div>
-          <div className="flex justify-between items-center mb-4 px-4.5">
+        <div className="px-4">
+          <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
               {t("Recomendados para você")}
             </h3>
@@ -681,7 +681,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           </div>
 
           {/* Quick Filters */}
-          <div className="flex overflow-x-auto hide-scrollbar gap-2 px-4 mb-4">
+          <div className="flex overflow-x-auto hide-scrollbar gap-2 -mx-4 px-4 mb-4 md:mx-0 md:px-0">
             {["Tudo", "Lanches", "Passeios", "Açaí", "Mariscos"].map((tag) => (
               <div
                 key={tag}
@@ -694,12 +694,12 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           </div>
 
           {isDataLoading ? (
-            <div className="px-4 space-y-4">
+            <div className="space-y-4">
               <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
               <div className="h-24 bg-slate-200 rounded-xl animate-pulse"></div>
             </div>
           ) : filteredBusinessesForFeed.length > 0 ? (
-            <div className="flex flex-col px-4 gap-0.5">
+            <div className="flex flex-col gap-3 pb-8">
               {filteredBusinessesForFeed.slice(0, visibleCount).map((biz) => {
                 const isOpen = checkIfOpen(biz.openingHours, biz.category);
                 const bizCoupons = uniqueCoupons.filter(
@@ -712,11 +712,17 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                     onClick={() =>
                       onNavigate("business-detail", { businessId: biz.id })
                     }
-                    className="bg-white p-3 rounded-lg flex gap-3 cursor-pointer hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 items-center group relative overflow-hidden animate-in fade-in"
+                    className="bg-white p-3.5 rounded-2xl flex gap-3.5 cursor-pointer hover:bg-slate-50/80 transition-all border border-slate-100 shadow-2xs hover:shadow-xs items-center group relative overflow-hidden animate-in fade-in active:scale-99"
                   >
                     <img
                       src={biz.coverImage}
-                      className="w-[72px] h-[72px] min-w-[72px] rounded-lg object-cover bg-slate-100 border border-slate-100"
+                      referrerPolicy="no-referrer"
+                      className="w-[72px] h-[72px] min-w-[72px] rounded-xl object-cover bg-slate-50 border border-slate-100"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&auto=format&fit=crop&q=60";
+                      }}
+                      alt={biz.name}
                     />
 
                     <div className="flex-1 overflow-hidden py-1">
