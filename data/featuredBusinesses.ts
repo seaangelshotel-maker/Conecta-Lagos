@@ -67,6 +67,8 @@ const D = '2026-11-05';
 /** Mesmo horário em todos os dias. */
 export const allDays = (h: string) => ({ Domingo: h, Segunda: h, 'Terça': h, Quarta: h, Quinta: h, Sexta: h, 'Sábado': h });
 const AC = 'city_arraial_do_cabo' as const;
+const CF = 'city_cabo_frio' as const;
+const BZ = 'city_buzios' as const;
 
 export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   // ───────── Arraial do Cabo · Pousadas
@@ -145,5 +147,113 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     hours: { Domingo: '11:30 - 22:00', Segunda: '11:30 - 19:00', 'Terça': '11:30 - 19:00', Quarta: '11:30 - 19:00', Quinta: '11:30 - 19:00', Sexta: '11:30 - 22:00', 'Sábado': '11:30 - 22:00' },
     description: 'Restobar na Praia dos Anjos, em Arraial do Cabo.',
     sources: ['https://www.tripadvisor.com.br/Restaurant_Review-g1056623-d23693289-Reviews-Restobar_Dos_Anjos-Arraial_do_Cabo_State_of_Rio_de_Janeiro.html'], checkedAt: D,
+  },
+  // ───────── Arraial do Cabo · Supermercados e Sorveterias/Açaí
+  {
+    name: 'Princesa Supermercados - Arraial do Cabo III', cityId: AC, category: 'Serviços', subcategory: 'Supermercados',
+    address: 'Praça da Bandeira, Arraial do Cabo - RJ',
+    phone: '(22) 2622-9500', whatsapp: '(21) 96516-2867',
+    website: 'https://www.princesasupermercados.com.br/arraial_cabo_3',
+    description: 'Unidade Arraial do Cabo III da rede Princesa Supermercados.',
+    sources: ['https://www.princesasupermercados.com.br/arraial_cabo_3/regioes-e-horarios-atendimento'], checkedAt: D,
+  },
+  {
+    name: 'Açaí Forte do Cabo', cityId: AC, category: 'Gastronomia', subcategory: 'Sorveterias e Açaí',
+    address: 'Rua Dom Manuel, 119, Macedônia, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Macedônia',
+    phone: '(22) 99725-6064', whatsapp: '(22) 99725-6064',
+    instagram: 'https://www.instagram.com/acaiforte.docabo',
+    description: 'Açaiteria em Arraial do Cabo. Pedidos pelo cardápio digital e pelo WhatsApp.',
+    sources: ['https://acai-forte-do-cabo.ola.click/info'], checkedAt: D,
+  },
+  // ───────── Cabo Frio · Pousadas e Hotéis
+  {
+    name: 'Pousada Águas do Forte', cityId: CF, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Ismar Gomes de Azevedo, 19, Praia do Forte, Cabo Frio - RJ', neighborhood: 'Praia do Forte',
+    phone: '(22) 2643-4379', email: 'reservas@pousadaaguasdoforte.com.br', website: 'https://www.pousadaaguasdoforte.com.br',
+    description: 'Pousada na Praia do Forte, em Cabo Frio. Outro telefone: (22) 2645-6498.',
+    sources: ['https://www.pousadaaguasdoforte.com.br/'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Areia do Forte', cityId: CF, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Antônio Feliciano de Almeida, 193, Passagem, Cabo Frio - RJ, 28906-240', neighborhood: 'Passagem',
+    phone: '(22) 99953-7145', instagram: 'https://www.instagram.com/pousadaareiadoforte/', website: 'https://pousadaareiadoforte.com.br',
+    description: 'Pousada no bairro da Passagem, em Cabo Frio.',
+    sources: ['https://pousadaareiadoforte.com.br/localizacao/'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Porto Forte', cityId: CF, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Professor Miguel Couto, 192, Centro, Cabo Frio - RJ', neighborhood: 'Centro',
+    phone: '(22) 2643-1970', whatsapp: '(22) 99247-9093', email: 'contato@pousadaportoforte.com.br',
+    instagram: 'https://www.instagram.com/pousadaportoforte/', website: 'https://www.pousadaportoforte.com.br',
+    description: 'Pousada no Centro de Cabo Frio.',
+    sources: ['https://www.pousadaportoforte.com.br/contato'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Brisa do Forte', cityId: CF, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Roberto Nogueira Machado, 20, Praia do Forte, Cabo Frio - RJ', neighborhood: 'Praia do Forte',
+    phone: '(22) 2645-0771', whatsapp: '(22) 99277-7929',
+    instagram: 'https://www.instagram.com/ondasdoforte_/', website: 'https://pousadabrisadoforte.com.br',
+    description: 'Pousada na Praia do Forte, em Cabo Frio.',
+    sources: ['https://pousadabrisadoforte.com.br/pousada-em-cabo-frio-praia-perto-da-praia-do-forte/'], checkedAt: D,
+  },
+  {
+    name: 'Hotel Mar de Cabo Frio', cityId: CF, category: 'Hospedagem', subcategory: 'Hotéis',
+    address: 'Rua Zulmira Mendes, 567, Cabo Frio - RJ, 28908-105',
+    phone: '(22) 2643-3080', whatsapp: '(22) 99275-0932', email: 'reservas@mardecabofrio.com.br',
+    instagram: 'https://www.instagram.com/pousadamardecabofrio', website: 'https://hotelmardecabofrio.com.br',
+    description: 'Hotel em Cabo Frio. Outro telefone: (22) 2040-8002.',
+    sources: ['https://hotelmardecabofrio.com.br/contato/'], checkedAt: D,
+  },
+  // ───────── Cabo Frio · Restaurantes
+  {
+    name: 'Passagem Altto Sushi', cityId: CF, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'Rua Constantino Menelau, 240, Passagem, Cabo Frio - RJ', neighborhood: 'Passagem',
+    phone: '(22) 3031-1146', whatsapp: '(22) 3031-1146',
+    hours: allDays('18:00 - 00:00'),
+    instagram: 'https://www.instagram.com/alttosushi/', website: 'https://passagemalttosushi.com.br',
+    description: 'Restaurante de culinária japonesa no bairro da Passagem, em Cabo Frio.',
+    sources: ['https://passagemalttosushi.com.br/'], checkedAt: D,
+  },
+  // ───────── Búzios · Pousadas
+  {
+    name: 'Pousada Pontal da Ferradura', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Av. Roberto Improta Saraiva, 1346, Ferradura, Armação dos Búzios - RJ, 28951-294', neighborhood: 'Ferradura',
+    phone: '(22) 2623-1177', whatsapp: '(22) 98109-7822', email: 'reservas@pontaldaferradura.com.br',
+    instagram: 'https://www.instagram.com/pontaldaferradura/', website: 'https://www.pontaldaferradura.com.br',
+    description: 'Pousada na Ferradura, em Búzios. Central de reservas: (21) 2042-3554 e WhatsApp (22) 98878-1211.',
+    sources: ['https://www.pontaldaferradura.com.br/'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Luzes de Geribá', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Rodrigues de Souza, 24, Canto Esquerdo de Geribá, Armação dos Búzios - RJ', neighborhood: 'Geribá',
+    phone: '(22) 98802-3020', email: 'reservas@luzesdegeriba.com.br', website: 'https://www.luzesdegeriba.com.br',
+    description: 'Pousada no canto esquerdo da Praia de Geribá, em Búzios.',
+    sources: ['https://www.luzesdegeriba.com.br/'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Mar de Geribá', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'Rua Caboclo, 14, Geribá, Armação dos Búzios - RJ', neighborhood: 'Geribá',
+    phone: '(22) 99869-2314', whatsapp: '(22) 99869-2314', email: 'reservas@mardegeriba.com.br',
+    website: 'https://mardegeriba.com.br',
+    description: 'Pousada em Geribá, em Búzios.',
+    sources: ['https://mardegeriba.com.br/'], checkedAt: D,
+  },
+  {
+    name: 'Pousada Nanina de Geribá', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: '',
+    phone: '(21) 99148-7963', whatsapp: '(21) 99148-7963',
+    instagram: 'https://www.instagram.com/pousadananinadegeriba/', website: 'https://naninadegeriba.com',
+    description: 'Pousada em Geribá, em Búzios. Endereço ainda não confirmado.',
+    sources: ['https://naninadegeriba.com/'], checkedAt: D,
+  },
+  // ───────── Búzios · Restaurantes
+  {
+    name: 'Xerelete Bar e Restaurante', cityId: BZ, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'Orla Bardot, 514, Centro, Armação dos Búzios - RJ', neighborhood: 'Centro',
+    phone: '(22) 99845-4052', whatsapp: '(22) 99845-4052',
+    hours: { Domingo: '12:00 - 23:00', Segunda: '12:00 - 00:00', 'Terça': '12:00 - 00:00', Quarta: '12:00 - 00:00', Quinta: '12:00 - 00:00', Sexta: '12:00 - 01:00', 'Sábado': '12:00 - 01:00' },
+    instagram: 'https://www.instagram.com/xereletebuzios/', website: 'https://xereletebar.com',
+    description: 'Bar e restaurante na Orla Bardot, em Búzios.',
+    sources: ['https://xereletebar.com/'], checkedAt: D,
   },
 ];
