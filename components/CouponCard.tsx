@@ -82,10 +82,6 @@ export const CouponCard: React.FC<CouponCardProps> = ({ coupon, onGetCoupon, isR
              </div>
              <div className="flex flex-col items-start">
                  <span className="text-[10px] text-white/90 font-medium leading-none mb-1">{coupon.category}</span>
-                 <div className="flex items-center gap-1 bg-black/30 px-1.5 py-0.5 rounded-md backdrop-blur-md">
-                     <Star size={10} className="text-gold-400 fill-gold-400" />
-                     <span className="text-[10px] text-white font-bold">{coupon.rating?.toFixed(1) || '5.0'}</span>
-                 </div>
              </div>
         </div>
       </div>

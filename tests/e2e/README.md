@@ -17,7 +17,7 @@ node tests/e2e/build.mjs         # empacota o app com os mocks
 node tests/e2e/tw.mjs            # gera o CSS (Tailwind v4) a partir das classes usadas
 python3 tests/e2e/prepare-html.py
 node tests/e2e/serve.mjs &       # http://localhost:5178
-(cd tests/e2e && python3 e2e.py && python3 e2e_existing.py && python3 e2e_feed.py)   # 74 verificações; capturas em shots/
+(cd tests/e2e && python3 e2e.py && python3 e2e_existing.py && python3 e2e_feed.py)   # 77 verificações; capturas em shots/
 ```
 
 Variável `NM` aponta para outra pasta `node_modules`, se necessário.

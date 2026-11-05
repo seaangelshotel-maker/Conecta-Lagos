@@ -2575,29 +2575,83 @@ export const approveCompanyRequest = async (requestId: string) => {
     }
 };
 
+/**
+ * Nota exibida ao público: calculada só a partir das avaliações aprovadas gravadas na empresa.
+ * Nota e quantidade "soltas" (vindas de importações antigas, sem avaliações reais) não aparecem.
+ */
+export const getRealRating = (b?: Partial<BusinessProfile> | null): { rating: number; count: number } | null => {
+    const reviews = (b?.reviews || []).filter(r => r && typeof r.rating === 'number' && (!r.status || r.status === 'approved'));
+    if (reviews.length === 0) return null;
+    const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+    return { rating: Math.round(avg * 10) / 10, count: reviews.length };
+};
+
+const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+/** Data/hora atual no horário de Brasília (o visitante pode estar em outro fuso). */
+const nowInBrazil = () => {
+    const parts = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(new Date());
+    const get = (t: string) => parts.find(p => p.type === t)?.value || '';
+    const wd = get('weekday').toLowerCase().replace('.', '');
+    const map: Record<string, number> = { dom: 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, 'sáb': 6, sab: 6 };
+    const day = map[wd.slice(0, 3)] ?? new Date().getDay();
+    return { day, minutes: (Number(get('hour')) % 24) * 60 + Number(get('minute')) };
+};
+
+/** Dia da semana de hoje (horário de Brasília), no formato usado nas chaves de openingHours. */
+export const todayKey = () => WEEK_DAYS[nowInBrazil().day];
+
+/** Lê o horário de um dia aceitando chaves com maiúsculas/minúsculas diferentes ("SEGUNDA", "segunda"). */
+const getDayHours = (openingHours: { [key: string]: string } | undefined, day: string): string | undefined => {
+    if (!openingHours) return undefined;
+    if (openingHours[day] !== undefined) return openingHours[day];
+    const key = Object.keys(openingHours).find(k => k.trim().toLowerCase() === day.toLowerCase());
+    return key ? openingHours[key] : undefined;
+};
+
+/** A empresa informou algum horário? */
+export const hasOpeningHours = (openingHours?: { [key: string]: string }) =>
+    !!openingHours && Object.values(openingHours).some(v => typeof v === 'string' && v.trim() !== '');
+
+/**
+ * Texto de horário pronto para exibir. Ignora textos longos/estranhos gravados por importações
+ * antigas (ex.: explicações da IA) e mostra só faixas de horário, "24 horas" ou "Fechado".
+ */
+export const formatDayHours = (openingHours: { [key: string]: string } | undefined, day: string): string => {
+    if (!hasOpeningHours(openingHours)) return 'Não informado';
+    const raw = (getDayHours(openingHours, day) || '').trim();
+    if (!raw) return 'Fechado';
+    const lower = raw.toLowerCase();
+    if (lower.startsWith('24') || lower.includes('24 horas') || lower.includes('24h')) return '24 horas';
+    if (lower.startsWith('fechado')) return 'Fechado';
+    const ranges = raw.match(/\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}/g);
+    if (ranges && ranges.length) return Array.from(new Set(ranges.map(r => r.replace(/\s+/g, ' ')))).slice(0, 3).join(', ');
+    return raw.length <= 40 ? raw : 'Consultar';
+};
+
 export const checkIfOpen = (openingHours: { [key: string]: string }, category?: string): boolean => {
     // BOM SENSO: Se for Passeio ou local público e não tiver horário, assume-se aberto (24h)
     // Praias, Mirantes e Praças são essencialmente abertos.
-    if (!openingHours || Object.keys(openingHours).length === 0) {
+    if (!hasOpeningHours(openingHours)) {
         if (category === 'Passeios' || category === 'Entretenimento') return true;
         return false;
     }
 
-    const now = new Date();
-    const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][now.getDay()];
-    const hoursString = openingHours[dayOfWeek];
+    const now = nowInBrazil();
+    const dayOfWeek = WEEK_DAYS[now.day];
+    const hoursString = formatDayHours(openingHours, dayOfWeek);
 
-    if (!hoursString || hoursString.toLowerCase().includes('fechado')) {
-        // Se for um passeio ou local de natureza e estiver vazio o dia, assume-se aberto
-        if (category === 'Passeios' && (!hoursString || hoursString.trim() === '')) return true;
+    if (hoursString === 'Fechado' || hoursString === 'Consultar') {
         return false;
     }
     
-    if (hoursString.toLowerCase().includes('24 horas') || hoursString.toLowerCase().includes('aberto')) {
+    if (hoursString === '24 horas' || hoursString.toLowerCase().includes('aberto')) {
         return true;
     }
 
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = now.minutes;
     const ranges = hoursString.split(',').map(r => r.trim());
 
     for (const range of ranges) {

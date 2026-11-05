@@ -129,27 +129,6 @@ export const translations: TranslationDictionary = {
     '🇺🇸': 'See all',
     '🇫🇷': 'Voir tout',
   },
-  'Tudo': {
-    '🇧🇷': 'Tudo',
-    '🇵🇹': 'Tudo',
-    '🇪🇸': 'Todo',
-    '🇺🇸': 'All',
-    '🇫🇷': 'Tout',
-  },
-  'Lanches': {
-    '🇧🇷': 'Lanches',
-    '🇵🇹': 'Snacks',
-    '🇪🇸': 'Meriendas',
-    '🇺🇸': 'Snacks',
-    '🇫🇷': 'Snacks',
-  },
-  'Passeios': {
-    '🇧🇷': 'Passeios',
-    '🇵🇹': 'Passeios',
-    '🇪🇸': 'Paseos',
-    '🇺🇸': 'Tours',
-    '🇫🇷': 'Visites',
-  },
   'Açaí': {
     '🇧🇷': 'Açaí',
     '🇵🇹': 'Açaí',

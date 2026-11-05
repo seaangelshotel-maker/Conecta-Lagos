@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
-import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
+import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, formatDayHours, todayKey, hasOpeningHours, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
 import { getNavigationSource } from '../services/navigation';
 import { CouponModal } from '../components/CouponModal';
@@ -90,7 +90,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             setPlan(isSubscriptionExpired(busData) ? undefined : busPlan);
 
             incrementBusinessView(businessId, getNavigationSource());
-            setIsOpen(checkIfOpen(busData.openingHours, busData.category));
+            setIsOpen(checkIfOpen(busData.openingHours, busData.category) ? true : (hasOpeningHours(busData.openingHours) ? false : null));
 
             setCoupons(allCoupons.filter(c => c.companyId === businessId && c.active));
             const user = getCurrentUser();
@@ -122,7 +122,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             
             const busPlan = allPlans.find(p => p.id === busData.plan || p.name === busData.plan);
             setPlan(isSubscriptionExpired(busData) ? undefined : busPlan);
-            setIsOpen(checkIfOpen(busData.openingHours, busData.category));
+            setIsOpen(checkIfOpen(busData.openingHours, busData.category) ? true : (hasOpeningHours(busData.openingHours) ? false : null));
             setCoupons(allCoupons.filter(c => c.companyId === businessId && c.active));
             const user = getCurrentUser();
             setCurrentUser(user);
@@ -420,8 +420,8 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 <h3 className="text-xl font-black text-ocean-950 flex items-center gap-2"><Clock size={20} className="text-ocean-600"/> Horário de Funcionamento</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-6 rounded-2xl border border-slate-100">
                     {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map(day => {
-                        const hours = (business.openingHours && business.openingHours[day]) || 'Fechado';
-                        const isToday = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()] === day;
+                        const hours = formatDayHours(business.openingHours, day);
+                        const isToday = todayKey() === day;
                         return (
                             <div key={day} className={`p-3 rounded-xl transition-all ${isToday ? 'bg-white shadow-sm border border-ocean-100 ring-1 ring-ocean-500/20' : ''}`}>
                                 <div className="flex items-center gap-2 mb-1">
@@ -449,11 +449,14 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 <div className="space-y-6 pt-6 border-t border-slate-100">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-black text-ocean-950">Avaliações</h3>
+                        {/* Nota calculada só com as avaliações reais mostradas abaixo */}
+                        {reviews.length > 0 && (
                         <div className="flex items-center gap-2">
                             <Star className="text-gold-400 fill-current" size={20} />
-                            <span className="font-bold text-lg">{business.rating?.toFixed(1) || '5.0'}</span>
-                            <span className="text-slate-400 text-sm">({business.reviewCount || 0})</span>
+                            <span className="font-bold text-lg">{(reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)}</span>
+                            <span className="text-slate-400 text-sm">({reviews.length})</span>
                         </div>
+                        )}
                     </div>
 
                     {currentUser ? (

@@ -100,7 +100,14 @@ Ajustes feitos no próprio Conecta-Lagos durante o porte:
 | `SuperAdminDashboard`, `AdminStats` e `/subscribe` | Removidos (mortos/fictícios); `/super-admin-dashboard` abre o painel admin |
 | Nome misturado (Konecta Rio / Lagos GO) | Padronizado como Lagos GO |
 
-Testes de navegador: `e2e.py` (42), `e2e_existing.py` (13) e `e2e_feed.py` (19) — 74/74.
+Revisão geral (mesmo dia):
+
+- Nota e nº de avaliações só aparecem quando há avaliações aprovadas de verdade (o banco tinha notas 5.0 com "850 avaliações" sem nenhuma avaliação); cupons não mostram mais nota.
+- Contadores e avatares inventados nos roteiros do Guia removidos; distância fixa "1.8 km" na Início removida.
+- Horário de funcionamento: textos estranhos (explicações da IA gravadas no banco) não aparecem; aceita chaves em maiúsculas; "Aberto/Fechado" calculado no horário de Brasília e oculto quando a empresa não informou horário.
+- Chaves duplicadas nas traduções removidas (avisos do build).
+
+Testes de navegador: `e2e.py` (42), `e2e_existing.py` (13) e `e2e_feed.py` (22) — 77/77.
 
 **Atenção:** o Conecta-Lagos e o conectario usam o **mesmo Firebase** (`conectario-dd04b`).
 As regras novas ainda não foram publicadas no Firebase; até lá, a proteção real dos dados

@@ -47,6 +47,10 @@ import {
   getCollections,
   getBusinessesPaginated,
   getBlogPosts,
+  getRealRating,
+  formatDayHours,
+  todayKey,
+  hasOpeningHours,
 } from "../services/dataService";
 import { useNotification } from "../components/NotificationSystem";
 import { useLanguage, Translate } from "../hooks/useLanguage";
@@ -421,14 +425,14 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
         result = result.filter((b) => b.isFeatured);
         result.sort(
           (a, b) =>
-            (b.rating || 0) - (a.rating || 0) ||
-            (b.reviewCount || 0) - (a.reviewCount || 0),
+            (getRealRating(b)?.rating || 0) - (getRealRating(a)?.rating || 0) ||
+            (getRealRating(b)?.count || 0) - (getRealRating(a)?.count || 0),
         );
       } else if (sortBy === "rating") {
         result.sort(
           (a, b) =>
-            (b.rating || 0) - (a.rating || 0) ||
-            (b.reviewCount || 0) - (a.reviewCount || 0),
+            (getRealRating(b)?.rating || 0) - (getRealRating(a)?.rating || 0) ||
+            (getRealRating(b)?.count || 0) - (getRealRating(a)?.count || 0),
         );
       } else {
         // default/recommended: prioritize featured first, then sort by rating, then by review count
@@ -437,11 +441,11 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
           const featB = b.isFeatured ? 1 : 0;
           if (featB !== featA) return featB - featA;
 
-          const rA = a.rating || 0;
-          const rB = b.rating || 0;
+          const rA = getRealRating(a)?.rating || 0;
+          const rB = getRealRating(b)?.rating || 0;
           if (rB !== rA) return rB - rA;
 
-          return (b.reviewCount || 0) - (a.reviewCount || 0);
+          return (getRealRating(b)?.count || 0) - (getRealRating(a)?.count || 0);
         });
       }
     }
@@ -864,45 +868,12 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 leading-none select-none">
                       📖 Ver Roteiro
                     </p>
-                    <div className="flex items-center gap-1">
-                      <div className="flex -space-x-1 border border-transparent mr-0.5">
-                        <img
-                          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4"
-                          className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none"
-                          alt="user"
-                          draggable={false}
-                        />
-                        <img
-                          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede"
-                          className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none"
-                          alt="user"
-                          draggable={false}
-                        />
-                        <img
-                          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=ffdfbf"
-                          className="w-3.5 h-3.5 rounded-full border-[1.5px] border-white select-none"
-                          alt="user"
-                          draggable={false}
-                        />
-                      </div>
-                      <span className="text-[#ff5a1f] font-black text-[9px] uppercase tracking-wider flex items-center mt-px">
-                        {(() => {
-                          const realList = post.connectedUsers || [];
-                          const baseSeedCount =
-                            Math.abs(
-                              (post.id || "")
-                                .split("")
-                                .reduce(
-                                  (acc, char) => acc + char.charCodeAt(0),
-                                  0,
-                                ) % 25,
-                            ) + 12;
-                          return realList.length > 0
-                            ? baseSeedCount + realList.length
-                            : baseSeedCount;
-                        })()}
+                    {/* Só conexões reais (antes mostrava avatares e números inventados). */}
+                    {(post.connectedUsers || []).length > 0 && (
+                      <span className="text-[#ff5a1f] font-black text-[9px] uppercase tracking-wider flex items-center gap-1 mt-px">
+                        💙 {(post.connectedUsers || []).length} {(post.connectedUsers || []).length === 1 ? "conectado" : "conectados"}
                       </span>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1098,18 +1069,8 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                       business.openingHours,
                       business.category,
                     );
-                    const today = [
-                      "Domingo",
-                      "Segunda",
-                      "Terça",
-                      "Quarta",
-                      "Quinta",
-                      "Sexta",
-                      "Sábado",
-                    ][new Date().getDay()];
-                    const todayHours =
-                      (business.openingHours && business.openingHours[today]) ||
-                      "Fechado";
+                    const todayHours = formatDayHours(business.openingHours, todayKey());
+                    if (!hasOpeningHours(business.openingHours) && !isOpen) return null;
                     return (
                       <div className="absolute bottom-3 left-4 flex flex-col gap-1 items-start z-20 select-none">
                         <span
@@ -1143,16 +1104,18 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                         )}
                       </h3>
 
-                      {/* Compact Rating Tag indicator */}
+                      {/* Nota real (só aparece com avaliações aprovadas) */}
+                      {getRealRating(business) && (
                       <div className="flex items-center gap-0.5 bg-amber-50 border border-amber-100/50 px-2 py-0.5 rounded-lg shrink-0">
                         <Star
                           size={11}
                           className="text-gold-500 fill-gold-500"
                         />
                         <span className="text-[11px] font-black text-gold-600">
-                          {business.rating}
+                          {getRealRating(business)!.rating.toFixed(1)}
                         </span>
                       </div>
+                      )}
                     </div>
 
                     {/* Category and neighborhood markers */}

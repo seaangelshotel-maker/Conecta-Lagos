@@ -85,6 +85,15 @@ async def main():
             else:
                 ok(f'botão "{label}" existe', False)
         await page.screenshot(path='shots/23-admin.png')
+
+        # 6. Dados ruins do banco não aparecem: nota sem avaliações e horário com texto de IA
+        await page.evaluate("""() => { const s = JSON.parse(sessionStorage.getItem('__mock_fs__')); s.docs['businesses/ruim'] = { id: 'ruim', name: 'Hostel Dados Ruins', category: 'Hospedagem', description: 'x', address: 'Prainha', status: 'approved', isBlocked: false, rating: 5, reviewCount: 850, reviews: [], openingHours: { 'Segunda': '24 horas', 'Terça': '24 horasBaseada no bom senso: 24 horas (Recepção). No JSON, usarei 24h. Corrigindo para as chaves exatas do schema', 'Quarta': '08:00 - 18:00 Conforme schema e JSON eu fiz isso e aquilo bem comprido mesmo' } }; sessionStorage.setItem('__mock_fs__', JSON.stringify(s)); }""")
+        await page.goto(BASE + '/business/ruim'); await page.wait_for_timeout(1500)
+        body = await page.inner_text('body')
+        ok('nota inventada (850) não aparece', '(850)' not in body and '5.0' not in body)
+        ok('texto de IA no horário não aparece', 'schema' not in body and 'JSON' not in body)
+        ok('horário limpo mostra faixa e 24 horas', '08:00 - 18:00' in body and '24 horas' in body)
+        await page.screenshot(path='shots/24-dados-ruins.png', full_page=True)
         await b.close()
 
     passed = sum(1 for r in results if r[1])

@@ -35,6 +35,8 @@ import {
   getHomeHighlights,
   identifyNeighborhood,
   checkIfOpen,
+  getRealRating,
+  hasOpeningHours,
 } from "../services/dataService";
 import {
   useBusinesses,
@@ -751,22 +753,29 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                       </h4>
 
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate mb-1">
-                        <div className="flex items-center gap-0.5 text-gold-500">
-                          <Star size={11} className="fill-gold-500" />
-                          <span className="font-bold">{biz.rating}</span>
-                        </div>
-                        <span className="text-slate-300">•</span>
+                        {getRealRating(biz) && (
+                          <>
+                            <div className="flex items-center gap-0.5 text-gold-500">
+                              <Star size={11} className="fill-gold-500" />
+                              <span className="font-bold">{getRealRating(biz)!.rating.toFixed(1)}</span>
+                            </div>
+                            <span className="text-slate-300">•</span>
+                          </>
+                        )}
                         <span className="truncate">{t(biz.category)}</span>
-                        <span className="text-slate-300">•</span>
-                        <span
-                          className={`${isOpen ? "text-green-600" : "text-slate-400"}`}
-                        >
-                          {isOpen ? t("Aberto") : t("Fechado")}
-                        </span>
+                        {(isOpen || hasOpeningHours(biz.openingHours)) && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span
+                              className={`${isOpen ? "text-green-600" : "text-slate-400"}`}
+                            >
+                              {isOpen ? t("Aberto") : t("Fechado")}
+                            </span>
+                          </>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-3 text-xs">
-                        <div className="text-slate-500">1.8 km</div>
                         {bizCoupons.length > 0 && (
                           <div className="flex items-center gap-1 bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">
                             <Ticket size={10} /> {t("Cupom")}
