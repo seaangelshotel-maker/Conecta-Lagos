@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send, Zap } from 'lucide-react';
 import { SEO } from '../components/SEO';
-import { BlogPost, User as UserType } from '../types';
-import { getBlogPostById, getAllUsers, getCurrentUser, getBlogPostComments, addBlogPostComment, saveBlogPost, getBlogPosts } from '../services/dataService';
+import { BlogPost, PublicProfile } from '../types';
+import { getBlogPostById, getPublicProfileById, getPublicProfiles, getCurrentUser, getBlogPostComments, addBlogPostComment, setBlogPostConnection, getBlogPosts } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
 
 interface BlogDetailProps {
@@ -14,7 +14,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
   const { notify } = useNotification();
   const [post, setPost] = useState<BlogPost | undefined>(undefined);
   const [recommendedPosts, setRecommendedPosts] = useState<BlogPost[]>([]);
-  const [author, setAuthor] = useState<UserType | undefined>(undefined);
+  const [author, setAuthor] = useState<PublicProfile | undefined>(undefined);
   const [showAuthorModal, setShowAuthorModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
@@ -22,7 +22,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
   const [newCommentText, setNewCommentText] = useState('');
   const [guestName, setGuestName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [currentUser, setCurrentUser] = useState<import('../types').User | null>(null);
 
   const [showConnectNameModal, setShowConnectNameModal] = useState(false);
   const [connectNameInput, setConnectNameInput] = useState('');
@@ -61,7 +61,8 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
     };
 
     try {
-      await saveBlogPost(updatedPost);
+      // Grava só a lista de conexões (as regras não deixam visitantes alterarem o resto do post).
+      await setBlogPostConnection(postId, finalName, localConnected);
       setPost(updatedPost);
       setIsConnected(localConnected);
 
@@ -82,37 +83,31 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
     }
   };
 
+  // Mostra apenas conexões reais (antes somava nomes e números inventados).
   const getSocialProofText = () => {
     const realList = post?.connectedUsers || [];
-    const baseSeedCount = Math.abs(postId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 25) + 12;
-    
     if (realList.length === 0) {
-      const seeds = ['Lucas', 'Gabriela', 'Felipe', 'Mariana', 'Thiago', 'Beatriz', 'Rodrigo', 'Juliana', 'Bruno', 'Camila'];
-      const seed1 = seeds[baseSeedCount % seeds.length];
-      const seed2 = seeds[(baseSeedCount + 3) % seeds.length];
-      const totalCount = baseSeedCount;
       return (
         <span className="text-xs text-slate-600 font-medium leading-relaxed">
-          💙 <b>{seed1}</b>, <b>{seed2}</b> e outras <b>{totalCount} pessoas</b> se conectaram a este roteiro/evento
-        </span>
-      );
-    } else if (realList.length === 1) {
-      const totalCount = baseSeedCount;
-      return (
-        <span className="text-xs text-slate-600 font-medium leading-relaxed">
-          💙 <b>{realList[0]}</b> e outras <b>{totalCount} pessoas</b> se conectaram a este roteiro/evento
-        </span>
-      );
-    } else {
-      const firstUser = realList[realList.length - 1];
-      const secondUser = realList[realList.length - 2];
-      const remainingCount = baseSeedCount + realList.length - 2;
-      return (
-        <span className="text-xs text-slate-600 font-medium leading-relaxed">
-          💙 <b>{firstUser}</b>, <b>{secondUser}</b> e outras <b>{remainingCount} pessoas</b> se conectaram a este roteiro/evento
+          💙 Seja a primeira pessoa a se conectar a este roteiro/evento
         </span>
       );
     }
+    if (realList.length === 1) {
+      return (
+        <span className="text-xs text-slate-600 font-medium leading-relaxed">
+          💙 <b>{realList[0]}</b> se conectou a este roteiro/evento
+        </span>
+      );
+    }
+    const firstUser = realList[realList.length - 1];
+    const secondUser = realList[realList.length - 2];
+    const remainingCount = realList.length - 2;
+    return (
+      <span className="text-xs text-slate-600 font-medium leading-relaxed">
+        💙 <b>{firstUser}</b>, <b>{secondUser}</b>{remainingCount > 0 ? <> e mais <b>{remainingCount} {remainingCount === 1 ? 'pessoa' : 'pessoas'}</b></> : null} se conectaram a este roteiro/evento
+      </span>
+    );
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -182,25 +177,11 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
       }
 
       if (data?.authorId) {
-          const users = await getAllUsers();
-          let foundAuthor = users.find(u => u.id === data.authorId);
-          if (!foundAuthor) {
-              const realYuri = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-              if (realYuri && (data.authorId === 'yuri_guida' || data.authorId === realYuri.id)) {
-                  foundAuthor = realYuri;
-              }
-          }
+          let foundAuthor = await getPublicProfileById(data.authorId).catch(() => undefined);
+          // Posts antigos do Yuri foram gravados com o autor "yuri_guida": localiza o perfil público pelo nome.
           if (!foundAuthor && (data.authorId === 'yuri_guida' || data.authorId?.toLowerCase() === 'yuri guida')) {
-              foundAuthor = {
-                  id: 'yuri_guida',
-                  name: 'Yuri Guida',
-                  email: 'contato.yuriguida@gmail.com',
-                  role: 'JOURNALIST',
-                  avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-                  profession: 'Editor-Chefe / Konecta Rio Feed',
-                  bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
-                  instagram: 'yuriguida'
-              } as any;
+              const profiles = await getPublicProfiles().catch(() => []);
+              foundAuthor = profiles.find(u => (u.name || '').trim().toLowerCase() === 'yuri guida');
           }
           setAuthor(foundAuthor);
       }
@@ -281,14 +262,14 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
       return [
         'Opções de peixes frescos pescados diretamente no dia.',
         'Menu degustação harmonizado com vinhos finos ou cervejas locais.',
-        'Descontos especiais utilizando o Konecta Lagos em parceiros selecionados.'
+        'Descontos especiais utilizando o Lagos GO em parceiros selecionados.'
       ];
     }
     if (post.category === 'Eventos') {
       return [
         'Acesso gratuito ou ingressos antecipados exclusivos.',
         'Cortesias exclusivas de boas-vindas na entrada de luaus.',
-        'Áreas vip/reservadas para membros ativos do Konecta Rio.'
+        'Áreas vip/reservadas para membros ativos do Lagos GO.'
       ];
     }
     return [
@@ -519,7 +500,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                   : 'bg-slate-950 hover:bg-slate-900 text-white shadow-sm'
               }`}
             >
-              <Zap size={18} className={isConnected ? "fill-current" : ""} /> {isConnected ? 'Konectado!' : 'Konectar-se!'}
+              <Zap size={18} className={isConnected ? "fill-current" : ""} /> {isConnected ? 'Conectado!' : 'Conectar-se!'}
             </button>
             
             {post && (
@@ -679,7 +660,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                   {author.isPrime && <Award size={18} className="text-amber-500 fill-amber-500" />}
                 </h2>
                 <p className="text-red-500 font-extrabold text-[10px] uppercase tracking-widest mb-3">
-                  {author.profession || 'Colunista de Konecta Rio'}
+                  {author.profession || 'Colunista de Lagos GO'}
                 </p>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed italic px-2 font-light">
                   &ldquo;{author.bio || 'Compartilhando as melhores e mais seguras experiências escondidas na histórica Região dos Lagos.'}&rdquo;
@@ -698,12 +679,17 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
                     <Instagram size={14} /> Instagram
                   </a>
                 )}
+                {/* E-mail não é público (perfil público não expõe contato); mostra o site, se houver. */}
+                {author.website && (
                 <a 
-                  href={`mailto:${author.email}`}
+                  href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-slate-900 hover:-translate-y-0.5 transition-all"
                 >
-                  <Globe size={14} /> Contato
+                  <Globe size={14} /> Site
                 </a>
+                )}
               </div>
             </div>
           </div>
@@ -726,7 +712,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
               </button>
             </div>
             <div>
-              <h4 className="text-lg font-black text-slate-800 tracking-tight leading-snug">Konectar-se ao Roteiro / Evento</h4>
+              <h4 className="text-lg font-black text-slate-800 tracking-tight leading-snug">Conectar-se ao Roteiro / Evento</h4>
               <p className="text-xs text-slate-500 font-medium mt-1">Insira seu nome para aparecer no painel de conexões deste evento.</p>
             </div>
             <input 

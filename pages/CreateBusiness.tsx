@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, BusinessProfile, PricingPlan } from '../types';
-import { getCategories, saveBusiness, updateUser, getCities, getNeighborhoods, getPricingPlans } from '../services/dataService';
+import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans } from '../services/dataService';
 import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 import { ImageUpload } from '../components/ImageUpload';
@@ -16,6 +16,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+    const [plansLoaded, setPlansLoaded] = useState(false);
     const [gallery, setGallery] = useState<string[]>([]);
     const [step, setStep] = useState(1);
     const totalSteps = 4;
@@ -33,8 +34,11 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 getNeighborhoods()
             ]);
             
-            const userPlan = plans.find(p => p.name === currentUser.plan) || plans[0];
+            // Só mostra um plano se ele já foi atribuído ao usuário pela equipe.
+            // Sem plano atribuído, a entrada é gratuita (parceiros fundadores).
+            const userPlan = plans.find(p => p.id === currentUser.plan || p.name === currentUser.plan) || null;
             setSelectedPlan(userPlan);
+            setPlansLoaded(true);
             setCategories(cats);
             setCities(cts);
             setNeighborhoods(nbs);
@@ -114,21 +118,11 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 plan: selectedPlan?.id || '',
                 subscriptionEndsAt
             };
-            console.log("Salvando empresa:", newBiz);
             await saveBusiness(newBiz);
 
-            console.log("Atualizando perfil do usuário...");
-            const updatedUser: User = {
-                ...currentUser,
-                role: currentUser.role === UserRole.SUPER_ADMIN ? UserRole.SUPER_ADMIN : UserRole.COMPANY,
-                permissions: {
-                    ...(currentUser.permissions || { canCreateCoupons: false, canManageBusiness: false }),
-                    canCreateBusiness: false,
-                    canManageBusiness: true,
-                    canCreateCoupons: true
-                }
-            };
-            await updateUser(updatedUser);
+            // Papel COMPANY libera o painel da empresa. Plano pago NÃO é ativado aqui:
+            // só o administrador (ou o pagamento confirmado no servidor) ativa planos.
+            await promoteSelfToCompany();
 
             notify('success', "Sua empresa foi cadastrada com sucesso! Ela será analisada por nossa equipe antes de ser publicada no guia.");
             setSuccess(true);
@@ -450,6 +444,18 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                         )}
                                     </div>
                                 </div>
+                            </div>
+                        ) : plansLoaded ? (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                    <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-1">Participação</p>
+                                    <p className="text-2xl font-black text-ocean-950">Gratuita</p>
+                                    <p className="text-sm font-bold text-emerald-800">Entrada sem custo na rede Lagos GO</p>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    Sua empresa entra no guia após a aprovação da equipe. Recursos comerciais adicionais
+                                    poderão ser combinados depois, sem cobrança automática.
+                                </p>
                             </div>
                         ) : (
                             <div className="animate-pulse space-y-4">

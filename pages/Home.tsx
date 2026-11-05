@@ -42,6 +42,9 @@ import {
   useAppCategories,
 } from "../hooks/useFirestore";
 import { useLanguage } from "../hooks/useLanguage";
+import { WhatYouCanDo } from "../components/WhatYouCanDo";
+import { InstallAppPrompt } from "../components/InstallAppPrompt";
+import { SpecialistReferral } from "../components/SpecialistReferral";
 
 interface HomeProps {
   currentUser: User | null;
@@ -244,7 +247,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       onNavigate("login");
       return;
     }
-    return await redeemCoupon(currentUser.id, coupon);
+    return redeemCoupon(currentUser.id, coupon);
   };
 
   const handleCardClick = (coupon: Coupon) => {
@@ -281,14 +284,14 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       <SEO
         title={t("O Guia Oficial da Região dos Lagos")}
         description={t(
-          "Descubra o melhor da Região dos Lagos com o Konecta Lagos.",
+          "Descubra o melhor da Região dos Lagos com o Lagos GO.",
         )}
       />
 
       {/* HEADER (iFood Style - Clean & Vibrant) */}
       <div className="sticky top-0 md:top-16 z-30 bg-white border-b border-slate-100 shadow-sm transition-all duration-300">
         <div className="flex justify-between items-center px-4 py-3 max-w-7xl mx-auto w-full">
-          {/* Location Area - iFood similar but with Konecta touch */}
+          {/* Location Area - iFood similar but with Lagos GO touch */}
           <div
             onClick={() => activateGPS(false)}
             className="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform group"
@@ -446,6 +449,12 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Apresentação: o que dá para fazer (some depois de usada/fechada) e convite para instalar o app */}
+        <div className="px-4 space-y-4">
+          <WhatYouCanDo onNavigate={onNavigate} isLoggedIn={!!currentUser} />
+          <InstallAppPrompt />
         </div>
 
         {/* CATEGORIES GRID (Round Icons) */}
@@ -665,6 +674,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             </div>
           </div>
         )}
+
+        {/* Atendimento especializado (aparece só quando configurado pelo admin) */}
+        <div className="px-4">
+          <SpecialistReferral source="home" />
+        </div>
 
         {/* LIST - Recomendados para você */}
         <div className="px-4">

@@ -1,179 +1,607 @@
 rules_version = '2';
+
+// =====================================================================
+// LAGOS GO — Regras de segurança do Firestore
+// ---------------------------------------------------------------------
+// Princípios:
+// - Nada de confiar no frontend: campos sensíveis (papel, plano, destaque,
+//   status de aprovação, bloqueio) só mudam por administrador.
+// - Dados pessoais (e-mail, telefone) só para o próprio usuário e admins.
+// - Compatibilidade com dados legados: empresas cujo ID é o UID do dono
+//   continuam funcionando; novas empresas usam o campo ownerId.
+// - Leia SAFETY_PROTOCOL.md antes de alterar este arquivo.
+// =====================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // ===============================================================
-    // Helper Functions
+    // Funções auxiliares
     // ===============================================================
-    
+
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+
+    function uid() {
+      return request.auth.uid;
     }
-    
+
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function businessPath(bizId) {
+      return /databases/$(database)/documents/businesses/$(bizId);
+    }
+
+    function opportunityPath(oppId) {
+      return /databases/$(database)/documents/opportunities/$(oppId);
+    }
+
+    // E-mails fundadores com acesso de administrador. Exige e-mail verificado
+    // para impedir que alguém crie uma conta com o mesmo endereço sem possuí-lo.
+    function isAllowlistedAdminEmail() {
+      return isAuthenticated()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['sea.angelshotel@gmail.com', 'admin@lagosgo.org'];
+    }
+
     function isAdmin() {
-      return isAuthenticated() && 
-        (
-          ('email' in request.auth.token && (
-            request.auth.token.email == 'sea.angelshotel@gmail.com' ||
-            request.auth.token.email == 'admin@lagosgo.org' ||
-            request.auth.token.email == 'admin@conectario.com'
-          )) ||
-          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN')
-        );
-    }
-    
-    function isCompany() {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'COMPANY';
+      return isAuthenticated() && (
+        isAllowlistedAdminEmail() ||
+        (exists(userPath(uid())) && get(userPath(uid())).data.role == 'SUPER_ADMIN')
+      );
     }
 
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+    function isNotBlocked() {
+      return !exists(userPath(uid())) || get(userPath(uid())).data.get('isBlocked', false) != true;
+    }
+
+    function myRole() {
+      return exists(userPath(uid())) ? get(userPath(uid())).data.get('role', 'CUSTOMER') : 'CUSTOMER';
+    }
+
+    // Dono de uma empresa: legado (ID da empresa == UID) ou campo ownerId.
+    function isBusinessOwner(bizId) {
+      return isAuthenticated() && (
+        uid() == bizId ||
+        (exists(businessPath(bizId)) && get(businessPath(bizId)).data.get('ownerId', '') == uid())
+      );
+    }
+
+    function businessOwnerOf(bizId) {
+      return get(businessPath(bizId)).data.get('ownerId', bizId);
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function isShortString(v, maxLen) {
+      return v is string && v.size() <= maxLen;
     }
 
     // ===============================================================
-    // Users Collection
+    // Usuários (dados privados)
     // ===============================================================
-    
+
+    // Campos que o próprio usuário pode alterar no seu documento.
+    function userSelfEditableKeys() {
+      return ['name', 'surname', 'avatarUrl', 'phone', 'bio', 'profession', 'instagram',
+              'website', 'location', 'specialties', 'achievements', 'favorites',
+              'profileTypes', 'cityId', 'companyName', 'category',
+              // resgate de cupons atualiza histórico e economia do próprio usuário
+              'savedAmount', 'history'];
+    }
+
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow get: if isAuthenticated() && (uid() == userId || isAdmin());
+      allow list: if isAdmin();
+
+      // Cadastro: só o próprio usuário, sempre como CUSTOMER (exceto e-mails
+      // administrativos verificados). Admin pode criar contas de jornalista.
+      allow create: if isAdmin() || (
+        isAuthenticated() && uid() == userId
+        && request.resource.data.id == userId
+        && (
+          request.resource.data.role == 'CUSTOMER' ||
+          (request.resource.data.role == 'SUPER_ADMIN' && isAllowlistedAdminEmail())
+        )
+        && !request.resource.data.keys().hasAny(['permissions', 'isBlocked', 'plan', 'maxCoupons',
+              'isPrime', 'manualPassword', 'paymentCustomerId', 'paymentSubscriptionStatus',
+              'paymentSubscriptionId'])
+        && request.resource.data.get('savedAmount', 0) == 0
+      );
+
+      allow update: if isAdmin() || (
+        isAuthenticated() && uid() == userId
+        && changedKeys().hasOnly(userSelfEditableKeys())
+      ) || (
+        // Quem cadastrou a própria empresa passa de CUSTOMER para COMPANY
+        // (o papel só libera o painel; os poderes vêm da posse da empresa).
+        isAuthenticated() && uid() == userId
+        && changedKeys().hasOnly(['role'])
+        && resource.data.get('role', 'CUSTOMER') == 'CUSTOMER'
+        && request.resource.data.role == 'COMPANY'
+        && exists(businessPath(uid()))
+      );
+
       allow delete: if isAdmin();
     }
-    
-    // ===============================================================
-    // Businesses Collection
-    // ===============================================================
-    
-    match /businesses/{businessId} {
+
+    // Perfil público mínimo (sem e-mail/telefone): blog, autores, anunciantes.
+    match /public_profiles/{userId} {
       allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
+      allow create, update: if isAdmin() || (
+        isAuthenticated() && uid() == userId
+        && request.resource.data.id == userId
+        && request.resource.data.keys().hasOnly(['id', 'name', 'avatarUrl', 'bio', 'profession',
+              'instagram', 'website', 'location', 'specialties', 'achievements', 'role', 'updatedAt'])
+        && request.resource.data.get('role', myRole()) == myRole()
+      );
+      allow delete: if isAdmin() || (isAuthenticated() && uid() == userId);
+    }
+
+    // ===============================================================
+    // Empresas
+    // ===============================================================
+
+    // Campos que só o administrador pode definir ou alterar.
+    function businessProtectedKeys() {
+      return ['isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
+              'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
+              'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
+              'isClaimed', 'canBeClaimed', 'active', 'id'];
+    }
+
+    match /businesses/{bizId} {
+      allow read: if true;
+
+      // Dono cria a própria empresa sempre pendente de aprovação e sem
+      // benefícios pagos. O plano só pode repetir o já atribuído ao usuário.
+      allow create: if isAdmin() || (
+        isAuthenticated() && isNotBlocked()
+        && request.resource.data.id == bizId
+        && (bizId == uid() || request.resource.data.get('ownerId', '') == uid())
+        && request.resource.data.get('ownerId', uid()) == uid()
+        && request.resource.data.get('status', 'PENDING') in ['PENDING', 'pending']
+        && request.resource.data.get('isFeatured', false) == false
+        && request.resource.data.get('isBlocked', false) == false
+        && !request.resource.data.keys().hasAny(['planId', 'paymentCustomerId', 'paymentSubscriptionStatus',
+              'paymentSubscriptionId', 'subscriptionEndsAt', 'reviews', 'actionCounts'])
+        && (
+          !request.resource.data.keys().hasAny(['plan']) ||
+          request.resource.data.plan == 'free' ||
+          (exists(userPath(uid())) && request.resource.data.plan == get(userPath(uid())).data.get('plan', 'free'))
+        )
+      );
+
+      allow update: if isAdmin() || (
+        isBusinessOwner(bizId) && isNotBlocked()
+        && !changedKeys().hasAny(businessProtectedKeys())
+      );
+
       allow delete: if isAdmin();
     }
-    
+
     // ===============================================================
-    // Coupons Collection
+    // Cupons
     // ===============================================================
-    
+
     match /coupons/{couponId} {
       allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+
+      allow create: if isAdmin() || (
+        isBusinessOwner(request.resource.data.companyId) && isNotBlocked()
+        && request.resource.data.get('status', 'pending') == 'pending'
+        && request.resource.data.get('currentRedemptions', 0) == 0
+      );
+
+      allow update: if isAdmin()
+        // Empresa edita o próprio cupom, sem se autoaprovar nem mexer no contador.
+        || (
+          isBusinessOwner(resource.data.companyId) && isNotBlocked()
+          && !changedKeys().hasAny(['status', 'companyId', 'currentRedemptions'])
+        )
+        // Qualquer usuário logado incrementa o contador em exatamente 1 ao resgatar.
+        || (
+          isAuthenticated()
+          && changedKeys().hasOnly(['currentRedemptions'])
+          && request.resource.data.currentRedemptions == resource.data.get('currentRedemptions', 0) + 1
+          && (
+            !resource.data.keys().hasAny(['maxRedemptions']) ||
+            resource.data.maxRedemptions == 0 ||
+            request.resource.data.currentRedemptions <= resource.data.maxRedemptions
+          )
+        );
+
+      allow delete: if isAdmin() || isBusinessOwner(resource.data.companyId);
     }
-    
+
     // ===============================================================
-    // Redemptions Collection (🔒 Segurança Refinada)
+    // Resgates de cupons
     // ===============================================================
-    
+
     match /redemptions/{redemptionId} {
-      allow read: if true; // Resiliência para leitura de cupons (master bypass)
-      allow create: if true; // Resiliência para criação de cupons (master bypass)
-      allow update: if true; // Resiliência para validação de cupons (master bypass)
-      allow delete: if true;
-    }
-    
-    // ===============================================================
-    // Reviews Collection
-    // ===============================================================
-    
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        uid() == resource.data.userId ||
+        uid() == resource.data.companyId ||
+        isBusinessOwner(resource.data.companyId) ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && isNotBlocked()
+        && uid() == request.resource.data.userId
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.verificationCode is string
+        && exists(/databases/$(database)/documents/coupons/$(request.resource.data.couponId));
+      allow update: if isAdmin() || (
+        isBusinessOwner(resource.data.companyId)
+        && changedKeys().hasOnly(['status', 'validatedAt'])
+        && request.resource.data.status == 'USED'
+      );
       allow delete: if isAdmin();
     }
-    
+
     // ===============================================================
-    // Blog Posts Collection
+    // Avaliações
     // ===============================================================
-    
+
+    match /reviews/{reviewId} {
+      allow read: if resource.data.get('status', '') == 'approved'
+        || isAdmin()
+        || (isAuthenticated() && resource.data.get('userId', '') == uid());
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && isShortString(request.resource.data.comment, 2000);
+      allow update, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Blog (admin e jornalistas)
+    // ===============================================================
+
+    function canWriteBlog() {
+      return isAuthenticated() && isNotBlocked() && (
+        myRole() in ['JOURNALIST', 'CONTENT_CREATOR'] ||
+        (exists(userPath(uid())) && get(userPath(uid())).data.get('permissions', {}).get('canManageBlog', false) == true)
+      );
+    }
+
     match /blog_posts/{postId} {
+      allow read: if true;
+      allow create: if isAdmin() || (canWriteBlog() && request.resource.data.authorId == uid());
+      allow update: if isAdmin() || (
+        canWriteBlog() && resource.data.get('authorId', '') == uid()
+        && request.resource.data.authorId == uid()
+      );
+      allow delete: if isAdmin() || (canWriteBlog() && resource.data.get('authorId', '') == uid());
+
+      // "Conectar" a um post (Feed): qualquer visitante só pode acrescentar ou retirar
+      // UM nome da lista connectedUsers. Nenhum outro campo do post pode ser alterado.
+      allow update: if changedKeys().hasOnly(['connectedUsers'])
+        && request.resource.data.connectedUsers is list
+        && request.resource.data.connectedUsers.size() <= 5000
+        && (
+          // conectar: acrescenta exatamente 1 nome (texto curto) no fim da lista
+          (request.resource.data.connectedUsers.size() == resource.data.get('connectedUsers', []).size() + 1
+            && request.resource.data.connectedUsers.hasAll(resource.data.get('connectedUsers', []))
+            && request.resource.data.connectedUsers[request.resource.data.connectedUsers.size() - 1] is string
+            && request.resource.data.connectedUsers[request.resource.data.connectedUsers.size() - 1].size() <= 80)
+          // desconectar: retira exatamente 1 nome
+          || (request.resource.data.connectedUsers.size() == resource.data.get('connectedUsers', []).size() - 1
+            && resource.data.get('connectedUsers', []).hasAll(request.resource.data.connectedUsers))
+        );
+    }
+
+    // Comentários do Feed: leitura pública; criação com campos validados.
+    // Visitante sem login comenta como "guest"; logado só comenta em seu próprio nome.
+    match /blog_comments/{commentId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['id', 'postId', 'userId', 'userName', 'userAvatar', 'content', 'date'])
+        && request.resource.data.postId is string
+        && exists(/databases/$(database)/documents/blog_posts/$(request.resource.data.postId))
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 1000
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() <= 80
+        && (
+          request.resource.data.userId == 'guest'
+          || (isAuthenticated() && request.resource.data.userId == uid() && isNotBlocked())
+        );
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.get('userId', '') == uid());
+    }
+
+    // Anúncios patrocinados do Feed: só o administrador cria e altera.
+    match /blog_ads/{adId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
     // ===============================================================
-    // Blog Comments Collection
+    // Estrutura pública administrada
     // ===============================================================
-    
-    match /blog_comments/{commentId} {
-      allow read, write: if true;
-    }
-    
-    // ===============================================================
-    // Pricing Plans Collection
-    // ===============================================================
-    
+
     match /pricingPlans/{planId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
-    // ===============================================================
-    // Cities & Neighborhoods
-    // ===============================================================
-    
+
     match /cities/{cityId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
+
     match /neighborhoods/{neighborhoodId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ===============================================================
-    // Collections & Highlights
-    // ===============================================================
-    
     match /collections/{colId} {
-      allow read, write: if true;
-    }
-    
-    match /home_highlights/{hId} {
-      allow read, write: if true;
-    }
-    
-    match /app_categories_guia/{catId} {
-      allow read, write: if true;
-    }
-    
-    match /app_categories_dicas/{catId} {
-      allow read, write: if true;
-    }
-    
-    match /blog_ads/{adId} {
-      allow read, write: if true;
-    }
-    
-    match /app_amenities/{docId} {
-      allow read, write: if true;
-    }
-    
-    // ===============================================================
-    // App Settings (Payment, etc.)
-    // ===============================================================
-    
-    match /settings/{settingId} {
-      allow read: if isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
-    match /companyRequests/{reqId} {
-      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
-      allow create: if isAuthenticated();
-      allow update: if isAdmin();
+    match /home_highlights/{hId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /app_categories_guia/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /app_categories_dicas/{catId} {
+      allow read: if true;
+      // Jornalistas organizam as categorias de "Dicas & Roteiros" que usam nos posts.
+      allow create, update: if isAdmin() || canWriteBlog();
       allow delete: if isAdmin();
+    }
+
+    match /app_amenities/{amenityId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Configurações públicas (WhatsApp comercial, atendimento especializado).
+    match /app_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Configurações privadas (pagamentos).
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Pagamentos processados pelo servidor (webhook). Somente leitura para admins;
+    // gravação apenas pelo Firebase Admin SDK, que ignora estas regras.
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /companyRequests/{reqId} {
+      allow read: if isAdmin() || (isAuthenticated() && uid() == resource.data.get('userId', ''));
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.get('userId', uid()) == uid()
+        && request.resource.data.status == 'PENDING';
+      allow update, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Registro de conexões (eventos de interação)
+    // ---------------------------------------------------------------
+    // Somente criação. Sem dados pessoais: sessionId aleatório.
+    // O dono da entidade lê os próprios eventos para o painel de resultados.
+    // ===============================================================
+
+    function validInteractionType(t) {
+      return t in ['business_view', 'whatsapp_click', 'phone_click', 'website_click', 'map_click',
+                   'social_click', 'menu_open', 'delivery_click', 'booking_click', 'share',
+                   'collection_view', 'coupon_redeem', 'opportunity_view', 'opportunity_interest',
+                   'specialist_referral'];
+    }
+
+    function validInteractionOwner(d) {
+      return !d.keys().hasAny(['ownerId'])
+        || (d.entityType == 'business' && d.ownerId == businessOwnerOf(d.entityId))
+        || (d.entityType == 'coupon' && d.ownerId == businessOwnerOf(
+              get(/databases/$(database)/documents/coupons/$(d.entityId)).data.companyId))
+        || (d.entityType == 'opportunity' && d.ownerId == get(opportunityPath(d.entityId)).data.ownerId);
+    }
+
+    match /interactions/{eventId} {
+      allow create: if request.resource.data.keys().hasOnly(['type', 'entityType', 'entityId', 'ownerId',
+              'source', 'ref', 'sessionId', 'isAuthenticated', 'createdAt', 'day', 'ts'])
+        && validInteractionType(request.resource.data.type)
+        && request.resource.data.entityType in ['business', 'collection', 'coupon', 'opportunity', 'specialist']
+        && isShortString(request.resource.data.entityId, 128)
+        && isShortString(request.resource.data.sessionId, 64)
+        && isShortString(request.resource.data.get('source', ''), 64)
+        && isShortString(request.resource.data.get('ref', ''), 64)
+        && request.resource.data.isAuthenticated == isAuthenticated()
+        && request.resource.data.ts == request.time
+        && isShortString(request.resource.data.day, 10)
+        && validInteractionOwner(request.resource.data);
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.get('ownerId', '') == uid());
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Ajuda Colaborativa — oportunidades
+    // ===============================================================
+
+    function opportunityKeys() {
+      return ['id', 'title', 'description', 'category', 'type', 'recurrence', 'ownerId', 'posterName',
+              'businessId', 'cityId', 'cityName', 'neighborhoodId', 'neighborhoodName', 'locationDetail',
+              'startDate', 'endDate', 'schedule', 'compensationType', 'compensationMin', 'compensationMax',
+              'compensationUnit', 'requirements', 'peopleNeeded', 'additionalInfo', 'contactMethod',
+              'contactValue', 'status', 'isHidden', 'hiddenReason', 'createdAt', 'updatedAt', 'publishedAt'];
+    }
+
+    function validOpportunityData(d) {
+      return d.keys().hasOnly(opportunityKeys())
+        && d.title is string && d.title.size() >= 5 && d.title.size() <= 120
+        && d.description is string && d.description.size() >= 20 && d.description.size() <= 4000
+        && isShortString(d.category, 60) && d.category.size() > 0
+        && d.type in ['vaga', 'temporario', 'servico_pontual', 'prestacao', 'colaboracao']
+        && d.recurrence in ['pontual', 'temporaria', 'recorrente']
+        && d.compensationType in ['fixed', 'range', 'to_agree', 'none']
+        && d.contactMethod in ['in_app', 'whatsapp', 'email', 'phone']
+        && (d.contactMethod == 'in_app' || (d.get('contactValue', '') is string && d.get('contactValue', '').size() > 0))
+        && isShortString(d.get('contactValue', ''), 120)
+        && d.peopleNeeded is int && d.peopleNeeded >= 1 && d.peopleNeeded <= 500
+        && isShortString(d.posterName, 120)
+        && isShortString(d.get('additionalInfo', ''), 2000)
+        && isShortString(d.get('schedule', ''), 120)
+        && isShortString(d.get('locationDetail', ''), 200)
+        && d.get('requirements', []) is list && d.get('requirements', []).size() <= 20
+        // Empresa vinculada precisa ser do próprio anunciante.
+        && (!d.keys().hasAny(['businessId']) || d.businessId == '' || isBusinessOwner(d.businessId));
+    }
+
+    function validOwnerTransition(fromStatus, toStatus) {
+      return fromStatus == toStatus
+        || (fromStatus == 'draft' && toStatus in ['published', 'cancelled'])
+        || (fromStatus == 'published' && toStatus in ['in_progress', 'filled', 'closed', 'cancelled'])
+        || (fromStatus == 'in_progress' && toStatus in ['published', 'filled', 'closed', 'cancelled'])
+        || (fromStatus == 'filled' && toStatus in ['published', 'closed']);
+    }
+
+    function isPubliclyVisible(d) {
+      return d.status in ['published', 'in_progress'] && d.get('isHidden', false) == false;
+    }
+
+    function rateLimitPath() {
+      return /databases/$(database)/documents/rateLimits/$(uid());
+    }
+
+    match /opportunities/{oppId} {
+      allow get: if isPubliclyVisible(resource.data)
+        || (isAuthenticated() && (resource.data.ownerId == uid() || isAdmin()))
+        || (isAuthenticated() && exists(/databases/$(database)/documents/opportunities/$(oppId)/applications/$(uid())));
+      allow list: if isPubliclyVisible(resource.data)
+        || (isAuthenticated() && (resource.data.ownerId == uid() || isAdmin()));
+
+      // Criação: identificada, validada e com limite de 1 publicação por minuto
+      // (antispam) registrado em rateLimits/{uid} no mesmo lote.
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.id == oppId
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.get('isHidden', false) == false
+        && !request.resource.data.keys().hasAny(['hiddenReason'])
+        && validOpportunityData(request.resource.data)
+        && getAfter(rateLimitPath()).data.lastOpportunityAt == request.time
+        && (!exists(rateLimitPath()) || get(rateLimitPath()).data.lastOpportunityAt < request.time - duration.value(60, 's'));
+
+      allow update: if isAdmin()
+        || (
+          isAuthenticated() && isNotBlocked()
+          && resource.data.ownerId == uid()
+          && request.resource.data.ownerId == uid()
+          && !changedKeys().hasAny(['id', 'ownerId', 'createdAt', 'isHidden', 'hiddenReason'])
+          && validOwnerTransition(resource.data.status, request.resource.data.status)
+          && validOpportunityData(request.resource.data)
+        );
+
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == uid() && resource.data.status == 'draft');
+
+      // Histórico de alterações importantes (somente acréscimo).
+      match /history/{entryId} {
+        allow read: if isAdmin() || (isAuthenticated() && get(opportunityPath(oppId)).data.ownerId == uid());
+        // getAfter: permite gravar o histórico no mesmo lote que cria a oportunidade.
+        allow create: if isAuthenticated()
+          && request.resource.data.actorId == uid()
+          && (isAdmin() || getAfter(opportunityPath(oppId)).data.ownerId == uid())
+          && request.resource.data.keys().hasOnly(['id', 'actorId', 'action', 'fromStatus', 'toStatus', 'note', 'at']);
+        allow update, delete: if false;
+      }
+
+      // Candidaturas: ID do documento = UID do candidato (uma por pessoa).
+      match /applications/{applicantId} {
+        allow read: if isAuthenticated() && (
+          uid() == applicantId ||
+          get(opportunityPath(oppId)).data.ownerId == uid() ||
+          isAdmin()
+        );
+
+        allow create: if isAuthenticated() && isNotBlocked()
+          && uid() == applicantId
+          && request.resource.data.applicantId == uid()
+          && request.resource.data.opportunityId == oppId
+          && request.resource.data.status == 'interested'
+          && request.resource.data.keys().hasOnly(['id', 'opportunityId', 'opportunityTitle', 'opportunityOwnerId',
+                'applicantId', 'applicantName', 'applicantContact', 'message', 'status', 'createdAt', 'updatedAt'])
+          && isShortString(request.resource.data.get('message', ''), 1000)
+          && isShortString(request.resource.data.get('applicantContact', ''), 200)
+          && isShortString(request.resource.data.applicantName, 120)
+          && get(opportunityPath(oppId)).data.ownerId != uid()
+          && request.resource.data.opportunityOwnerId == get(opportunityPath(oppId)).data.ownerId
+          && isPubliclyVisible(get(opportunityPath(oppId)).data);
+
+        allow update: if isAdmin()
+          // Candidato pode desistir ou retomar o interesse (se a oportunidade segue aberta).
+          || (
+            isAuthenticated() && uid() == applicantId
+            && changedKeys().hasOnly(['status', 'updatedAt', 'message', 'applicantContact'])
+            && isShortString(request.resource.data.get('message', ''), 1000)
+            && isShortString(request.resource.data.get('applicantContact', ''), 200)
+            && (
+              request.resource.data.status == 'withdrawn' ||
+              (resource.data.status == 'withdrawn' && request.resource.data.status == 'interested'
+                && isPubliclyVisible(get(opportunityPath(oppId)).data))
+            )
+          )
+          // Anunciante conduz o processo de seleção/contato.
+          || (
+            isAuthenticated() && get(opportunityPath(oppId)).data.ownerId == uid()
+            && changedKeys().hasOnly(['status', 'updatedAt'])
+            && request.resource.data.status in ['interested', 'contacted', 'selected', 'declined']
+            && resource.data.status != 'withdrawn'
+          );
+
+        allow delete: if isAdmin();
+      }
+    }
+
+    // "Minhas candidaturas" (consulta em grupo de coleções).
+    match /{path=**}/applications/{applicantId} {
+      allow read: if isAuthenticated() && (resource.data.applicantId == uid() || isAdmin());
+    }
+
+    // Antispam: horário da última publicação de cada usuário.
+    match /rateLimits/{userId} {
+      allow read: if isAuthenticated() && uid() == userId;
+      allow create, update: if isAuthenticated() && uid() == userId
+        && request.resource.data.keys().hasOnly(['lastOpportunityAt'])
+        && request.resource.data.lastOpportunityAt == request.time;
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // Denúncias e moderação
+    // ===============================================================
+
+    match /reports/{reportId} {
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.reporterId == uid()
+        && request.resource.data.status == 'open'
+        && request.resource.data.targetType in ['opportunity', 'business', 'review']
+        && isShortString(request.resource.data.targetId, 128)
+        && isShortString(request.resource.data.reason, 120)
+        && isShortString(request.resource.data.get('details', ''), 1000)
+        && request.resource.data.keys().hasOnly(['id', 'targetType', 'targetId', 'targetTitle', 'reporterId',
+              'reason', 'details', 'status', 'createdAt']);
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.reporterId == uid());
+      allow update, delete: if isAdmin();
     }
   }
 }

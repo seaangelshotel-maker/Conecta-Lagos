@@ -1,0 +1,14 @@
+import React from 'react';
+export const Area = (p) => React.createElement('div', { 'data-chart': 'Area' }, p.children);
+export const AreaChart = (p) => React.createElement('div', { 'data-chart': 'AreaChart' }, p.children);
+export const Bar = (p) => React.createElement('div', { 'data-chart': 'Bar' }, p.children);
+export const BarChart = (p) => React.createElement('div', { 'data-chart': 'BarChart' }, p.children);
+export const CartesianGrid = (p) => React.createElement('div', { 'data-chart': 'CartesianGrid' }, p.children);
+export const Cell = (p) => React.createElement('div', { 'data-chart': 'Cell' }, p.children);
+export const Legend = (p) => React.createElement('div', { 'data-chart': 'Legend' }, p.children);
+export const Pie = (p) => React.createElement('div', { 'data-chart': 'Pie' }, p.children);
+export const PieChart = (p) => React.createElement('div', { 'data-chart': 'PieChart' }, p.children);
+export const ResponsiveContainer = (p) => React.createElement('div', { 'data-chart': 'ResponsiveContainer' }, p.children);
+export const Tooltip = (p) => React.createElement('div', { 'data-chart': 'Tooltip' }, p.children);
+export const XAxis = (p) => React.createElement('div', { 'data-chart': 'XAxis' }, p.children);
+export const YAxis = (p) => React.createElement('div', { 'data-chart': 'YAxis' }, p.children);

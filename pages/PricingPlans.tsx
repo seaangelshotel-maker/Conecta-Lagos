@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
-import { getPricingPlans, updateUser, getBusinesses, updateBusinessPlan, getAllUsers, getPaymentSettings, getGlobalSettings } from '../services/dataService';
+import { getPricingPlans, getGlobalSettings } from '../services/dataService';
 import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 
@@ -39,18 +39,20 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         setLoading(true);
         try {
             const settings = await getGlobalSettings();
-            const whatsapp = settings.salesWhatsapp || '5522998765432';
+            const whatsapp = (settings.salesWhatsapp || '').replace(/\D/g, '');
+            if (!whatsapp) {
+                notify('warning', 'O contato comercial ainda não foi configurado. Tente novamente mais tarde.');
+                setLoading(false);
+                return;
+            }
             
-            const message = `Olá! Tenho interesse no Plano ${plan.name} (${isTrial ? 'Período de Teste' : 'Assinatura'}) do Konecta Rio para minha empresa. Meu e-mail de cadastro é: ${currentUser.email}`;
+            const message = `Olá! Tenho interesse no Plano ${plan.name} (${isTrial ? 'Período de Teste' : 'Assinatura'}) do Lagos GO para minha empresa. Meu e-mail de cadastro é: ${currentUser.email}`;
             const encodedMessage = encodeURIComponent(message);
             const whatsappUrl = `https://wa.me/${whatsapp}?text=${encodedMessage}`;
             
-            // Simular um pequeno delay para feedback visual
-            setTimeout(() => {
-                window.open(whatsappUrl, '_blank');
-                setLoading(false);
-                notify('success', 'Redirecionando para o consultor no WhatsApp...');
-            }, 800);
+            window.open(whatsappUrl, '_blank', 'noopener');
+            setLoading(false);
+            notify('success', 'Abrindo conversa com a equipe no WhatsApp...');
             
         } catch (error) {
             console.error("WhatsApp Redirect Error:", error);
@@ -63,8 +65,13 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         setLoading(true);
         try {
             const settings = await getGlobalSettings();
-            const whatsapp = settings.salesWhatsapp || '5522998765432';
-            const message = `Olá! Vi o Konecta Rio e gostaria de falar com um consultor sobre um plano personalizado para minha empresa.`;
+            const whatsapp = (settings.salesWhatsapp || '').replace(/\D/g, '');
+            if (!whatsapp) {
+                notify('warning', 'O contato comercial ainda não foi configurado. Tente novamente mais tarde.');
+                setLoading(false);
+                return;
+            }
+            const message = `Olá! Vi o Lagos GO e gostaria de falar com um consultor sobre um plano personalizado para minha empresa.`;
             const whatsappUrl = `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
         } catch (e) {
@@ -90,7 +97,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                         Planos de Crescimento
                     </div>
                     <h1 className="text-6xl font-black text-ocean-950 tracking-tight leading-[0.9]">Escolha o plano ideal para o seu negócio</h1>
-                    <p className="text-slate-500 font-medium text-xl leading-relaxed">Impulsione sua visibilidade no Konecta Rio e alcance milhares de novos clientes todos os dias com ferramentas profissionais.</p>
+                    <p className="text-slate-500 font-medium text-xl leading-relaxed">Impulsione sua visibilidade no Lagos GO e alcance milhares de novos clientes todos os dias com ferramentas profissionais.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">

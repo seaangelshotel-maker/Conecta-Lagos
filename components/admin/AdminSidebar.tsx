@@ -4,7 +4,7 @@ import {
   Plus, Ticket, Store, Star, 
   Settings, BarChart3, Users,
   Utensils, MapPin, Layers, Zap,
-  PenTool, ShoppingBag, CreditCard, QrCode, HardDrive
+  PenTool, ShoppingBag, CreditCard, QrCode, HardDrive, ShieldAlert, Network
 } from 'lucide-react';
 import { User, UserRole } from '../../types';
 
@@ -93,6 +93,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'BLOG_POSTS' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
           >
             <PenTool size={16} className="md:w-[18px] md:h-[18px]" /> FEED DE DICAS
+          </button>
+          <button
+            onClick={() => setView('MODERATION')}
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'MODERATION' ? 'bg-red-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-red-600 shadow-sm'}`}
+          >
+            <ShieldAlert size={16} className="md:w-[18px] md:h-[18px]" /> MODERAÇÃO
+          </button>
+          <button 
+            onClick={() => setView('ECOSYSTEM')} 
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'ECOSYSTEM' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
+          >
+            <Network size={16} className="md:w-[18px] md:h-[18px]" /> ECOSSISTEMA
           </button>
           <button 
             onClick={() => setView('PAYMENT_SETTINGS')} 

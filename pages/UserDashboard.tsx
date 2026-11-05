@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 // Fix: Removed non-existent export 'sendSupportMessage' from dataService
 import { getCoupons, getBusinesses, getBusinessById, updateUser, logout, redeemCoupon, changeCurrentUserPassword } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
+import { ParticipationHub } from '../components/ParticipationHub';
 import { CouponModal } from '../components/CouponModal';
 import { ImageUpload } from '../components/ImageUpload';
 import { useNotification } from '../components/NotificationSystem';
@@ -44,7 +45,7 @@ const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose
                         </div>
                         <div className="pt-4 border-t border-slate-200">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Código de Validação</p>
-                            <p className="text-3xl font-mono font-black text-ocean-600 tracking-[0.2em]">{record.code || '------'}</p>
+                            <p className="text-3xl font-mono font-black text-ocean-600 tracking-[0.2em]">{record.verificationCode || record.code || '------'}</p>
                         </div>
                     </div>
 
@@ -112,7 +113,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
       e.preventDefault();
       setIsSavingSettings(true);
       try {
-          const updatedUser = { ...currentUser, name: editName, surname: editSurname, email: editEmail };
+          const updatedUser = { ...currentUser, name: editName.trim(), surname: editSurname.trim() };
           await updateUser(updatedUser);
           
           if (editPassword) {
@@ -232,66 +233,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                   </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentUser.role === UserRole.SUPER_ADMIN && (
-                  <button 
-                    onClick={() => onNavigate('admin-dashboard')}
-                    className="bg-ocean-950 text-white p-6 rounded-[2rem] flex items-center justify-between group hover:bg-black transition-all"
-                  >
-                      <div className="flex items-center gap-4">
-                          <div className="bg-white/10 p-3 rounded-2xl"><ShieldCheck size={24} className="text-ocean-400" /></div>
-                          <div className="text-left">
-                              <p className="text-xs font-black text-ocean-400 uppercase">Área Master</p>
-                              <h3 className="font-bold">Dashboard Super Admin</h3>
-                          </div>
-                      </div>
-                      <ChevronRight className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-              )}
-              {currentUser.role === UserRole.COMPANY && (
-                  <button 
-                    onClick={() => onNavigate('admin-dashboard')}
-                    className="bg-white border border-slate-100 p-6 rounded-[2rem] flex items-center justify-between group hover:border-ocean-300 transition-all shadow-sm"
-                  >
-                      <div className="flex items-center gap-4">
-                          <div className="bg-ocean-100 p-3 rounded-2xl"><Zap size={24} className="text-ocean-600" /></div>
-                          <div className="text-left">
-                              <p className="text-xs font-black text-ocean-400 uppercase">Gestão da Empresa</p>
-                              <h3 className="font-bold text-ocean-950">Dashboard do Parceiro</h3>
-                          </div>
-                      </div>
-                      <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
-                  </button>
-              )}
-              {currentUser.role === UserRole.COMPANY && (
-                  <button 
-                    onClick={() => onNavigate('pricing-plans')}
-                    className="bg-gradient-to-tr from-gold-500 to-gold-400 text-white p-6 rounded-[2rem] flex items-center justify-between group hover:from-gold-600 hover:to-gold-500 transition-all shadow-md"
-                  >
-                      <div className="flex items-center gap-4">
-                          <div className="bg-white/20 p-3 rounded-2xl"><Star size={24} className="text-white" /></div>
-                          <div className="text-left">
-                              <p className="text-xs font-black text-gold-100 uppercase">Evolua seu negócio</p>
-                              <h3 className="font-bold">Ver Planos do Konecta Rio</h3>
-                          </div>
-                      </div>
-                      <ChevronRight className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-              )}
-          </div>
         </div>
       )}
 
+      {/* Centro da conta: uma identidade, várias formas de participar */}
+      <ParticipationHub currentUser={currentUser} onNavigate={onNavigate} />
+
       {/* TABS & REST OF CONTENT */}
-      {currentUser.role === UserRole.COMPANY ? (
-          <div className="text-center py-10">
-              <h2 className="text-xl font-bold text-ocean-950">Gerencie sua Empresa</h2>
-              <p className="text-slate-500 mb-4">Acesse o painel de controle para gerenciar seus cupons e informações.</p>
-              <button onClick={() => onNavigate('admin-dashboard')} className="bg-ocean-600 text-white px-6 py-3 rounded-xl font-bold">
-                  Acessar Painel da Empresa
-              </button>
-          </div>
-      ) : (
+      {(
         <>
           <div className="flex p-1 bg-slate-200/50 rounded-xl md:rounded-2xl mb-6 md:mb-8">
               <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2.5 md:py-4 text-[10px] md:text-sm font-black uppercase tracking-widest rounded-lg md:rounded-xl transition-all ${activeTab === 'overview' ? 'bg-white shadow-sm text-ocean-600' : 'text-slate-500'}`}>Visão Geral</button>
@@ -305,7 +254,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                       <div className="relative z-10">
                         <p className="text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 md:mb-2">Passaporte de Economia</p>
                         <h2 className="text-4xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">R$ {savedAmount.toFixed(2)}</h2>
-                        <p className="text-xs md:text-base text-slate-300 font-medium">Total economizado no Konecta Rio.</p>
+                        <p className="text-xs md:text-base text-slate-300 font-medium">Total economizado no Lagos GO.</p>
                       </div>
                       <div className="absolute -right-20 -bottom-20 w-64 h-64 md:w-96 md:h-96 bg-ocean-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                   </div>
@@ -474,7 +423,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
       {/* MODALS */}
       {selectedReceipt && <CouponReceiptModal record={selectedReceipt} onClose={() => setSelectedReceipt(null)} />}
-      {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => await redeemCoupon(currentUser.id, c)} isRedeemed={false} />}
+      {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={(c) => redeemCoupon(currentUser.id, c)} isRedeemed={false} />}
 
       {editAvatar && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
@@ -584,10 +533,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                               <input 
                                   type="email" 
                                   value={editEmail} 
-                                  onChange={e => setEditEmail(e.target.value)} 
-                                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-ocean-500/20 outline-none"
-                                  required
+                                  readOnly
+                                  aria-readonly="true"
+                                  className="w-full p-3 bg-slate-100 border border-slate-100 rounded-xl text-slate-500 outline-none"
                               />
+                              <p className="text-[11px] text-slate-400 mt-1">Para trocar o e-mail de acesso, fale com o suporte.</p>
                           </div>
                           <div>
                               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nova Senha (opcional)</label>

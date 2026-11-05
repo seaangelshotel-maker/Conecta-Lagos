@@ -1170,7 +1170,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                       <Translate
                         text={
                           business.description ||
-                          "Dica exclusiva Konecta de entretenimento e turismo, agende já a sua viagem."
+                          "Dica exclusiva Lagos GO de entretenimento e turismo, agende já a sua viagem."
                         }
                       />
                     </p>

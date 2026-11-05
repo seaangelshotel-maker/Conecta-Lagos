@@ -5,6 +5,8 @@ import { getCollectionById, getBusinessById, checkIfOpen, getCoupons } from '../
 import { ArrowLeft, Star, Heart, Clock, ShoppingBag, Ticket } from 'lucide-react';
 import { toggleFavorite, getCurrentUser } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
+import { recordInteraction } from '../services/interactionService';
+import { getNavigationSource } from '../services/navigation';
 
 interface CollectionDetailProps {
   collectionId: string;
@@ -22,6 +24,7 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId
   useEffect(() => {
     const fetchData = async () => {
       const col = await getCollectionById(collectionId);
+      if (col) recordInteraction('collection_view', col.id, { source: getNavigationSource() });
       if (col) {
           setCollection(col);
           const ids = col.businessIds || [];

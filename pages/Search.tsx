@@ -144,7 +144,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
         onNavigate('login');
         return;
     }
-    return await redeemCoupon(currentUser.id, coupon);
+    return redeemCoupon(currentUser.id, coupon);
   };
 
   return (

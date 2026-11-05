@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build",
+    "build:node": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "typecheck": "tsc --noEmit -p .",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test:rules": "firebase emulators:exec --only firestore --project lagosgo-rules-test \"node --import tsx --test tests/rules/*.spec.ts\"",
+    "test:e2e": "node tests/e2e/build.mjs && node tests/e2e/tw.mjs && python3 tests/e2e/prepare-html.py && python3 tests/e2e/e2e.py && python3 tests/e2e/e2e_existing.py"
   },
   "dependencies": {
     "@google/genai": "*",

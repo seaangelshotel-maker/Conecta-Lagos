@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Home, Ticket, User, Gem, Compass, BookOpen, ShieldCheck, PenTool } from 'lucide-react';
+import { Home, Ticket, User, Compass, BookOpen, HandHeart } from 'lucide-react';
 import { User as UserType, UserRole, AppConfig } from '../types';
 import { getAppConfig, getCoupons } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
@@ -54,69 +54,63 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
       setNewCouponsCount(0);
   };
 
-  const navItemClass = (page: string) => {
-    const isActive = currentPage === page;
-    const baseClass = "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors py-1 relative";
-    return `${baseClass} ${isActive ? 'text-ocean-600 font-medium' : 'text-slate-400 hover:text-slate-600'}`;
-  };
+  const isActive = (pages: string[]) => pages.includes(currentPage);
+  const tabClass = (pages: string[]) =>
+    `flex flex-col items-center justify-center w-full h-full gap-1 transition-colors relative active:scale-95 ${isActive(pages) ? 'text-ocean-600' : 'text-slate-400'}`;
 
+  // Barra de abas fixa no celular (estilo app). O "Perfil" é o ponto central da conta:
+  // dele saem o painel da empresa, o painel de administração e o de jornalista.
   const MobileNav = () => (
-    <div className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-100 flex justify-around items-center px-1 z-50 md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
-      
-      <button onClick={() => onNavigate('home')} className={navItemClass('home')}>
-        <Home size={20} fill={currentPage === 'home' ? "currentColor" : "none"} />
-        <span className="text-[9px]">{t('Início')}</span>
+    <nav
+      className="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-100 grid grid-cols-6 px-1 z-50 md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.03)]"
+      style={{ height: 'calc(4rem + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      aria-label="Navegação principal"
+    >
+      <button onClick={() => onNavigate('home')} className={tabClass(['home'])} aria-current={isActive(['home']) ? 'page' : undefined}>
+        <Home size={22} fill={currentPage === 'home' ? "currentColor" : "none"} />
+        <span className="text-[10px] font-bold">{t('Início')}</span>
       </button>
- 
-      <button onClick={() => onNavigate('guide')} className={navItemClass('guide')}>
-        <Compass size={20} />
-        <span className="text-[9px]">{t('Guia')}</span>
+
+      <button onClick={() => onNavigate('guide')} className={tabClass(['guide', 'collections', 'map'])} aria-current={isActive(['guide']) ? 'page' : undefined}>
+        <Compass size={22} />
+        <span className="text-[10px] font-bold">{t('Guia')}</span>
       </button>
- 
-      <button onClick={handleNavigateToSearch} className={navItemClass('search')}>
-        <div className="relative">
-            <Ticket size={20} />
+
+      <button onClick={handleNavigateToSearch} className={tabClass(['search'])} aria-current={isActive(['search']) ? 'page' : undefined}>
+        <span className="relative">
+            <Ticket size={22} />
             {newCouponsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm animate-pulse border border-white">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold h-4 min-w-4 px-1 flex items-center justify-center rounded-full shadow-sm border border-white">
                     {newCouponsCount > 9 ? '9+' : newCouponsCount}
                 </span>
             )}
-        </div>
-        <span className="text-[9px]">{t('Cupons')}</span>
+        </span>
+        <span className="text-[10px] font-bold">{t('Cupons')}</span>
       </button>
- 
-      <button onClick={() => onNavigate('blog')} className={navItemClass('blog')}>
-        <BookOpen size={20} />
-        <span className="text-[9px]">{t('Feed')}</span>
+
+      <button onClick={() => onNavigate('blog')} className={tabClass(['blog', 'blog-detail', 'journalist-profile'])} aria-current={isActive(['blog']) ? 'page' : undefined}>
+        <BookOpen size={22} />
+        <span className="text-[10px] font-bold">{t('Feed')}</span>
       </button>
- 
-      {currentUser?.role === UserRole.SUPER_ADMIN ? (
-          <button onClick={() => onNavigate('admin-dashboard')} className={navItemClass('admin-dashboard')}>
-            <ShieldCheck size={20} />
-            <span className="text-[9px]">{t('Admin')}</span>
-          </button>
-      ) : currentUser?.role === UserRole.COMPANY ? (
-          <button onClick={() => onNavigate('admin-dashboard')} className={navItemClass('admin-dashboard')}>
-            <Gem size={20} />
-            <span className="text-[9px]">{t('Empresa')}</span>
-          </button>
-      ) : currentUser?.role === UserRole.JOURNALIST ? (
-          <button onClick={() => onNavigate('journalist-dashboard')} className={navItemClass('journalist-dashboard')}>
-            <PenTool size={20} />
-            <span className="text-[9px]">{t('Jornalista')}</span>
-          </button>
-      ) : (
-          <button onClick={() => onNavigate('user-dashboard')} className={navItemClass('user-dashboard')}>
-            {currentUser?.avatarUrl ? (
-                <img src={currentUser.avatarUrl} className="w-5 h-5 rounded-full border border-slate-200" alt="Me" />
-            ) : (
-                <User size={20} />
-            )}
-            <span className="text-[9px]">{currentUser ? t('Perfil') : t('Entrar')}</span>
-          </button>
-      )}
- 
-    </div>
+
+      <button onClick={() => onNavigate('opportunities')} className={tabClass(['opportunities', 'opportunity-detail', 'opportunity-form', 'my-opportunities', 'opportunity-manage'])} aria-current={isActive(['opportunities']) ? 'page' : undefined}>
+        <HandHeart size={22} />
+        <span className="text-[10px] font-bold">{t('Ajuda')}</span>
+      </button>
+
+      <button
+        onClick={() => onNavigate(currentUser ? 'user-dashboard' : 'login')}
+        className={tabClass(['user-dashboard', 'admin-dashboard', 'journalist-dashboard'])}
+        aria-current={isActive(['user-dashboard']) ? 'page' : undefined}
+      >
+        {currentUser?.avatarUrl ? (
+            <img src={currentUser.avatarUrl} className="w-[22px] h-[22px] rounded-full border border-slate-200 object-cover" alt="" />
+        ) : (
+            <User size={22} />
+        )}
+        <span className="text-[10px] font-bold">{currentUser ? t('Perfil') : t('Entrar')}</span>
+      </button>
+    </nav>
   );
  
   const DesktopNav = () => (
@@ -142,7 +136,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         </span>
       </div>
       
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-6 lg:gap-8">
         <button onClick={() => onNavigate('home')} className={`font-medium hover:text-gold-500 ${currentPage === 'home' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Início')}</button>
         <button onClick={() => onNavigate('guide')} className={`font-medium hover:text-gold-500 ${currentPage === 'guide' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Guia')}</button>
         <button onClick={handleNavigateToSearch} className={`font-medium hover:text-gold-500 relative ${currentPage === 'search' ? 'text-ocean-950' : 'text-slate-500'}`}>
@@ -153,6 +147,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
                 </span>
             )}
         </button>
+        <button onClick={() => onNavigate('opportunities')} className={`font-medium hover:text-gold-500 ${currentPage.startsWith('opportunit') || currentPage === 'my-opportunities' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Ajuda Colaborativa')}</button>
         <button onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${currentPage === 'blog' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Feed & Dicas')}</button>
         
         <button 
@@ -163,15 +158,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         </button>
         
         {currentUser ? (
-             <button onClick={() => {
-                 if (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) {
-                     onNavigate('admin-dashboard');
-                 } else if (currentUser.role === UserRole.JOURNALIST) {
-                     onNavigate('journalist-dashboard');
-                 } else {
-                     onNavigate('user-dashboard');
-                 }
-             }} className="flex items-center gap-2 text-ocean-600 font-bold border border-ocean-100 bg-ocean-50 px-4 py-1.5 rounded-full hover:bg-ocean-100">
+             <button onClick={() => onNavigate('user-dashboard')} className="flex items-center gap-2 text-ocean-600 font-bold border border-ocean-100 bg-ocean-50 px-4 py-1.5 rounded-full hover:bg-ocean-100">
                 <User size={18} />
                 <span>{t('Perfil')}</span>
              </button>

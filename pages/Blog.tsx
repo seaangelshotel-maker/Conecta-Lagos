@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { BlogPost, User, AppCategory, BlogAd } from "../types";
+import { BlogPost, PublicProfile, AppCategory, BlogAd } from "../types";
 import {
   getBlogPosts,
-  getAllUsers,
+  getPublicProfiles,
   getDicasCategories,
   getBlogAds,
 } from "../services/dataService";
@@ -63,7 +63,7 @@ const DEFAULT_ADS: BlogAd[] = [
 
 export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<PublicProfile[]>([]);
   const [categories, setCategories] = useState<AppCategory[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,8 +89,8 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
             console.error("Error fetching blog posts:", err);
             return [];
           }),
-          getAllUsers().catch((err) => {
-            console.error("Error fetching users:", err);
+          getPublicProfiles().catch((err) => {
+            console.error("Error fetching author profiles:", err);
             return [];
           }),
           getDicasCategories().catch((err) => {
@@ -166,30 +166,9 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   // Helper to find author
   const getAuthor = (authorId?: string) => {
     let found = users.find((u) => u.id === authorId);
-    if (!found) {
-      // Find by email lookup
-      const realYuri = users.find(
-        (u) => (u.email || "").toLowerCase() === "contato.yuriguida@gmail.com",
-      );
-      if (realYuri && (authorId === "yuri_guida" || authorId === realYuri.id)) {
-        found = realYuri;
-      }
-    }
-    if (
-      !found &&
-      (authorId === "yuri_guida" || authorId?.toLowerCase() === "yuri guida")
-    ) {
-      found = {
-        id: "yuri_guida",
-        name: "Yuri Guida",
-        email: "contato.yuriguida@gmail.com",
-        role: "JOURNALIST",
-        avatarUrl:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
-        profession: "Editor-Chefe / Konecta Rio Feed",
-        bio: "Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.",
-        instagram: "yuriguida",
-      } as any;
+    // Posts antigos do Yuri foram gravados com o autor "yuri_guida": localiza o perfil público pelo nome.
+    if (!found && (authorId === "yuri_guida" || authorId?.toLowerCase() === "yuri guida")) {
+      found = users.find((u) => (u.name || "").trim().toLowerCase() === "yuri guida");
     }
     return found;
   };
@@ -296,7 +275,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       <div className="px-4 mb-8 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-            Konecta Rio Feed
+            Lagos GO Feed
           </h2>
           <p className="text-xs text-slate-500 font-medium">
             Informação premium, agenda local e os melhores roteiros.
@@ -579,7 +558,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                               {post.author}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium">
-                              {author?.profession || "Membro do Konecta Rio"}
+                              {author?.profession || "Membro do Lagos GO"}
                             </span>
                           </div>
                         </div>

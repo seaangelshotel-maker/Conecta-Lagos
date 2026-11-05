@@ -1,14 +1,7 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
+import { generateText } from "./aiClient";
 import { BusinessProfile } from "../types";
-
-function getAI() {
-  const apiKey = process.env.GEMINI_API_KEY_PESQU || process.env.GEMINI_API_KEY || process.env.API_KEY;
-  if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    throw new Error("Chave de API (GEMINI_API_KEY_PESQU) não encontrada. Por favor, configure-a no menu Settings.");
-  }
-  return new GoogleGenAI({ apiKey });
-}
 
 export interface AgentStep {
   role: string;
@@ -29,7 +22,7 @@ export const INITIAL_STEPS: AgentStep[] = [
 ];
 
 const SYSTEM_PROMPTS = {
-  researcher: `Você é o Pesquisador-Chefe do KONECTA RIO. 
+  researcher: `Você é o Pesquisador-Chefe do LAGOS GO. 
 Sua missão é fornecer informações REAIS, VIBRANTES e COMPLETAS sobre locais na Região dos Lagos.
 REGRAS DE OURO:
 1. RESPEITE A CIDADE: Se o Comandante pediu [Cidade], você NUNCA deve sugerir nada em outra cidade.
@@ -77,16 +70,11 @@ REGRAS INEGOCIÁVEIS:
 };
 
 export async function runAgentStep(role: string, input: string, context?: string, feedback?: string, manualApiKey?: string): Promise<string> {
-  const apiKey = manualApiKey || process.env.GEMINI_API_KEY_PESQU || process.env.GEMINI_API_KEY || process.env.API_KEY;
-  if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    throw new Error("Chave de API não configurada.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview"; 
   
   const prompt = `
 CONTEXTO DO PROJETO:
-Você trabalha para o "KONECTA RIO", o maior guia turístico da Região dos Lagos (RJ). 
+Você trabalha para o "LAGOS GO", o maior guia turístico da Região dos Lagos (RJ). 
 Sua missão é criar postagens com QUALIDADE DE REVISTA, RIQUEZA DE DADOS e OTIMIZAÇÃO SEO.
 
 Instrução do seu Papel:
@@ -104,11 +92,11 @@ Responda com foco em PESQUISA PROFUNDA e COPYWRITING DE ALTO NÍVEL. Não aceite
 `;
 
   try {
-    const response = await ai.models.generateContent({
+    const text = await generateText({
       model,
       contents: [{ role: 'user', parts: [{ text: prompt }] }]
-    });
-    return response.text || "Erro no processamento do agente.";
+    }, manualApiKey);
+    return text || "Erro no processamento do agente.";
   } catch (error) {
     console.error(`AI Agent Error (${role}):`, error);
     throw error;
@@ -116,14 +104,9 @@ Responda com foco em PESQUISA PROFUNDA e COPYWRITING DE ALTO NÍVEL. Não aceite
 }
 
 export async function finalizeLocation(finalContent: string, quantity: number = 1, manualApiKey?: string): Promise<Partial<BusinessProfile>[]> {
-  const apiKey = manualApiKey || process.env.GEMINI_API_KEY_PESQU || process.env.GEMINI_API_KEY || process.env.API_KEY;
-  if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    throw new Error("Chave de API não configurada.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview"; 
   
-  const response = await ai.models.generateContent({
+  const responseText = await generateText({
     model,
     config: {
       responseMimeType: "application/json",
@@ -183,10 +166,10 @@ export async function finalizeLocation(finalContent: string, quantity: number = 
     - category: Uma destas: Gastronomia, Hospedagem, Passeios, Entretenimento, Comércio, Serviços.
     
     IMPORTANTE: Retorne APENAS o JSON puro em um array [{}, {}].` }] }]
-  });
+  }, manualApiKey);
 
   try {
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(responseText || "[]");
   } catch (e) {
     console.error("Erro ao converter JSON final da IA:", e);
     return [];

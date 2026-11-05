@@ -13,3 +13,10 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// PWA: instala o service worker só no build de produção (em desenvolvimento ele atrapalharia o recarregamento).
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('Service worker não registrado:', err));
+  });
+}

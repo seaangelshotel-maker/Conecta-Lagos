@@ -135,8 +135,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.9840,
         lng: -42.0224,
         coverImage: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=80&w=1200',
-        rating: 5.0,
-        reviewCount: 1540,
         canBeClaimed: false
       },
       {
@@ -149,8 +147,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -23.0034,
         lng: -42.0008,
         coverImage: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&q=80&w=1200',
-        rating: 5.0,
-        reviewCount: 890,
         canBeClaimed: false
       },
       {
@@ -164,8 +160,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.9697,
         lng: -42.0125,
         coverImage: 'https://images.unsplash.com/photo-1544274483-3652def6d4f9?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.9,
-        reviewCount: 2100,
         canBeClaimed: false
       },
       {
@@ -179,8 +173,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.9715,
         lng: -42.0220,
         coverImage: 'https://images.unsplash.com/photo-1548543604-a87c9909abec?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.7,
-        reviewCount: 320,
         canBeClaimed: false
       },
 
@@ -194,8 +186,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.9721,
         lng: -42.0298,
         coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.8,
-        reviewCount: 3200,
         canBeClaimed: false
       },
       {
@@ -208,8 +198,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.9613,
         lng: -42.0223,
         coverImage: 'https://images.unsplash.com/photo-1544274483-3652def6d4f9?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.6,
-        reviewCount: 2850,
         canBeClaimed: false
       },
       {
@@ -221,8 +209,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9640,
         lng: -42.0190,
-        rating: 4.9,
-        reviewCount: 412,
         canBeClaimed: false
       },
       {
@@ -235,8 +221,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         neighborhoodId: nhAnjos.id,
         lat: -22.9715,
         lng: -42.0125,
-        rating: 4.5,
-        reviewCount: 1540,
         canBeClaimed: false
       },
       {
@@ -267,8 +251,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         },
         phone: '(22) 2622-2000',
         instagram: '@caminhodosolarraial',
-        rating: 4.8,
-        reviewCount: 3125,
         canBeClaimed: true,
         plan: 'premium',
         isFeatured: true
@@ -285,8 +267,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.8872,
         lng: -42.0055,
         coverImage: 'https://images.unsplash.com/photo-1564507592333-c60657eaa0ae?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.8,
-        reviewCount: 4500,
         canBeClaimed: false
       },
       {
@@ -300,8 +280,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.8797,
         lng: -42.0125,
         coverImage: 'https://images.unsplash.com/photo-1578307336481-3fd080447043?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.9,
-        reviewCount: 1200,
         canBeClaimed: false
       },
       {
@@ -315,8 +293,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.8712,
         lng: -41.9950,
         coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.8,
-        reviewCount: 3400,
         canBeClaimed: false
       },
       {
@@ -330,8 +306,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.8750,
         lng: -42.0180,
         coverImage: 'https://images.unsplash.com/photo-1583209814613-5124f999d115?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.6,
-        reviewCount: 2800,
         canBeClaimed: false
       },
       {
@@ -363,8 +337,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         },
         phone: '(22) 2643-3000',
         instagram: '@paradisocorporate',
-        rating: 4.9,
-        reviewCount: 4522,
         canBeClaimed: true,
         plan: 'premium',
         isFeatured: true
@@ -380,8 +352,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         lat: -22.8810,
         lng: -42.0150,
         coverImage: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=1200',
-        rating: 4.7,
-        reviewCount: 1560,
         canBeClaimed: false
       },
 
@@ -395,8 +365,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9550,
         lng: -42.0310,
-        rating: 4.6,
-        reviewCount: 1850,
         canBeClaimed: false
       },
       {
@@ -408,8 +376,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9860,
         lng: -42.0150,
-        rating: 4.7,
-        reviewCount: 950,
         canBeClaimed: false
       },
       {
@@ -421,8 +387,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9810,
         lng: -42.0285,
-        rating: 4.9,
-        reviewCount: 3820,
         canBeClaimed: false
       },
       {
@@ -434,8 +398,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -23.0035,
         lng: -42.0000,
-        rating: 4.9,
-        reviewCount: 2950,
         canBeClaimed: false
       },
       {
@@ -447,8 +409,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -23.0062,
         lng: -42.0010,
-        rating: 4.8,
-        reviewCount: 1750,
         canBeClaimed: false
       },
       {
@@ -460,8 +420,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -23.0080,
         lng: -42.0040,
-        rating: 4.7,
-        reviewCount: 1040,
         canBeClaimed: false
       },
       {
@@ -473,8 +431,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9555,
         lng: -42.0250,
-        rating: 4.5,
-        reviewCount: 610,
         canBeClaimed: false
       },
       {
@@ -487,8 +443,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         neighborhoodId: nhAnjos.id,
         lat: -22.9710,
         lng: -42.0135,
-        rating: 4.6,
-        reviewCount: 1420,
         canBeClaimed: false
       },
       {
@@ -501,8 +455,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         neighborhoodId: nhAnjos.id,
         lat: -22.9705,
         lng: -42.0145,
-        rating: 4.7,
-        reviewCount: 2200,
         canBeClaimed: false
       },
       {
@@ -514,8 +466,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: arraial.id,
         lat: -22.9660,
         lng: -42.0160,
-        rating: 4.6,
-        reviewCount: 540,
         canBeClaimed: false
       },
 
@@ -529,8 +479,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8830,
         lng: -42.0180,
-        rating: 4.7,
-        reviewCount: 4100,
         canBeClaimed: false
       },
       {
@@ -542,8 +490,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8860,
         lng: -42.0110,
-        rating: 4.9,
-        reviewCount: 3950,
         canBeClaimed: false
       },
       {
@@ -555,8 +501,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8870,
         lng: -41.9960,
-        rating: 4.8,
-        reviewCount: 5200,
         canBeClaimed: false
       },
       {
@@ -568,8 +512,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8680,
         lng: -41.9830,
-        rating: 4.7,
-        reviewCount: 6850,
         canBeClaimed: false
       },
       {
@@ -581,8 +523,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8600,
         lng: -41.9860,
-        rating: 4.8,
-        reviewCount: 8200,
         canBeClaimed: false
       },
       {
@@ -594,8 +534,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.9230,
         lng: -42.0250,
-        rating: 4.5,
-        reviewCount: 1600,
         canBeClaimed: false
       },
       {
@@ -607,8 +545,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.9050,
         lng: -42.0280,
-        rating: 4.6,
-        reviewCount: 2200,
         canBeClaimed: false
       },
       {
@@ -620,8 +556,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8790,
         lng: -42.0220,
-        rating: 4.8,
-        reviewCount: 1800,
         canBeClaimed: false
       },
       {
@@ -633,8 +567,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8795,
         lng: -42.0225,
-        rating: 4.7,
-        reviewCount: 1350,
         canBeClaimed: false
       },
       {
@@ -646,8 +578,6 @@ export const seedTouristSpots = async (notify: (type: 'success' | 'error', msg: 
         cityId: caboFrio.id,
         lat: -22.8835,
         lng: -42.0160,
-        rating: 4.8,
-        reviewCount: 2011,
         canBeClaimed: false
       }
     ];

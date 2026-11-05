@@ -1,0 +1,42 @@
+# Publica uma PRÉ-VISUALIZAÇÃO na Vercel a cada push no branch lagos-go-evolucao.
+# Nunca publica em produção. Requer o segredo VERCEL_TOKEN no repositório.
+name: Vercel preview (lagos-go-evolucao)
+
+on:
+  push:
+    branches: [lagos-go-evolucao]
+  workflow_dispatch:
+
+env:
+  VERCEL_ORG_ID: team_81AbrAwCqBdTipjJxWsZXU7f
+  VERCEL_PROJECT_ID: prj_beLCxJp66AkO46tS4oxcNSR4lZ2a
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar token
+        id: token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "VERCEL_TOKEN não cadastrado — nada a publicar."; echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+      - name: Testes de regras de negócio
+        run: npm test
+      - name: Build de produção (Vite)
+        run: npm run build
+      - name: Publicar pré-visualização na Vercel
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          npx --yes vercel@latest pull --yes --environment=preview --token="${{ secrets.VERCEL_TOKEN }}"
+          npx --yes vercel@latest build --token="${{ secrets.VERCEL_TOKEN }}"
+          url=$(npx --yes vercel@latest deploy --prebuilt --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "Pré-visualização: $url" | tee -a "$GITHUB_STEP_SUMMARY"

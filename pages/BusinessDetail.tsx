@@ -10,6 +10,7 @@ import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
 import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
+import { getNavigationSource } from '../services/navigation';
 import { CouponModal } from '../components/CouponModal';
 import { useNotification } from '../components/NotificationSystem';
 import { useLanguage, Translate } from '../hooks/useLanguage';
@@ -84,13 +85,12 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 getCoupons()
             ]);
             
-            const busPlan = allPlans.find(p => p.name === busData.plan);
+            // O plano pode estar gravado pelo ID (admin/webhook) ou pelo nome (dados antigos).
+            const busPlan = allPlans.find(p => p.id === busData.plan || p.name === busData.plan);
             setPlan(isSubscriptionExpired(busData) ? undefined : busPlan);
 
-            incrementBusinessView(businessId);
+            incrementBusinessView(businessId, getNavigationSource());
             setIsOpen(checkIfOpen(busData.openingHours, busData.category));
-            const isFromSearch = document.referrer.includes('/search') || document.referrer.includes('?q=');
-            trackAction(businessId, isFromSearch ? 'visit_search' : 'visit_direct');
 
             setCoupons(allCoupons.filter(c => c.companyId === businessId && c.active));
             const user = getCurrentUser();
@@ -120,7 +120,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 getCoupons()
             ]);
             
-            const busPlan = allPlans.find(p => p.name === busData.plan);
+            const busPlan = allPlans.find(p => p.id === busData.plan || p.name === busData.plan);
             setPlan(isSubscriptionExpired(busData) ? undefined : busPlan);
             setIsOpen(checkIfOpen(busData.openingHours, busData.category));
             setCoupons(allCoupons.filter(c => c.companyId === businessId && c.active));
@@ -146,11 +146,18 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIndex, business?.gallery]);
 
-  const handleAction = (type: 'menu' | 'social' | 'map' | 'share' | 'phone' | 'website' | 'delivery' | 'booking') => {
+  const handleAction = (type: 'menu' | 'social' | 'map' | 'share' | 'phone' | 'website' | 'delivery' | 'booking' | 'whatsapp') => {
       if (!business) return;
-      trackAction(businessId, type as any);
+      trackAction(businessId, type, getNavigationSource());
       
       switch(type) {
+          case 'whatsapp': {
+              const digits = (business.whatsapp || '').replace(/\D/g, '');
+              const number = digits.length <= 11 ? `55${digits}` : digits;
+              const text = encodeURIComponent(`Olá! Encontrei a ${business.name} na Lagos GO.`);
+              if (digits) window.open(`https://wa.me/${number}?text=${text}`, '_blank', 'noopener');
+              break;
+          }
           case 'menu': setShowMenuOverlay(true); break;
           case 'social': if(business.instagram) window.open(`https://instagram.com/${business.instagram.replace('@', '')}`, '_blank'); break;
           case 'phone': if(business.phone) window.open(`tel:${business.phone}`, '_self'); break;
@@ -186,7 +193,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                   </div>
                   <div className="space-y-2">
                       <h2 className="text-3xl font-black text-ocean-950">Empresa não encontrada</h2>
-                      <p className="text-slate-500 font-medium">O perfil que você está procurando não existe ou foi removido do Konecta Rio.</p>
+                      <p className="text-slate-500 font-medium">O perfil que você está procurando não existe ou foi removido do Lagos GO.</p>
                   </div>
                   <button onClick={() => onNavigate('home')} className="w-full bg-ocean-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-ocean-200 hover:bg-ocean-700 transition-all flex items-center justify-center gap-2">
                       <ArrowLeft size={20} /> VOLTAR AO INÍCIO
@@ -214,7 +221,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                       </p>
                       <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
                           <p className="text-amber-800 text-sm font-bold">
-                              Em breve ela estará disponível no Guia Konecta Rio!
+                              Em breve ela estará disponível no Guia Lagos GO!
                           </p>
                       </div>
                   </div>
@@ -282,6 +289,13 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             {/* RÉGUA DE BOTÕES DINÂMICA */}
             <div className="overflow-x-auto hide-scrollbar -mx-6 px-6">
                 <div className="flex gap-4 min-w-max pb-2">
+                    {business.whatsapp && (
+                        <button onClick={() => handleAction('whatsapp')} className="flex flex-col items-center gap-2 group" aria-label="Conversar no WhatsApp">
+                            <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition-all"><MessageCircle size={24}/></div>
+                            <span className="text-[9px] font-black uppercase text-emerald-600">WhatsApp</span>
+                        </button>
+                    )}
+
                     {business.phone && (
                         <button onClick={() => handleAction('phone')} className="flex flex-col items-center gap-2 group">
                             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-ocean-600 shadow-md border border-slate-50 group-active:scale-95 transition-all"><Phone size={24}/></div>
@@ -565,7 +579,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             </div>
         )}
 
-        {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={async (c) => await redeemCoupon(currentUser?.id || '', c)} isRedeemed={false} />}
+        {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={(c) => redeemCoupon(currentUser?.id || '', c)} isRedeemed={false} />}
 
         {/* LIGHTBOX GALERIA */}
         {lightboxIndex !== null && business.gallery && (

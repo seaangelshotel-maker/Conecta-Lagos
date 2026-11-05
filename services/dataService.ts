@@ -12,6 +12,7 @@ import {
     increment,
     onSnapshot,
     arrayUnion,
+    arrayRemove,
     limit,
     orderBy,
     startAfter,
@@ -26,18 +27,18 @@ import {
     signInWithPopup,
     sendPasswordResetEmail,
     updatePassword,
-    signInAnonymously
+    // (login anônimo removido: resgate exige conta)
 } from 'firebase/auth';
 import { auth, db } from './firebase';
-import { 
-    Coupon, User, UserRole, BusinessProfile, BlogPost, SavingsRecord, 
-    CompanyRequest, AppCategory, Subcategory, DEFAULT_CATEGORIES, 
-    DEFAULT_AMENITIES, AppConfig, Collection, PricingPlan, HomeHighlight, City, Neighborhood, Review, PaymentSettings, AppAmenity, BlogAd
+import {
+    Coupon, User, UserRole, BusinessProfile, BlogPost, SavingsRecord,
+    CompanyRequest, AppCategory, Subcategory, DEFAULT_CATEGORIES,
+    DEFAULT_AMENITIES, AppConfig, Collection, PricingPlan, HomeHighlight, City, Neighborhood, Review, PaymentSettings, AppAmenity,
+    PublicProfile, InteractionType, AppGlobalSettings, BlogAd
 } from '../types';
+import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
 
-export interface AppGlobalSettings {
-    salesWhatsapp: string;
-}
+export type { AppGlobalSettings };
 
 const SESSION_KEY = 'lagos_go_session_v1';
 
@@ -58,9 +59,16 @@ let _blogAds: BlogAd[] = [];
 let _autoSeeded = false;
 let _seedingPromise: Promise<void> | null = null;
 
+/** Gravações de dados iniciais (seed) só podem partir de um administrador logado. */
+const canSeed = () => getCurrentUser()?.role === UserRole.SUPER_ADMIN;
+
 export const ensureAutoSeed = async () => {
     if (_autoSeeded) return;
-    if (_seedingPromise) return _seedingPromise;
+    // Visitantes não gravam nada no banco: o seed automático roda só para o administrador.
+    if (!canSeed()) return;
+    // Já em andamento: não espera (o próprio seed chama funções que passam por aqui,
+    // e esperar o mesmo processo travava o painel para sempre).
+    if (_seedingPromise) return;
 
     _seedingPromise = (async () => {
         try {
@@ -76,14 +84,10 @@ export const ensureAutoSeed = async () => {
             _autoSeeded = true;
         } catch (e) {
             console.warn('[Auto-seed] Check or seeding failed:', e);
+        } finally {
+            _seedingPromise = null;
         }
     })();
-
-    try {
-        await _seedingPromise;
-    } finally {
-        _seedingPromise = null;
-    }
 };
 
 enum OperationType {
@@ -144,7 +148,7 @@ const _appConfig: AppConfig = { appName: 'LAGOS', appNameHighlight: 'GO' };
 // --- READ MONITORING (PROMPT 5) ---
 let _totalReads = 0;
 const trackRead = (collectionName: string, count: number, source: string) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
         _totalReads += count;
         console.log(`%c[FIRESTORE READ] %c${collectionName} %c(${count} docs) %cfrom: ${source} %cTotal: ${_totalReads}`, 
             'color: #ff9800; font-weight: bold', 
@@ -163,67 +167,12 @@ const notifyListeners = () => {
     }
 };
 
-export const ensureCorrectRole = async (userData: User): Promise<User> => {
-    const emailLower = (userData.email || '').toLowerCase();
-    let changed = false;
-    const updates: any = {};
-    
-    if (emailLower === 'sea.angelshotel@gmail.com' || emailLower === 'admin@lagosgo.org' || emailLower === 'admin@conectario.com') {
-        if (userData.role !== UserRole.SUPER_ADMIN) {
-            userData.role = UserRole.SUPER_ADMIN;
-            updates.role = UserRole.SUPER_ADMIN;
-            changed = true;
-        }
-    } else if (emailLower === 'contato.yuriguida@gmail.com') {
-        if (userData.role !== UserRole.JOURNALIST) {
-            userData.role = UserRole.JOURNALIST;
-            updates.role = UserRole.JOURNALIST;
-            changed = true;
-        }
-        if (userData.manualPassword !== '123456') {
-            userData.manualPassword = '123456';
-            updates.manualPassword = '123456';
-            changed = true;
-        }
-        // Prefill nice default journalist profile details for Yuri if blank
-        if (!userData.bio) {
-            userData.bio = 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.';
-            updates.bio = userData.bio;
-            changed = true;
-        }
-        if (!userData.profession) {
-            userData.profession = 'Editor-Chefe / Konecta Rio Feed';
-            updates.profession = userData.profession;
-            changed = true;
-        }
-        if (!userData.instagram) {
-            userData.instagram = 'yuriguida';
-            updates.instagram = userData.instagram;
-            changed = true;
-        }
-        if (!userData.avatarUrl) {
-            userData.avatarUrl = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80';
-            updates.avatarUrl = userData.avatarUrl;
-            changed = true;
-        }
-    }
-    
-    // Fix for yurirmg@gmail.com who was accidentally made SUPER_ADMIN
-    if (emailLower === 'yurirmg@gmail.com' && userData.role === UserRole.SUPER_ADMIN) {
-        userData.role = UserRole.COMPANY;
-        updates.role = UserRole.COMPANY;
-        changed = true;
-    }
-
-    if (changed && Object.keys(updates).length > 0) {
-        try {
-            await updateDoc(doc(db, 'users', userData.id), updates);
-        } catch (e) {
-            console.error("Error updating user role in Firestore:", e);
-        }
-    }
-    return userData;
-};
+/**
+ * 🔒 Antes este helper mudava papéis pelo navegador (e fixava a senha "123456" para
+ * uma conta). Papel, plano e permissões agora só mudam pelo administrador e as regras
+ * do Firestore barram qualquer outra tentativa. Mantido para não quebrar chamadas.
+ */
+export const ensureCorrectRole = async (userData: User): Promise<User> => userData;
 
 let _isAuthInitialized = false;
 
@@ -408,76 +357,14 @@ export const initFirebaseData = () => {
 
 initFirebaseData();
 
+/**
+ * 🔒 Login exclusivamente pelo Firebase Authentication.
+ * Não existem senhas mestras nem senhas gravadas no banco: quem esquecer a senha
+ * usa a redefinição por e-mail (resetUserPassword).
+ */
 export const login = async (email: string, pass: string): Promise<User | null> => {
-    // 1. Try to find in local cache first
-    let foundUser = _users.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
-    
-    // 2. If not in cache, try to fetch from Firestore by email
-    if (!foundUser) {
-        try {
-            const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-                const docSnap = snap.docs[0];
-                foundUser = { id: docSnap.id, ...docSnap.data() } as User;
-                // Add to cache
-                _users.push(foundUser);
-            }
-        } catch (e) {
-            console.warn("Error fetching user during login:", e);
-        }
-    }
-
-    // Auto-create Yuri Guida if missing completely (first boot/seeding safeguard)
-    if (!foundUser && email.toLowerCase() === 'contato.yuriguida@gmail.com') {
-        const newUid = 'yuri_guida';
-        foundUser = {
-            id: newUid,
-            name: 'Yuri Guida',
-            email: email.toLowerCase(),
-            role: UserRole.JOURNALIST,
-            favorites: { coupons: [], businesses: [] },
-            history: [],
-            savedAmount: 0,
-            manualPassword: '123456',
-            avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-            profession: 'Editor-Chefe / Konecta Rio Feed',
-            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
-            instagram: 'yuriguida'
-        };
-        try {
-            await setDoc(doc(db, 'users', newUid), cleanObject(foundUser));
-            _users.push(foundUser);
-        } catch (e) {
-            console.error("Error auto-creating default journalist:", e);
-        }
-    }
-
-    if (foundUser) {
-        if (foundUser.isBlocked) throw new Error("Sua conta está inativa. Entre em contato com o suporte.");
-
-        // Check password matching manualPassword directly (robust sandbox fallback)
-        const isMasterYuri = foundUser.email?.toLowerCase() === 'contato.yuriguida@gmail.com';
-        const isCorrectManual = foundUser.manualPassword === pass || (isMasterYuri && pass === '123456');
-
-        if (isCorrectManual) {
-            // Persist the custom password to Firestore if out of sync
-            if (foundUser.manualPassword !== pass) {
-                foundUser.manualPassword = pass;
-                await updateDoc(doc(db, 'users', foundUser.id), { manualPassword: pass });
-            }
-            
-            // Enforce role integrity
-            foundUser = await ensureCorrectRole(foundUser);
-            
-            localStorage.setItem(SESSION_KEY, JSON.stringify(foundUser));
-            notifyListeners();
-            return foundUser;
-        }
-    }
-
     try {
-        const res = await signInWithEmailAndPassword(auth, email, pass);
+        const res = await signInWithEmailAndPassword(auth, email.trim(), pass);
         const userDoc = await getDoc(doc(db, 'users', res.user.uid));
         if (userDoc.exists()) {
             let userData = { id: userDoc.id, ...userDoc.data() } as User;
@@ -491,13 +378,40 @@ export const login = async (email: string, pass: string): Promise<User | null> =
             notifyListeners();
             return userData;
         }
+        // Conta de autenticação sem perfil (ex.: cadastro interrompido): cria o perfil básico.
+        const created = await createBaseProfile(res.user.uid, res.user.displayName || email.split('@')[0], res.user.email || email, undefined, res.user.emailVerified);
+        localStorage.setItem(SESSION_KEY, JSON.stringify(created));
+        notifyListeners();
+        return created;
     } catch (error: any) {
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        if (['auth/wrong-password', 'auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-email'].includes(error.code)) {
             return null;
         }
         throw error;
     }
-    return null;
+};
+
+const ADMIN_BOOTSTRAP_EMAILS = ['sea.angelshotel@gmail.com', 'admin@lagosgo.org'];
+
+/** Cria o documento de perfil de um novo usuário com o papel padrão (CUSTOMER). */
+const createBaseProfile = async (uid: string, name: string, email: string, avatarUrl?: string, emailVerified = false): Promise<User> => {
+    const isAdminEmail = emailVerified && ADMIN_BOOTSTRAP_EMAILS.includes(email.toLowerCase());
+    const newUser: User = {
+        id: uid,
+        name: name || 'Usuário',
+        email,
+        role: isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER,
+        favorites: { coupons: [], businesses: [] },
+        history: [],
+        savedAmount: 0,
+        avatarUrl
+    };
+    try {
+        await setDoc(doc(db, 'users', uid), cleanObject(newUser));
+    } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, `users/${uid}`);
+    }
+    return newUser;
 };
 
 export const loginWithGoogle = async (): Promise<User | null> => {
@@ -513,32 +427,14 @@ export const loginWithGoogle = async (): Promise<User | null> => {
             await auth.signOut();
             throw new Error("Sua conta está inativa. Entre em contato com o suporte.");
         }
-        // Enforce role and state constraints via unified helper
-        userData = await ensureCorrectRole(userData);
     } else {
-        const email = (res.user.email || '').toLowerCase();
-        const isAdminEmail = email === 'admin@lagosgo.org' || email === 'sea.angelshotel@gmail.com' || email === 'admin@conectario.com';
-        let role = isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
-        if (email === 'contato.yuriguida@gmail.com') {
-            role = UserRole.JOURNALIST;
-        }
-
-        userData = {
-            id: res.user.uid,
-            name: res.user.displayName || 'Usuário',
-            email: res.user.email || '',
-            role,
-            favorites: { coupons: [], businesses: [] },
-            history: [],
-            savedAmount: 0,
-            avatarUrl: res.user.photoURL || undefined
-        };
-        try {
-            await setDoc(doc(db, 'users', userData.id), cleanObject(userData));
-            userData = await ensureCorrectRole(userData);
-        } catch (error) {
-            handleFirestoreError(error, OperationType.WRITE, `users/${userData.id}`);
-        }
+        userData = await createBaseProfile(
+            res.user.uid,
+            res.user.displayName || 'Usuário',
+            res.user.email || '',
+            res.user.photoURL || undefined,
+            res.user.emailVerified
+        );
     }
     localStorage.setItem(SESSION_KEY, JSON.stringify(userData));
     notifyListeners();
@@ -557,9 +453,13 @@ export const changeCurrentUserPassword = async (newPassword: string) => {
     }
 };
 
-export const setManualPassword = async (userId: string, password: string) => {
-    await updateDoc(doc(db, 'users', userId), { manualPassword: password });
-    notifyListeners();
+/**
+ * Substitui o antigo "definir senha manual" (que gravava senhas em texto puro).
+ * O administrador agora dispara o e-mail oficial de redefinição de senha do Firebase.
+ */
+export const sendPasswordResetForUser = async (email: string) => {
+    if (!email) throw new Error("Este usuário não possui e-mail cadastrado.");
+    await sendPasswordResetEmail(auth, email);
 };
 
 export const logout = async () => {
@@ -579,7 +479,8 @@ export const getBusinesses = async (forceRefresh = false) => {
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
     }
     
-    await ensureAutoSeed();
+    // Seed em segundo plano: nunca segura o carregamento da tela.
+    void ensureAutoSeed();
 
     return _businesses.filter(b => !b.status || b.status === 'approved');
 };
@@ -593,7 +494,8 @@ export const getAllBusinesses = async (includePending = false) => {
         _allBusinessesLoaded = true;
     }
     
-    await ensureAutoSeed();
+    // Seed em segundo plano: nunca segura o carregamento da tela.
+    void ensureAutoSeed();
 
     if (includePending) return _businesses;
     return _businesses.filter(b => !b.status || b.status === 'approved');
@@ -617,7 +519,8 @@ export const getBusinessesPaginated = async (
         _allBusinessesLoaded = true;
     }
 
-    await ensureAutoSeed();
+    // Seed em segundo plano: nunca segura o carregamento da tela.
+    void ensureAutoSeed();
 
     // Filter in memory
     let filtered = _businesses.filter(b => {
@@ -1234,13 +1137,16 @@ export const getBlogPosts = async () => {
     let seededNew = false;
     for (const post of DEFAULT_POSTS) {
         if (!_posts.find(p => p.id === post.id)) {
-            try {
-                await setDoc(doc(db, 'blog_posts', post.id), cleanObject(post), { merge: true });
-                _posts.push(post);
-                seededNew = true;
-            } catch (seedErr) {
-                console.warn(`Could not seed post ${post.id}:`, seedErr);
+            // Visitantes só exibem o post padrão; quem grava no banco é o administrador.
+            if (canSeed()) {
+                try {
+                    await setDoc(doc(db, 'blog_posts', post.id), cleanObject(post), { merge: true });
+                } catch (seedErr) {
+                    console.warn(`Could not seed post ${post.id}:`, seedErr);
+                }
             }
+            _posts.push(post);
+            seededNew = true;
         }
     }
     
@@ -1248,10 +1154,8 @@ export const getBlogPosts = async () => {
         _posts.sort((a, b) => b.date.localeCompare(a.date));
     }
 
-    // Dynamic creator mapping: Let Yuri Guida have absolute ownership over ALL posts!
-    const usersSnap = await getAllUsers();
-    const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-    const yuriId = realYuri?.id || 'yuri_guida';
+    // Todos os posts do Feed são exibidos com o Yuri Guida como autor.
+    const yuriId = await resolveYuriAuthorId();
     _posts = _posts.map(post => {
         return { 
             ...post, 
@@ -1263,51 +1167,87 @@ export const getBlogPosts = async () => {
     return _posts;
 };
 
+/** 🔒 Somente administradores: lista completa de usuários (contém dados pessoais). */
 export const getAllUsers = async () => {
+    const current = getCurrentUser();
+    if (!current || current.role !== UserRole.SUPER_ADMIN) {
+        return [] as User[];
+    }
     const snap = await getDocs(collection(db, 'users'));
     let usersList = snap.docs.map(d => ({ id: d.id, ...d.data() } as User));
 
-    // De-duplicate and cleanse Yuri Guida accounts to prevent 'yuri_guida' vs 'real-google-uid' conflicts
+    // Remove da lista o perfil provisório "yuri_guida" quando a conta real do Yuri já existe.
     const yuriUsers = usersList.filter(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-    
-    if (yuriUsers.length > 1) {
-        const realYuri = yuriUsers.find(u => u.id !== 'yuri_guida');
-        if (realYuri) {
-            // Drop old seed fallback from memory list
-            usersList = usersList.filter(u => u.id !== 'yuri_guida');
-            // Permanently clear 'yuri_guida' duplicate placeholder document in Firestore
-            try {
-                await deleteDoc(doc(db, 'users', 'yuri_guida'));
-            } catch (e) {
-                // Ignore silent delete/permission limits
-            }
-        }
-    } else if (yuriUsers.length === 0) {
-        // Safe auto-seed of the default Yuri journalist profile for guests to view him before he logs in
-        const fallbackYuri: User = {
-            id: 'yuri_guida',
-            name: 'Yuri Guida',
-            email: 'contato.yuriguida@gmail.com',
-            role: UserRole.JOURNALIST,
-            favorites: { coupons: [], businesses: [] },
-            history: [],
-            savedAmount: 0,
-            manualPassword: '123456',
-            avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-            profession: 'Editor-Chefe / Konecta Rio Feed',
-            bio: 'Yuri Guida é o idealizador e produtor de conteúdo oficial do Konecta Rio, trazendo dicas locais quentes e roteiros testados de ponta a ponta na Região dos Lagos.',
-            instagram: 'yuriguida'
-        };
-        usersList.push(fallbackYuri);
-        try {
-            await setDoc(doc(db, 'users', 'yuri_guida'), cleanObject(fallbackYuri));
-        } catch (e) {
-            console.warn("Could not seed default yuri_guida account:", e);
-        }
+    if (yuriUsers.length > 1 && yuriUsers.some(u => u.id !== 'yuri_guida')) {
+        usersList = usersList.filter(u => u.id !== 'yuri_guida');
     }
 
     _users = usersList;
     return _users;
+};
+
+// --- PERFIS PÚBLICOS (sem e-mail/telefone) ---
+let _publicProfiles: PublicProfile[] = [];
+let _publicProfilesLoaded = false;
+
+export const getPublicProfiles = async (forceRefresh = false): Promise<PublicProfile[]> => {
+    if (!_publicProfilesLoaded || forceRefresh) {
+        try {
+            const snap = await getDocs(collection(db, 'public_profiles'));
+            _publicProfiles = snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicProfile));
+            _publicProfilesLoaded = true;
+        } catch (e) {
+            console.warn('Não foi possível carregar perfis públicos:', e);
+        }
+    }
+    return _publicProfiles;
+};
+
+export const getPublicProfileById = async (id: string): Promise<PublicProfile | undefined> => {
+    const cached = _publicProfiles.find(p => p.id === id);
+    if (cached) return cached;
+    const snap = await getDoc(doc(db, 'public_profiles', id));
+    if (snap.exists()) {
+        const profile = { id: snap.id, ...snap.data() } as PublicProfile;
+        _publicProfiles.push(profile);
+        return profile;
+    }
+    return undefined;
+};
+
+const toPublicProfile = (u: User): PublicProfile => cleanObject({
+    id: u.id,
+    name: [u.name, u.surname].filter(Boolean).join(' ') || 'Usuário',
+    avatarUrl: u.avatarUrl,
+    bio: u.bio,
+    profession: u.profession,
+    instagram: u.instagram,
+    website: u.website,
+    location: u.location,
+    specialties: u.specialties,
+    achievements: u.achievements,
+    role: u.role,
+    updatedAt: new Date().toISOString()
+});
+
+/** Publica/atualiza o perfil público do próprio usuário (jornalistas e autores). */
+export const syncMyPublicProfile = async (u: User) => {
+    await setDoc(doc(db, 'public_profiles', u.id), toPublicProfile(u));
+    _publicProfiles = [..._publicProfiles.filter(p => p.id !== u.id), toPublicProfile(u)];
+};
+
+/**
+ * Admin: gera os perfis públicos de jornalistas/criadores existentes (dados legados),
+ * sem alterar nem apagar os documentos de usuários.
+ */
+export const backfillPublicProfiles = async (): Promise<number> => {
+    const users = await getAllUsers();
+    const authors = users.filter(u => u.role === UserRole.JOURNALIST || u.role === UserRole.CONTENT_CREATOR || u.role === UserRole.SUPER_ADMIN);
+    for (const u of authors) {
+        await setDoc(doc(db, 'public_profiles', u.id), toPublicProfile(u));
+    }
+    await getPublicProfiles(true);
+    return authors.length;
 };
 
 export const getCompanyRequests = async () => {
@@ -1321,16 +1261,60 @@ export const getPendingReviews = async () => {
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as Review));
 };
 
+/** Campos de empresa que só administradores alteram (espelha firestore.rules). */
+export const BUSINESS_PROTECTED_KEYS = [
+    'isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
+    'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
+    'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
+    'isClaimed', 'canBeClaimed', 'active', 'id'
+];
+
+const isCurrentUserAdmin = () => getCurrentUser()?.role === UserRole.SUPER_ADMIN;
+
+/** O usuário atual é dono desta empresa? (legado: ID == UID; atual: ownerId) */
+export const isOwnerOfBusiness = (b: Partial<BusinessProfile> | null | undefined, userId?: string) => {
+    if (!b || !userId) return false;
+    return b.id === userId || b.ownerId === userId;
+};
+
 export const saveBusiness = async (b: BusinessProfile) => {
     try {
-        await setDoc(doc(db, 'businesses', b.id), cleanObject(b), { merge: true }); 
-        
+        const ref = doc(db, 'businesses', b.id);
+        if (isCurrentUserAdmin()) {
+            await setDoc(ref, cleanObject(b), { merge: true });
+        } else {
+            const existing = await getDoc(ref);
+            if (existing.exists()) {
+                // Dono só envia campos editáveis; os protegidos ficam como estão no banco.
+                const editable: any = {};
+                Object.keys(b).forEach(k => {
+                    if (!BUSINESS_PROTECTED_KEYS.includes(k)) editable[k] = (b as any)[k];
+                });
+                editable.updatedAt = new Date().toISOString();
+                await setDoc(ref, cleanObject(editable), { merge: true });
+            } else {
+                const user = getCurrentUser();
+                const creation: any = { ...b };
+                ['isFeatured', 'planId', 'paymentCustomerId', 'paymentSubscriptionStatus', 'paymentSubscriptionId',
+                 'subscriptionEndsAt', 'reviews', 'actionCounts', 'views', 'shares', 'rating', 'reviewCount'].forEach(k => delete creation[k]);
+                creation.ownerId = user?.id;
+                creation.status = 'PENDING';
+                creation.isBlocked = false;
+                if (!creation.plan) delete creation.plan;
+                else if (creation.plan !== 'free' && creation.plan !== user?.plan) creation.plan = 'free';
+                creation.createdAt = creation.createdAt || new Date().toISOString();
+                await setDoc(ref, cleanObject(creation));
+            }
+        }
+
         // Update cache
+        const fresh = await getDoc(ref);
+        const merged = fresh.exists() ? ({ id: fresh.id, ...fresh.data() } as BusinessProfile) : b;
         const index = _businesses.findIndex(biz => biz.id === b.id);
         if (index !== -1) {
-            _businesses[index] = { ..._businesses[index], ...b };
+            _businesses[index] = merged;
         } else {
-            _businesses.push(b);
+            _businesses.push(merged);
         }
         notifyListeners();
     } catch (error) {
@@ -1338,21 +1322,46 @@ export const saveBusiness = async (b: BusinessProfile) => {
     }
 };
 
+/** Empresas do usuário (legado: ID == UID; atual: ownerId). */
+export const getMyBusinesses = async (userId: string): Promise<BusinessProfile[]> => {
+    const results: BusinessProfile[] = [];
+    const legacy = await getDoc(doc(db, 'businesses', userId));
+    if (legacy.exists()) results.push({ id: legacy.id, ...legacy.data() } as BusinessProfile);
+    try {
+        const owned = await getDocs(query(collection(db, 'businesses'), where('ownerId', '==', userId)));
+        owned.docs.forEach(d => {
+            if (!results.find(r => r.id === d.id)) results.push({ id: d.id, ...d.data() } as BusinessProfile);
+        });
+    } catch (e) {
+        console.warn('Erro ao buscar empresas do usuário:', e);
+    }
+    return results;
+};
+
+/**
+ * Bloqueia/desbloqueia somente a empresa. A conta da pessoa continua ativa
+ * (ela pode ser moradora, turista ou anunciante de oportunidades).
+ * Para bloquear a pessoa, use setUserBlocked.
+ */
 export const toggleBusinessStatus = async (businessId: string, isBlocked: boolean) => {
     await updateDoc(doc(db, 'businesses', businessId), { isBlocked });
-    // Also block the associated user if they exist (id matches)
-    const userDoc = await getDoc(doc(db, 'users', businessId));
-    if (userDoc.exists()) {
-        await updateDoc(doc(db, 'users', businessId), { isBlocked });
-    }
+    const idx = _businesses.findIndex(b => b.id === businessId);
+    if (idx >= 0) _businesses[idx] = { ..._businesses[idx], isBlocked };
     notifyListeners();
 };
 
+export const setUserBlocked = async (userId: string, isBlocked: boolean) => {
+    await updateDoc(doc(db, 'users', userId), { isBlocked });
+    notifyListeners();
+};
+
+/**
+ * Exclui a empresa e seus cupons. A conta de usuário do dono NÃO é apagada
+ * (antes era, o que fazia a pessoa perder histórico, favoritos e acesso).
+ */
 export const deleteBusiness = async (businessId: string) => {
     try {
         await deleteDoc(doc(db, 'businesses', businessId));
-        // Also delete the associated user
-        await deleteDoc(doc(db, 'users', businessId));
         // Delete their coupons
         const couponsQuery = query(collection(db, 'coupons'), where('companyId', '==', businessId));
         const couponsSnap = await getDocs(couponsQuery);
@@ -1379,20 +1388,73 @@ export const getCurrentUser = (): User | null => {
     return stored ? JSON.parse(stored) : null;
 };
 
+/** Campos que o próprio usuário pode alterar (espelha firestore.rules). */
+export const USER_SELF_EDITABLE_KEYS = [
+    'name', 'surname', 'avatarUrl', 'phone', 'bio', 'profession', 'instagram', 'website',
+    'location', 'specialties', 'achievements', 'favorites', 'profileTypes', 'cityId',
+    'companyName', 'category'
+];
+
+/**
+ * Atualiza um usuário.
+ * - Admin: grava o documento completo (papel, permissões, bloqueio...).
+ * - Próprio usuário: grava somente os campos de perfil; papel/plano/permissões
+ *   nunca saem do navegador (as regras do Firestore também bloqueiam).
+ */
 export const updateUser = async (user: User) => {
+    const current = getCurrentUser();
     try {
-        await setDoc(doc(db, 'users', user.id), cleanObject(user), { merge: true });
-        
-        // Only update localStorage if we are updating the currently logged-in user
-        const current = getCurrentUser();
-        if (current && current.id === user.id) {
-            localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+        if (current?.role === UserRole.SUPER_ADMIN) {
+            const { manualPassword, ...rest } = user as any;
+            await setDoc(doc(db, 'users', user.id), cleanObject(rest), { merge: true });
+        } else if (current && current.id === user.id) {
+            const editable: any = {};
+            USER_SELF_EDITABLE_KEYS.forEach(k => {
+                if ((user as any)[k] !== undefined) editable[k] = (user as any)[k];
+            });
+            await setDoc(doc(db, 'users', user.id), cleanObject(editable), { merge: true });
+        } else {
+            throw new Error('Sem permissão para alterar este usuário.');
         }
-        
+
+        if (current && current.id === user.id) {
+            // Mantém a sessão local com os dados confirmados no banco.
+            const fresh = await getDoc(doc(db, 'users', user.id));
+            const synced = fresh.exists() ? ({ id: fresh.id, ...fresh.data() } as User) : user;
+            localStorage.setItem(SESSION_KEY, JSON.stringify(synced));
+            if (synced.role === UserRole.JOURNALIST || synced.role === UserRole.CONTENT_CREATOR) {
+                syncMyPublicProfile(synced).catch(e => console.warn('Perfil público não atualizado:', e));
+            }
+        }
+
         notifyListeners();
     } catch (error) {
         handleFirestoreError(error, OperationType.WRITE, `users/${user.id}`);
     }
+};
+
+/**
+ * Depois de cadastrar a própria empresa, o usuário passa a ter o papel COMPANY
+ * (libera o painel da empresa). Única mudança de papel que o próprio usuário faz;
+ * as regras exigem que a empresa já exista.
+ */
+export const promoteSelfToCompany = async () => {
+    const current = getCurrentUser();
+    if (!current || current.role !== UserRole.CUSTOMER) return;
+    await updateDoc(doc(db, 'users', current.id), { role: UserRole.COMPANY });
+    await refreshCurrentUser();
+};
+
+/** Relê o perfil do usuário logado no banco (papel/plano podem ter sido alterados por um admin). */
+export const refreshCurrentUser = async (): Promise<User | null> => {
+    const fbUser = auth.currentUser;
+    if (!fbUser) return getCurrentUser();
+    const snap = await getDoc(doc(db, 'users', fbUser.uid));
+    if (!snap.exists()) return getCurrentUser();
+    const u = { id: snap.id, ...snap.data() } as User;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(u));
+    notifyListeners();
+    return u;
 };
 
 export const getCategories = async (forceRefresh = false) => {
@@ -1404,12 +1466,22 @@ export const getCategories = async (forceRefresh = false) => {
 };
 
 export const addReview = async (businessId: string, review: Omit<Review, 'id' | 'date'>) => {
-    const business = _businesses.find(b => b.id === businessId);
-    if (!business) throw new Error('Business not found');
+    const business = _businesses.find(b => b.id === businessId) || await getBusinessById(businessId);
+    if (!business) throw new Error('Empresa não encontrada.');
+    const user = getCurrentUser();
+    if (!user) throw new Error('Entre na sua conta para avaliar.');
+
+    const rating = Math.round(Number(review.rating));
+    if (!(rating >= 1 && rating <= 5)) throw new Error('Escolha uma nota de 1 a 5.');
+    const comment = (review.comment || '').trim();
+    if (comment.length > 2000) throw new Error('O comentário pode ter no máximo 2000 caracteres.');
 
     const newReviewId = doc(collection(db, 'reviews')).id;
     const newReview: Review = {
         ...review,
+        rating,
+        comment,
+        userId: user.id,
         id: newReviewId,
         date: new Date().toISOString(),
         status: 'pending',
@@ -1422,53 +1494,42 @@ export const addReview = async (businessId: string, review: Omit<Review, 'id' | 
     return newReview;
 };
 
-export const getReviewsByBusinessId = async (businessId: string) => {
+/**
+ * Avaliações aprovadas de uma empresa, lidas do Firestore.
+ * (Antes lia um cache que nunca era preenchido, então nenhuma avaliação aparecia.)
+ */
+export const getReviewsByBusinessId = async (businessId: string): Promise<Review[]> => {
     try {
-        const snap = await getDocs(query(collection(db, 'reviews'), where('businessId', '==', businessId), where('status', '==', 'approved')));
-        const fetchedReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
-        fetchedReviews.forEach(fr => {
-            const index = _reviews.findIndex(r => r.id === fr.id);
-            if (index === -1) _reviews.push(fr);
-            else _reviews[index] = fr;
-        });
-        return fetchedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    } catch (e) {
-        console.error("Error fetching reviews:", e);
-        return _reviews.filter(r => r.businessId === businessId && r.status === 'approved')
+        const snap = await getDocs(query(
+            collection(db, 'reviews'),
+            where('businessId', '==', businessId),
+            where('status', '==', 'approved')
+        ));
+        return snap.docs
+            .map(d => ({ id: d.id, ...d.data() } as Review))
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch (e) {
+        console.warn('Erro ao carregar avaliações:', e);
+        return [];
     }
 };
 
+const fetchReview = async (reviewId: string): Promise<Review> => {
+    const snap = await getDoc(doc(db, 'reviews', reviewId));
+    if (!snap.exists()) throw new Error('Avaliação não encontrada.');
+    return { id: snap.id, ...snap.data() } as Review;
+};
+
 export const approveReview = async (reviewId: string) => {
-    let review = _reviews.find(r => r.id === reviewId);
-    
-    // Fallback to fetch from Firestore if not in cache
-    if (!review) {
-        const docRef = await getDoc(doc(db, 'reviews', reviewId));
-        if (docRef.exists()) {
-            review = { id: docRef.id, ...docRef.data() } as Review;
-            _reviews.push(review);
-        } else {
-            throw new Error('Avaliação não encontrada.');
-        }
-    }
-    
-    if (!review.businessId) throw new Error('A avaliação não possui associação com uma empresa.');
+    const review = await fetchReview(reviewId);
+    if (!review.businessId) throw new Error('Avaliação sem empresa vinculada.');
+
+    const bizSnap = await getDoc(doc(db, 'businesses', review.businessId));
+    if (!bizSnap.exists()) throw new Error('Empresa não encontrada.');
+    const business = { id: bizSnap.id, ...bizSnap.data() } as BusinessProfile;
 
     review.status = 'approved';
     await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
-
-    let business = _businesses.find(b => b.id === review!.businessId);
-    if (!business) {
-        const bDoc = await getDoc(doc(db, 'businesses', review.businessId));
-        if (bDoc.exists()) {
-            business = { id: bDoc.id, ...bDoc.data() } as BusinessProfile;
-            _businesses.push(business);
-        } else {
-             notifyListeners();
-             return;
-        }
-    }
 
     // Filter out the review if it already exists in the array (to avoid duplicates) and add the updated one
     const existingReviews = business.reviews || [];
@@ -1478,26 +1539,18 @@ export const approveReview = async (reviewId: string) => {
     const newCount = updatedReviews.length;
     const newRating = updatedReviews.reduce((acc, r) => acc + r.rating, 0) / newCount;
 
-    business.reviews = updatedReviews;
-    business.reviewCount = newCount;
-    business.rating = newRating;
-
-    await setDoc(doc(db, 'businesses', business.id), cleanObject(business), { merge: true });
+    await updateDoc(doc(db, 'businesses', business.id), {
+        reviews: cleanObject(updatedReviews),
+        reviewCount: newCount,
+        rating: newRating
+    });
+    const idx = _businesses.findIndex(b => b.id === business.id);
+    if (idx >= 0) _businesses[idx] = { ..._businesses[idx], reviews: updatedReviews, reviewCount: newCount, rating: newRating };
     notifyListeners();
 };
 
 export const rejectReview = async (reviewId: string) => {
-    let review = _reviews.find(r => r.id === reviewId);
-    
-    if (!review) {
-         const docRef = await getDoc(doc(db, 'reviews', reviewId));
-         if (docRef.exists()) {
-              review = { id: docRef.id, ...docRef.data() } as Review;
-              _reviews.push(review);
-         } else {
-              throw new Error('Avaliação não encontrada.');
-         }
-    }
+    const review = await fetchReview(reviewId);
 
     review.status = 'rejected';
     await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
@@ -1535,7 +1588,13 @@ export const getDicasCategories = async () => {
     if (_dicasCategories.length < 5) {
         for (const cat of DEFAULT_DICAS_CATEGORIES) {
             if (!_dicasCategories.find(c => c.id === cat.id)) {
-                await setDoc(doc(db, 'app_categories_dicas', cat.id), cleanObject(cat), { merge: true });
+                if (canSeed()) {
+                    try {
+                        await setDoc(doc(db, 'app_categories_dicas', cat.id), cleanObject(cat), { merge: true });
+                    } catch (e) {
+                        console.warn('Could not seed category', cat.id, e);
+                    }
+                }
                 _dicasCategories.push(cat);
             }
         }
@@ -1649,52 +1708,84 @@ export const saveCoupon = async (c: Coupon) => {
         }
     }
     
-    await setDoc(doc(db, 'coupons', couponToSave.id), cleanObject(couponToSave)); 
+    const ref = doc(db, 'coupons', couponToSave.id);
+    if (isCurrentUserAdmin()) {
+        await setDoc(ref, cleanObject(couponToSave));
+        return;
+    }
+    const existing = await getDoc(ref);
+    if (existing.exists()) {
+        // Empresa edita o próprio cupom sem alterar aprovação, dono ou contador de resgates.
+        const { status, companyId, currentRedemptions, ...editable } = couponToSave as any;
+        await setDoc(ref, cleanObject(editable), { merge: true });
+    } else {
+        await setDoc(ref, cleanObject({ ...couponToSave, status: 'pending', currentRedemptions: 0 }));
+    }
 };
 
 export const deleteCoupon = async (id: string) => {
     await deleteDoc(doc(db, 'coupons', id)); 
 };
 
-export const getBusinessStats = async (businessId: string) => {
-    const biz = _businesses.find(b => b.id === businessId);
-    const coupons = _coupons.filter(c => c.companyId === businessId);
-    
-    const totalRedemptions = coupons.reduce((acc, c) => acc + (c.currentRedemptions || 0), 0);
-    const views = biz?.views || 0;
-    const shares = biz?.shares || 0;
-    const counts = biz?.actionCounts || {};
+const SOURCE_LABELS: Record<string, string> = {
+    search: 'Busca', guide: 'Guia', home: 'Início', collection: 'Coleções', map: 'Mapa',
+    direct: 'Acesso direto', direto: 'Acesso direto', coupons: 'Cupons', share: 'Compartilhamento'
+};
 
-    const trend = [
-        { day: 'Seg', valor: Math.max(0, totalRedemptions - 12) },
-        { day: 'Ter', valor: Math.max(0, totalRedemptions - 8) },
-        { day: 'Qua', valor: Math.max(0, totalRedemptions - 10) },
-        { day: 'Qui', valor: Math.max(0, totalRedemptions - 5) },
-        { day: 'Sex', valor: Math.max(0, totalRedemptions - 2) },
-        { day: 'Sáb', valor: totalRedemptions },
-        { day: 'Hoje', valor: totalRedemptions },
-    ];
+/**
+ * 📊 Resultados reais da empresa nos últimos 30 dias, vindos do registro de
+ * conexões (coleção `interactions`). Não há números estimados ou simulados:
+ * se não houver eventos, o painel mostra zero e informa desde quando mede.
+ */
+export const getBusinessStats = async (businessId: string) => {
+    const biz = _businesses.find(b => b.id === businessId) || await getBusinessByIdAdmin(businessId);
+    const ownerId = biz?.ownerId || businessId;
+    const coupons = _coupons.filter(c => c.companyId === businessId);
+    const totalRedemptions = coupons.reduce((acc, c) => acc + (c.currentRedemptions || 0), 0);
+
+    let summary: InteractionSummary = { total: 0, byType: {}, bySource: {}, byDay: [], uniqueSessions: 0 };
+    let measurementError: string | undefined;
+    try {
+        summary = await getInteractionSummary(ownerId, businessId, 30);
+    } catch (e: any) {
+        measurementError = e?.message || 'Não foi possível carregar os resultados.';
+        console.warn('Erro ao carregar resultados:', e);
+    }
+    const t = summary.byType;
+    const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
     return {
-        views,
+        periodDays: 30,
+        measuringSince: summary.firstEventAt,
+        measurementError,
+        views: t.business_view || 0,
+        uniqueVisitors: summary.uniqueSessions,
+        totalInteractions: summary.total,
         totalConversions: totalRedemptions,
-        shares,
-        conversionTrend: trend,
-        trafficSource: [
-            { name: 'Busca Interna', value: Math.floor(views * 0.6) },
-            { name: 'Direto/QR', value: Math.floor(views * 0.3) },
-            { name: 'Compartilhado', value: Math.floor(views * 0.1) }
-        ],
+        shares: t.share || 0,
+        conversionTrend: summary.byDay.slice(-7).map(d => ({
+            day: weekdays[new Date(`${d.day}T12:00:00`).getDay()],
+            valor: d.total
+        })),
+        dailySeries: summary.byDay,
+        trafficSource: Object.entries(summary.bySource)
+            .map(([name, value]) => ({ name: SOURCE_LABELS[name] || name, value }))
+            .sort((a, b) => b.value - a.value),
         actionHeatmap: [
-            { name: 'Telefone', cliques: counts['phone'] || 0 },
-            { name: 'Mapa/GPS', cliques: counts['map'] || 0 },
-            { name: 'Instagram', cliques: counts['social'] || 0 },
-            { name: 'Site', cliques: counts['website'] || 0 },
-            { name: 'Delivery', cliques: counts['delivery'] || 0 },
-            { name: 'Cardápio', cliques: counts['menu'] || 0 },
-            { name: 'Resgates', cliques: totalRedemptions }
+            { name: 'WhatsApp', cliques: t.whatsapp_click || 0 },
+            { name: 'Telefone', cliques: t.phone_click || 0 },
+            { name: 'Mapa/GPS', cliques: t.map_click || 0 },
+            { name: 'Instagram', cliques: t.social_click || 0 },
+            { name: 'Site', cliques: t.website_click || 0 },
+            { name: 'Agendamento', cliques: t.booking_click || 0 },
+            { name: 'Delivery', cliques: t.delivery_click || 0 },
+            { name: 'Cardápio', cliques: t.menu_open || 0 },
+            { name: 'Resgates', cliques: t.coupon_redeem || 0 }
         ],
-        activeCoupons: coupons.filter(c => c.active).length
+        byType: t,
+        // Totais históricos gravados pelo contador antigo (antes do registro de conexões).
+        legacyTotals: { views: biz?.views || 0, actions: biz?.actionCounts || {} },
+        activeCoupons: coupons.filter(c => c.active !== false).length
     };
 };
 
@@ -1757,15 +1848,27 @@ export const saveAmenity = async (label: string) => {
     }
     return id;
 };
+
+/** Conta pública do Yuri (autor de todos os posts do Feed), resolvida pelo perfil público. */
+let _yuriAuthorId: string | null = null;
+const resolveYuriAuthorId = async (): Promise<string> => {
+    if (_yuriAuthorId) return _yuriAuthorId;
+    try {
+        const profiles = await getPublicProfiles();
+        const yuri = profiles.find(p => (p.name || '').trim().toLowerCase() === 'yuri guida');
+        _yuriAuthorId = yuri?.id || 'yuri_guida';
+    } catch {
+        _yuriAuthorId = 'yuri_guida';
+    }
+    return _yuriAuthorId;
+};
 let _posts: BlogPost[] = [];
 
 export const getBlogPostById = async (id: string) => {
     const cached = _posts.find(p => p.id === id);
     if (cached) {
         // Enforce Yuri ownership even if returned from memory cache
-        const usersSnap = await getAllUsers();
-        const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-        const yuriId = realYuri?.id || 'yuri_guida';
+        const yuriId = await resolveYuriAuthorId();
         cached.authorId = yuriId;
         cached.author = 'Yuri Guida';
         return cached;
@@ -1777,9 +1880,7 @@ export const getBlogPostById = async (id: string) => {
         const post = { id: docSnap.id, ...docSnap.data() } as BlogPost;
         
         // Dynamically map all post author IDs and names to Yuri's actual account
-        const usersSnap = await getAllUsers();
-        const realYuri = usersSnap.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-        const yuriId = realYuri?.id || 'yuri_guida';
+        const yuriId = await resolveYuriAuthorId();
         post.authorId = yuriId;
         post.author = 'Yuri Guida';
 
@@ -1799,6 +1900,21 @@ export const saveBlogPost = async (post: BlogPost) => {
         _posts.push(post);
     }
     await setDoc(doc(db, 'blog_posts', post.id), cleanObject(post), { merge: true });
+    notifyListeners();
+};
+
+/** Conecta/desconecta um nome a um post do Feed, alterando só o campo connectedUsers. */
+export const setBlogPostConnection = async (postId: string, name: string, connect: boolean) => {
+    const cleanName = name.trim().slice(0, 80);
+    if (!cleanName) return;
+    await updateDoc(doc(db, 'blog_posts', postId), {
+        connectedUsers: connect ? arrayUnion(cleanName) : arrayRemove(cleanName)
+    });
+    const idx = _posts.findIndex(p => p.id === postId);
+    if (idx >= 0) {
+        const list = _posts[idx].connectedUsers || [];
+        _posts[idx] = { ..._posts[idx], connectedUsers: connect ? Array.from(new Set([...list, cleanName])) : list.filter(n => n !== cleanName) };
+    }
     notifyListeners();
 };
 
@@ -2072,21 +2188,30 @@ export const toggleFavorite = async (type: 'coupon' | 'business', id: string) =>
     await updateUser(user);
 };
 
-export const incrementBusinessView = (id: string) => updateDoc(doc(db, 'businesses', id), { views: increment(1) });
+/**
+ * Registro de conexões. Os contadores antigos (views/actionCounts dentro do
+ * documento da empresa) só podiam ser gravados pelo dono — visitantes
+ * recebiam "permission-denied" e nada era contado. Agora cada interação
+ * vira um evento próprio na coleção `interactions`.
+ */
+const businessOwnerId = (businessId: string) => {
+    const biz = _businesses.find(b => b.id === businessId);
+    return biz?.ownerId || businessId;
+};
 
-export const trackAction = async (businessId: string, type: string) => {
-    try {
-        // Incrementa o contador específico dentro do objeto actionCounts
-        // Se o tipo for 'share', também incrementamos o campo shares legado para compatibilidade
-        const updates: any = {
-            [`actionCounts.${type}`]: increment(1)
-        };
-        if (type === 'share') updates.shares = increment(1);
-        
-        await updateDoc(doc(db, 'businesses', businessId), updates);
-    } catch (e) {
-        console.error("Error tracking action:", e);
-    }
+export const incrementBusinessView = (id: string, source?: string) =>
+    recordInteraction('business_view', id, { ownerId: businessOwnerId(id), source });
+
+const LEGACY_ACTION_MAP: Record<string, InteractionType> = {
+    phone: 'phone_click', whatsapp: 'whatsapp_click', website: 'website_click', map: 'map_click',
+    social: 'social_click', menu: 'menu_open', delivery: 'delivery_click', booking: 'booking_click',
+    share: 'share'
+};
+
+export const trackAction = async (businessId: string, type: string, source?: string) => {
+    const mapped = LEGACY_ACTION_MAP[type];
+    if (!mapped) return; // tipos antigos como 'visit_search' agora são business_view com source
+    await recordInteraction(mapped, businessId, { ownerId: businessOwnerId(businessId), source });
 };
 
 /**
@@ -2141,21 +2266,11 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         if (biz) companyName = biz.name;
     }
 
-    // Ensure Firebase Auth is active (fixes issues with manual login bypass)
-    if (auth && !auth.currentUser) {
-        try {
-            await signInAnonymously(auth);
-        } catch (e) {
-            console.warn("Silent anonymous login failed:", e);
-        }
-    }
-
     const redemptionId = doc(collection(db, 'redemptions')).id;
     const redemption: any = {
         id: redemptionId,
         userId: uid,
         userName: user.name,
-        userEmail: user.email,
         couponId: c.id,
         companyId: c.companyId,
         couponTitle: c.title,
@@ -2173,24 +2288,19 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         companyName: companyName,
         expiryDate: c.expiryDate,
         code: c.code, // Código original do cupom
-        verificationId: redemptionId // Referência para o novo registro
+        verificationId: redemptionId, // Referência para o novo registro
+        verificationCode // Código de 6 dígitos que a empresa confere
     };
 
-    // 5. Executar Gravações no Banco de Dados com Tratamento Resiliente de Erros
+    // 5. Gravações no banco.
+    // A e B são obrigatórias: sem o registro de resgate a empresa não consegue conferir
+    // o código, e sem o contador o limite do cupom deixa de valer. Se falharem, o resgate falha.
     try {
-        // A. Criar registro de resgate (ESCRITA FUNDAMENTAL - OBRIGATÓRIA)
         await setDoc(doc(db, 'redemptions', redemptionId), cleanObject(redemption));
-    } catch (error) {
-        // RESILIÊNCIA MÁXIMA: Não bloquear o resgate se o banco de dados falhar (evitar 'Missing permissions').
-        // O usuário receberá o cupom usando o histórico local.
-        console.warn("Utilizando fallback de resiliência local para resgate.");
-    }
-
-    try {
-        // B. Incrementar contador no cupom (INFORMATIVO - NÃO-BLOQUEANTE)
         await updateDoc(doc(db, 'coupons', c.id), { currentRedemptions: increment(1) });
     } catch (error) {
-        console.warn("Aviso (não-bloqueante): Não foi possível incrementar o contador do cupom:", error);
+        console.error("Falha ao registrar resgate:", error);
+        throw new Error("Não foi possível concluir o resgate agora. Verifique sua conexão e tente novamente.");
     }
 
     try {
@@ -2214,6 +2324,8 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         notifyListeners();
     }
 
+    recordInteraction('coupon_redeem', c.id, { ownerId: businessOwnerId(c.companyId) });
+
     return verificationCode;
 };
 
@@ -2228,8 +2340,12 @@ export const validateRedemption = async (redemptionId: string, merchantUid: stri
     if (!rDoc.exists()) throw new Error("Resgate não encontrado.");
     
     const redemption = rDoc.data();
-    if (redemption.companyId !== merchantUid) {
-        throw new Error("Você não tem permissão para validar este cupom.");
+    const isAdminUser = getCurrentUser()?.role === UserRole.SUPER_ADMIN;
+    if (redemption.companyId !== merchantUid && !isAdminUser) {
+        const biz = _businesses.find(b => b.id === redemption.companyId) || await getBusinessByIdAdmin(redemption.companyId);
+        if (!isOwnerOfBusiness(biz, merchantUid)) {
+            throw new Error("Você não tem permissão para validar este cupom.");
+        }
     }
     
     if (redemption.status === 'USED') {
@@ -2314,15 +2430,10 @@ export const updateBusinessPlan = async (businessId: string, planId: string) => 
 };
 
 export const registerUser = async (name: string, email: string, pass: string): Promise<User> => {
-    const res = await createUserWithEmailAndPassword(auth, email, pass);
-    
-    // Check if this is an admin email
-    const emailLower = email.toLowerCase();
-    const isAdminEmail = emailLower === 'admin@lagosgo.org';
-    const role = isAdminEmail ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
-    
-    const newUser: User = { id: res.user.uid, name, email, role, favorites: { coupons: [], businesses: [] }, history: [], savedAmount: 0 };
-    await setDoc(doc(db, 'users', newUser.id), cleanObject(newUser));
+    const res = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    // Todo cadastro novo nasce como CUSTOMER. Acesso administrativo só para
+    // e-mails autorizados e verificados (ver firestore.rules).
+    const newUser = await createBaseProfile(res.user.uid, name.trim(), email.trim(), undefined, res.user.emailVerified);
     localStorage.setItem(SESSION_KEY, JSON.stringify(newUser));
     notifyListeners();
     return newUser;
@@ -2423,10 +2534,14 @@ export const approveCompanyRequest = async (requestId: string) => {
     await updateDoc(doc(db, 'companyRequests', requestId), { status: 'APPROVED' });
     
     if (request.type === 'CLAIM' && request.companyId && request.userId) {
-        // Handle Claim: Update business to be claimed by this user
-        await updateDoc(doc(db, 'businesses', request.companyId), { 
+        // Reivindicação: a empresa passa a ter o solicitante como dono (ownerId).
+        // (Antes gravava o campo "id" com o UID, mas o documento continuava com o ID
+        // antigo — o dono nunca conseguia editar a empresa reivindicada.)
+        await updateDoc(doc(db, 'businesses', request.companyId), {
             isClaimed: true,
-            id: request.userId // In this system, business ID usually matches user ID for companies
+            canBeClaimed: false,
+            ownerId: request.userId,
+            updatedAt: new Date().toISOString()
         });
         
         // Also update user role to COMPANY
@@ -2550,29 +2665,34 @@ export const getPaymentSettings = async (): Promise<PaymentSettings> => {
         console.warn("Error fetching payment settings:", e);
     }
     
-    // Forçando o bypass como padrão conforme solicitado pelo usuário
+    // Pagamentos desativados por padrão. Não existe mais "pagamento direto" (bypass).
     return {
         isPaymentActive: false,
         isTestMode: true,
-        isDirectPaymentTest: true,
-        salesWhatsapp: '5521999999999' // Fallback
+        isDirectPaymentTest: false
     };
 };
 
-export const getGlobalSettings = async (): Promise<AppGlobalSettings> => {
+let _globalSettings: AppGlobalSettings | null = null;
+
+/** Configurações públicas. Sem valores inventados: campos não configurados vêm vazios. */
+export const getGlobalSettings = async (forceRefresh = false): Promise<AppGlobalSettings> => {
+    if (_globalSettings && !forceRefresh) return _globalSettings;
     try {
         const docSnap = await getDoc(doc(db, 'app_settings', 'global'));
         if (docSnap.exists()) {
-            return docSnap.data() as AppGlobalSettings;
+            _globalSettings = { salesWhatsapp: '', ...docSnap.data() } as AppGlobalSettings;
+            return _globalSettings;
         }
     } catch (e) {
         console.warn("Error fetching global settings:", e);
     }
-    return { salesWhatsapp: '5522998765432' }; // Fallback para Região dos Lagos
+    return { salesWhatsapp: '' };
 };
 
 export const saveGlobalSettings = async (settings: AppGlobalSettings) => {
-    await setDoc(doc(db, 'app_settings', 'global'), cleanObject(settings));
+    await setDoc(doc(db, 'app_settings', 'global'), cleanObject(settings), { merge: true });
+    _globalSettings = null;
     notifyListeners();
 };
 

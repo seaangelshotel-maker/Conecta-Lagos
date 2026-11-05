@@ -1,5 +1,5 @@
 /**
- * Universal Translation Dictionary for Konecta Lagos
+ * Universal Translation Dictionary for Lagos GO
  * Maps PT-BR source strings to target language translations.
  */
 
@@ -194,12 +194,12 @@ export const translations: TranslationDictionary = {
     '🇺🇸': 'The Official Guide to the Lagos Region',
     '🇫🇷': 'Le Guide Officiel de la Région des Lagos',
   },
-  'Descubra o melhor da Região dos Lagos com o Konecta Lagos.': {
-    '🇧🇷': 'Descubra o melhor da Região dos Lagos com o Konecta Lagos.',
-    '🇵🇹': 'Descubra o melhor da Região dos Lagos com o Konecta Lagos.',
-    '🇪🇸': 'Descubre lo mejor de la Región de los Lagos con Konecta Lagos.',
-    '🇺🇸': 'Discover the best of the Lagos Region with Konecta Lagos.',
-    '🇫🇷': 'Découvrez le meilleur de la Région des Lagos avec Konecta Lagos.',
+  'Descubra o melhor da Região dos Lagos com o Lagos GO.': {
+    '🇧🇷': 'Descubra o melhor da Região dos Lagos com o Lagos GO.',
+    '🇵🇹': 'Descubra o melhor da Região dos Lagos com o Lagos GO.',
+    '🇪🇸': 'Descubre lo mejor de la Región de los Lagos con Lagos GO.',
+    '🇺🇸': 'Discover the best of the Lagos Region with Lagos GO.',
+    '🇫🇷': 'Découvrez le meilleur de la Région des Lagos avec Lagos GO.',
   },
   'Entregar ou Explorar em': {
     '🇧🇷': 'Entregar ou Explorar em',
@@ -764,24 +764,24 @@ export const translations: TranslationDictionary = {
   },
 
   // Blog / Events / Connected System
-  'Konectar-se!': {
-    '🇧🇷': 'Konectar-se!',
-    '🇵🇹': 'Konectar-se!',
-    '🇪🇸': '¡Konectar-se!',
+  'Conectar-se!': {
+    '🇧🇷': 'Conectar-se!',
+    '🇵🇹': 'Conectar-se!',
+    '🇪🇸': '¡Conectar-se!',
     '🇺🇸': 'Konect!',
     '🇫🇷': 'Se Konecter !',
   },
-  'Konectado!': {
-    '🇧🇷': 'Konectado!',
-    '🇵🇹': 'Konectado!',
-    '🇪🇸': '¡Konectado!',
+  'Conectado!': {
+    '🇧🇷': 'Conectado!',
+    '🇵🇹': 'Conectado!',
+    '🇪🇸': '¡Conectado!',
     '🇺🇸': 'Konected!',
     '🇫🇷': 'Konecté !',
   },
-  'Konectar-se ao Roteiro / Evento': {
-    '🇧🇷': 'Konectar-se ao Roteiro / Evento',
-    '🇵🇹': 'Konectar-se ao Roteiro / Evento',
-    '🇪🇸': 'Konectar-se al Itinerario / Evento',
+  'Conectar-se ao Roteiro / Evento': {
+    '🇧🇷': 'Conectar-se ao Roteiro / Evento',
+    '🇵🇹': 'Conectar-se ao Roteiro / Evento',
+    '🇪🇸': 'Conectar-se al Itinerario / Evento',
     '🇺🇸': 'Connect to Itinerary / Event',
     '🇫🇷': 'Se connecter à l\'Itinéraire / Événement',
   },
@@ -827,16 +827,16 @@ export const translations: TranslationDictionary = {
     '🇺🇸': '⏱️ 5 MIN READ',
     '🇫🇷': '⏱️ LECTURE 5 MIN',
   },
-  'Konectados': {
-    '🇧🇷': 'Konectados',
-    '🇵🇹': 'Konectados',
+  'Conectados': {
+    '🇧🇷': 'Conectados',
+    '🇵🇹': 'Conectados',
     '🇪🇸': 'Conectados',
     '🇺🇸': 'Connected',
     '🇫🇷': 'Connectés',
   },
-  'KONECTADOS': {
-    '🇧🇷': 'KONECTADOS',
-    '🇵🇹': 'KONECTADOS',
+  'CONECTADOS': {
+    '🇧🇷': 'CONECTADOS',
+    '🇵🇹': 'CONECTADOS',
     '🇪🇸': 'CONECTADOS',
     '🇺🇸': 'CONNECTED',
     '🇫🇷': 'CONNECTÉS',

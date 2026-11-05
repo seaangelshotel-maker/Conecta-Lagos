@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.vercel/
+*.log
+.DS_Store
+firebase-debug.log
+firestore-debug.log
+tests/e2e/www/
+tests/e2e/shots/
+__pycache__/
+*.pyc

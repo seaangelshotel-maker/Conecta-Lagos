@@ -5,7 +5,7 @@ import {
   getCoupons, saveCoupon, deleteCoupon, getBusinesses, getAllBusinesses, 
   saveBusiness, getBusinessStats, getCategories, saveCategory, 
   getCompanyRequests, approveCompanyRequest, rejectCompanyRequest, 
-  getAllUsers, toggleBusinessStatus, deleteBusiness, setManualPassword, 
+  getAllUsers, toggleBusinessStatus, deleteBusiness, sendPasswordResetForUser, isOwnerOfBusiness, 
   resetUserPassword, createAdminPlace, updateClaimableStatus, getPricingPlans, 
   savePricingPlan, deletePricingPlan, getAllHomeHighlights, saveHomeHighlight, 
   deleteHomeHighlight, getCities, getNeighborhoods, saveCity, saveNeighborhood, 
@@ -30,11 +30,12 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AIAgentTeam } from './AIAgentTeam';
 import { LocationPicker } from '../components/LocationPicker';
 import { BusinessHoursEditor } from '../components/BusinessHoursEditor';
-import { AdminStats } from '../components/admin/AdminStats';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
 import { GoogleDriveManager } from '../components/GoogleDriveManager';
 import { BlogAdsManager } from '../components/admin/BlogAdsManager';
 import { BlogPostsManager } from '../components/admin/BlogPostsManager';
+import { ModerationPanel } from '../components/admin/ModerationPanel';
+import { EcosystemSettings } from '../components/admin/EcosystemSettings';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -42,11 +43,11 @@ const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
-  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS'>('HOME');
+  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM'>('HOME');
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [dicasCategories, setDicasCategories] = useState<AppCategory[]>([]);
-  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({ isPaymentActive: false, isTestMode: true, isDirectPaymentTest: true });
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({ isPaymentActive: false, isTestMode: true });
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [redemptions, setRedemptions] = useState<any[]>([]);
   const [isValidatingRedemption, setIsValidatingRedemption] = useState(false);
@@ -76,8 +77,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showGalleryLinkInput, setShowGalleryLinkInput] = useState(false);
   const [showCouponGalleryLinkInput, setShowCouponGalleryLinkInput] = useState(false);
-  const [passwordPrompt, setPasswordPrompt] = useState<{ businessId: string, businessName: string } | null>(null);
-  const [manualPass, setManualPass] = useState('');
+  const [passwordPrompt, setPasswordPrompt] = useState<{ businessId: string, businessName: string, email?: string } | null>(null);
 
   const [newCoupon, setNewCoupon] = useState<Partial<Coupon>>({
     title: '',
@@ -132,17 +132,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
   const refreshData = async () => {
     const allCoupons = await getCoupons(true, true);
-    const allUsers = await getAllUsers();
-    const myUserIds = Array.from(new Set([currentUser.id, ...allUsers.filter(u => u.email === currentUser.email).map(u => u.id)]));
-    
+    const allBiz = await getAllBusinesses(true);
+    setAllBusinesses(allBiz);
+    // Empresas do usuário: legado (ID da empresa == UID) ou vínculo por ownerId.
+    const myBusinesses = allBiz.filter(b => isOwnerOfBusiness(b, currentUser.id));
+    const myBusinessIds = myBusinesses.map(b => b.id);
+
     if (currentUser.role === UserRole.SUPER_ADMIN) {
         setCoupons(allCoupons);
     } else {
-        setCoupons(allCoupons.filter(c => myUserIds.includes(c.companyId)));
+        setCoupons(allCoupons.filter(c => myBusinessIds.includes(c.companyId)));
     }
-    const allBiz = await getAllBusinesses(true);
-    setAllBusinesses(allBiz);
-    const biz = allBiz.find(b => myUserIds.includes(b.id));
+    const biz = myBusinesses.find(b => b.id === currentUser.id) || myBusinesses[0];
     if (biz) {
         setMyBusiness(biz);
         setEditBusiness(prev => Object.keys(prev).length === 0 ? biz : prev);
@@ -252,37 +253,11 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   useEffect(() => {
     // Check for payment status in URL
     const params = new URLSearchParams(window.location.search);
-    const status = params.get('status');
-    const planId = params.get('plan_id');
-    if (status === 'success' && planId && myBusiness) {
-        const plan = plans.find(p => p.id === planId);
-        if (plan) {
-            updateBusinessPlan(myBusiness.id, planId).then(() => {
-                const updatedUser: User = {
-                    ...currentUser,
-                    role: UserRole.COMPANY,
-                    plan: plan.name,
-                    maxCoupons: plan.maxCoupons,
-                    permissions: {
-                        ...(currentUser.permissions || {}),
-                        canCreateBusiness: true,
-                        canManageBusiness: true,
-                        canCreateCoupons: true
-                    }
-                };
-                return updateUser(updatedUser);
-            }).then(() => {
-                notify('success', 'Assinatura confirmada com sucesso!');
-                refreshData();
-            }).catch(err => {
-                console.error(err);
-                notify('error', 'Erro ao atualizar assinatura.');
-            });
-        }
-        // Remove params from URL
+    if (params.get('status') === 'success' && params.get('plan_id')) {
+        notify('info', 'Recebemos seu retorno. O plano será ativado após a confirmação do pagamento.');
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [myBusiness, plans]);
+  }, []);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -639,7 +614,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <div className="space-y-2">
                                   <div className="flex items-center gap-3">
                                       <span className="bg-ocean-500/20 text-ocean-400 text-[10px] font-black px-3 py-1 rounded-full border border-ocean-500/20 uppercase tracking-widest">Protocolo Alpha</span>
-                                      <h3 className="font-black text-white text-xl uppercase tracking-tighter">Célula de Inteligência Konecta Rio</h3>
+                                      <h3 className="font-black text-white text-xl uppercase tracking-tighter">Célula de Inteligência Lagos GO</h3>
                                   </div>
                                   <p className="text-slate-400 font-medium max-w-xl leading-relaxed text-sm md:text-base">
                                       Acione nossa equipe de 5 agentes especialistas (Pesquisador, Analista, Decisor, Copy e Revisor) para criar novos pontos turísticos com qualidade máxima.
@@ -754,7 +729,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </div>
                                       <p className="text-amber-50 font-medium text-sm md:text-lg mb-6 md:mb-8 max-w-xl leading-relaxed">
                                           Nossa equipe recebeu suas informações e está revisando os dados. 
-                                          Sua empresa aparecerá automaticamente no Guia Konecta Rio assim que for aprovada!
+                                          Sua empresa aparecerá automaticamente no Guia Lagos GO assim que for aprovada!
                                       </p>
                                       <div className="flex items-center gap-4">
                                           <div className="flex -space-x-2">
@@ -815,35 +790,43 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               </div>
                           )}
 
+                          <div className="bg-ocean-50 border border-ocean-100 rounded-2xl px-4 py-3 text-[11px] font-bold text-ocean-800">
+                              Resultados reais dos últimos {stats.periodDays || 30} dias, registrados pela Lagos GO.
+                              {stats.measuringSince
+                                  ? ` Primeiro registro no período: ${new Date(stats.measuringSince).toLocaleDateString('pt-BR')}.`
+                                  : ' Ainda não há interações registradas no período.'}
+                              {stats.measurementError && <span className="block text-red-600 mt-1">Não foi possível carregar os resultados: {stats.measurementError}</span>}
+                          </div>
+
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                               <div className="bg-ocean-950 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group">
                                   <MousePointer2 className="absolute -right-4 -bottom-4 w-20 h-20 md:w-24 md:h-24 text-white/5 group-hover:scale-110 transition-transform" />
-                                  <p className="text-[9px] md:text-[10px] font-black text-ocean-400 uppercase tracking-widest mb-1 md:mb-2">Total de Resgates</p>
+                                  <p className="text-[9px] md:text-[10px] font-black text-ocean-400 uppercase tracking-widest mb-1 md:mb-2">Cupons resgatados</p>
                                   <h3 className="text-3xl md:text-4xl font-black">{stats.totalConversions}</h3>
-                                  <p className="text-ocean-200 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">Leads Gerados pelo Guia</p>
+                                  <p className="text-ocean-200 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">Total desde o início (todos os cupons)</p>
                               </div>
                               <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
                                   <div className="flex justify-between items-start mb-1 md:mb-2">
-                                     <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Compartilhamentos</p>
+                                     <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Contatos gerados</p>
                                      <Share2 size={14} className="md:w-4 md:h-4 text-ocean-500" />
                                   </div>
-                                  <h3 className="text-3xl md:text-4xl font-black text-ocean-950">{stats.shares}</h3>
-                                  <p className="text-slate-400 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">Engajamento Social</p>
+                                  <h3 className="text-3xl md:text-4xl font-black text-ocean-950">{(stats.totalInteractions || 0) - (stats.views || 0)}</h3>
+                                  <p className="text-slate-400 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">WhatsApp, telefone, rota, site e outros (30 dias)</p>
                               </div>
                               <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
                                   <div className="flex justify-between items-start mb-1 md:mb-2">
-                                     <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Visitas Totais</p>
+                                     <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Visualizações do perfil</p>
                                      <Eye size={14} className="md:w-4 md:h-4 text-ocean-500" />
                                   </div>
                                   <h3 className="text-3xl md:text-4xl font-black text-ocean-950">{stats.views}</h3>
-                                  <p className="text-slate-400 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">Audiência da Página</p>
+                                  <p className="text-slate-400 text-[9px] md:text-[10px] font-bold mt-1 md:mt-2">{stats.uniqueVisitors || 0} visitantes distintos (30 dias)</p>
                               </div>
                           </div>
 
                           {/* GRÁFICO DE TENDÊNCIA DE CONVERSÃO */}
                           <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm">
                               <h3 className="text-base md:text-lg font-black text-ocean-950 mb-6 md:mb-8 flex items-center gap-3">
-                                  <TrendingUp className="text-ocean-600 md:w-5 md:h-5" size={18} /> Fluxo de Resgates (Últimos 7 dias)
+                                  <TrendingUp className="text-ocean-600 md:w-5 md:h-5" size={18} /> Interações por dia (últimos 7 dias)
                               </h3>
                               <div className="h-48 md:h-72 w-full">
                                   <ResponsiveContainer width="100%" height="100%">
@@ -892,7 +875,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </BarChart>
                                   </ResponsiveContainer>
                               </div>
-                              <p className="text-[9px] md:text-[10px] text-slate-400 mt-2 md:mt-4 text-center font-bold uppercase">Métricas em tempo real</p>
+                              <p className="text-[9px] md:text-[10px] text-slate-400 mt-2 md:mt-4 text-center font-bold uppercase">Cliques registrados nos últimos 30 dias</p>
                           </div>
 
                           {/* ORIGEM DO TRÁFEGO */}
@@ -900,6 +883,9 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <h3 className="text-base md:text-lg font-black text-ocean-950 mb-4 md:mb-6 flex items-center gap-3">
                                   <PieIcon className="text-ocean-600 md:w-5 md:h-5" size={18} /> Origem das Visitas
                               </h3>
+                              {stats.trafficSource.length === 0 ? (
+                                  <p className="text-xs font-bold text-slate-400 text-center py-10">Sem visitas registradas nos últimos 30 dias.</p>
+                              ) : (
                               <div className="h-48 md:h-64 w-full">
                                   <ResponsiveContainer width="100%" height="100%">
                                       <PieChart>
@@ -919,6 +905,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </PieChart>
                                   </ResponsiveContainer>
                               </div>
+                              )}
                           </div>
                       </div>
                   </>
@@ -2156,7 +2143,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                         </div>
 
                         <button 
-                            onClick={() => setPasswordPrompt({ businessId: biz.id, businessName: biz.name })}
+                            onClick={() => setPasswordPrompt({ businessId: biz.id, businessName: biz.name, email: users.find(u => u.id === (biz.ownerId || biz.id))?.email || biz.email })}
                             className="flex-1 md:flex-none bg-white border border-ocean-100 text-ocean-600 px-4 py-3 rounded-xl font-black text-[10px] flex items-center justify-center gap-2 hover:bg-ocean-50 transition-all"
                         >
                             <Key size={16} /> SENHA
@@ -2164,7 +2151,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                         
                         <button 
                             onClick={async () => {
-                                if (await confirm({ title: 'EXCLUSÃO PERMANENTE', message: "ATENÇÃO: Esta ação é permanente e excluirá a empresa, o usuário e todos os seus cupons. Deseja continuar?" })) {
+                                if (await confirm({ title: 'EXCLUSÃO PERMANENTE', message: "ATENÇÃO: Esta ação é permanente e excluirá a empresa e todos os seus cupons. A conta do responsável continua ativa. Deseja continuar?" })) {
                                     await deleteBusiness(biz.id);
                                     refreshData();
                                 }
@@ -2186,52 +2173,44 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
         <div className="fixed inset-0 bg-ocean-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 space-y-6 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-black text-ocean-950">Nova Senha Manual</h3>
-              <button onClick={() => { setPasswordPrompt(null); setManualPass(''); }} className="text-slate-400 hover:text-ocean-600">
+              <h3 className="text-xl font-black text-ocean-950">Redefinir senha</h3>
+              <button onClick={() => setPasswordPrompt(null)} className="text-slate-400 hover:text-ocean-600" aria-label="Fechar">
                 <X size={24} />
               </button>
             </div>
-            <p className="text-xs text-slate-500 font-bold">
-              Definir nova senha para <span className="text-ocean-600">{passwordPrompt.businessName}</span>
+            <p className="text-sm text-slate-600 font-medium leading-relaxed">
+              Por segurança, a Lagos GO não define nem guarda senhas. Vamos enviar o e-mail oficial de redefinição para o responsável por <span className="font-black text-ocean-600">{passwordPrompt.businessName}</span>.
             </p>
-            <div className="space-y-4">
-              <input 
-                type="text"
-                autoFocus
-                className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-sm outline-none focus:ring-2 focus:ring-ocean-500" 
-                placeholder="Digite a nova senha..." 
-                value={manualPass} 
-                onChange={e => setManualPass(e.target.value)} 
-              />
-              <div className="flex gap-4">
-                <button 
-                  type="button" 
-                  onClick={() => { setPasswordPrompt(null); setManualPass(''); }} 
-                  className="flex-1 px-6 py-4 rounded-2xl font-black text-xs text-slate-500 bg-slate-100"
-                >
-                  CANCELAR
-                </button>
-                <button 
-                  type="button"
-                  disabled={!manualPass || isSaving}
-                  onClick={async () => {
-                    setIsSaving(true);
-                    try {
-                      await setManualPassword(passwordPrompt.businessId, manualPass);
-                      notify('success', "Senha manual definida com sucesso!");
-                      setPasswordPrompt(null);
-                      setManualPass('');
-                    } catch (err) {
-                      notify('error', "Erro ao definir senha.");
-                    } finally {
-                      setIsSaving(false);
-                    }
-                  }}
-                  className="flex-1 px-6 py-4 rounded-2xl font-black text-xs text-white bg-ocean-600 shadow-lg shadow-ocean-600/20 disabled:opacity-50"
-                >
-                  {isSaving ? <Loader2 className="animate-spin mx-auto" size={18} /> : "DEFINIR SENHA"}
-                </button>
-              </div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm font-bold text-ocean-950 break-all">
+              {passwordPrompt.email || 'Nenhum e-mail cadastrado para este responsável.'}
+            </div>
+            <div className="flex gap-4">
+              <button 
+                type="button" 
+                onClick={() => setPasswordPrompt(null)} 
+                className="flex-1 px-6 py-4 rounded-2xl font-black text-xs text-slate-500 bg-slate-100"
+              >
+                CANCELAR
+              </button>
+              <button 
+                type="button"
+                disabled={!passwordPrompt.email || isSaving}
+                onClick={async () => {
+                  setIsSaving(true);
+                  try {
+                    await sendPasswordResetForUser(passwordPrompt.email || '');
+                    notify('success', "E-mail de redefinição enviado.");
+                    setPasswordPrompt(null);
+                  } catch (err: any) {
+                    notify('error', err?.message || "Erro ao enviar e-mail de redefinição.");
+                  } finally {
+                    setIsSaving(false);
+                  }
+                }}
+                className="flex-1 px-6 py-4 rounded-2xl font-black text-xs text-white bg-ocean-600 shadow-lg shadow-ocean-600/20 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="animate-spin mx-auto" size={18} /> : "ENVIAR E-MAIL"}
+              </button>
             </div>
           </div>
         </div>
@@ -2911,6 +2890,36 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                       ))
                   )}
               </div>
+          </div>
+      )}
+
+      {view === 'MODERATION' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-6">
+              <div className="flex justify-between items-center">
+                  <div>
+                      <h2 className="text-2xl md:text-3xl font-black text-ocean-950">Moderação</h2>
+                      <p className="text-sm text-slate-500 font-medium">Ajuda Colaborativa: denúncias, publicações e anunciantes.</p>
+                  </div>
+                  <button onClick={() => setView('HOME')} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
+                      <ChevronLeft size={16} /> Voltar
+                  </button>
+              </div>
+              <ModerationPanel onNavigate={onNavigate} />
+          </div>
+      )}
+
+      {view === 'ECOSYSTEM' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-6">
+              <div className="flex justify-between items-center">
+                  <div>
+                      <h2 className="text-2xl md:text-3xl font-black text-ocean-950">Ecossistema</h2>
+                      <p className="text-sm text-slate-500 font-medium">Contato comercial, atendimento especializado e perfis públicos.</p>
+                  </div>
+                  <button onClick={() => setView('HOME')} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
+                      <ChevronLeft size={16} /> Voltar
+                  </button>
+              </div>
+              <EcosystemSettings />
           </div>
       )}
 
@@ -3688,17 +3697,13 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-between p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
-                            <div>
-                                <h3 className="font-black text-emerald-950">Bypass (Pagamento Direto)</h3>
-                                <p className="text-xs text-emerald-700 font-bold">Pular PagBank e ativar plano imediatamente</p>
-                            </div>
-                            <button 
-                                onClick={() => setSettings({...settings, isDirectPaymentTest: !settings.isDirectPaymentTest})}
-                                className={`w-14 h-8 rounded-full transition-all relative ${settings.isDirectPaymentTest ? 'bg-emerald-600' : 'bg-slate-300'}`}
-                            >
-                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${settings.isDirectPaymentTest ? 'left-7' : 'left-1'}`} />
-                            </button>
+                        <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
+                            <h3 className="font-black text-amber-950">Cobrança automática desativada nesta etapa</h3>
+                            <p className="text-xs text-amber-800 font-bold mt-1 leading-relaxed">
+                                Não existe mais "pagamento direto" (bypass). Planos são atribuídos manualmente pelo administrador
+                                na lista de empresas. A integração com o PagBank só funciona no servidor, com
+                                PAYMENTS_ENABLED=true e as credenciais configuradas (veja docs/MIGRACAO_VERCEL.md).
+                            </p>
                         </div>
                     </div>
 
@@ -3708,8 +3713,8 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                                 <ShieldCheck size={16} /> Informações de Segurança
                             </h4>
                             <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                                O **Modo Bypass** permite que você realize transações sem passar pelo banco. 
-                                Certifique-se de desativar este modo antes de ir para produção.
+                                Nenhum plano pago é liberado sem confirmação de pagamento validada no servidor
+                                ou sem ação explícita de um administrador.
                             </p>
                         </div>
                         

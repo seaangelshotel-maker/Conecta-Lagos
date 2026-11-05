@@ -1,20 +1,38 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Lagos GO
 
-# Run and deploy your AI Studio app
+Ecossistema digital da Região dos Lagos (RJ): conecta moradores, turistas, empresas e parceiros.
+Guia de lugares, cupons, Ajuda Colaborativa (trabalhos, diárias e colaborações), registro de
+conexões e atendimento especializado. Funciona como app instalável (PWA).
 
-This contains everything you need to run your app locally.
+## Stack
 
-View your app in AI Studio: https://ai.studio/apps/20196544-8f98-479b-b29b-61f77af4e059
+React 18 + TypeScript (Vite), Firebase (Auth + Firestore), funções serverless na Vercel (`api/`),
+Tailwind via CDN.
 
-## Run Locally
+## Rodar localmente
 
-**Prerequisites:**  Node.js
+```bash
+npm install
+cp .env.example .env     # opcional para o app; necessário para /api
+npm run dev              # app + /api em http://localhost:3000
+npm test                 # regras de negócio
+npm run build            # build de produção em dist/
+```
 
+## Estrutura
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+| Pasta | Conteúdo |
+| --- | --- |
+| `pages/`, `components/` | Telas e componentes (`components/ui/States.tsx`: estados e campos padrão) |
+| `services/` | Acesso a dados (`dataService`, `opportunityService`, `interactionService`) e regras puras (`opportunityRules`) |
+| `api/`, `server/` | Funções serverless (pagamentos desativados, webhook, IA) |
+| `public/` | PWA: manifest, service worker, ícones, página offline |
+| `firestore.rules`, `firestore.indexes.json` | Segurança e índices (publicar com Firebase CLI) |
+| `tests/` | Testes unitários, de regras (emulador) e de navegador |
+| `docs/` | Auditoria, migração para a Vercel, pagamentos, Guida Trips, testes |
+
+## Leitura obrigatória antes de alterar
+
+1. `SAFETY_PROTOCOL.md`
+2. `docs/AUDITORIA.md`
+3. `docs/MIGRACAO_VERCEL.md` (antes de qualquer deploy)

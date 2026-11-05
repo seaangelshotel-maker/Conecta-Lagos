@@ -295,7 +295,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                         onClick={() => onNavigate && onNavigate('pricing-plans')}
                         className="text-xs font-bold text-ocean-600 hover:text-ocean-700 transition-colors"
                     >
-                        Ver Planos do Konecta Rio
+                        Ver Planos do Lagos GO
                     </button>
                 </div>
             </div>

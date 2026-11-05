@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, BlogPost } from '../types';
-import { getBlogPosts, getAllUsers } from '../services/dataService';
+import { PublicProfile, BlogPost } from '../types';
+import { getBlogPosts, getPublicProfileById } from '../services/dataService';
 import { Calendar, ChevronRight } from 'lucide-react';
 
 interface JournalistPublicPageProps {
@@ -9,37 +9,44 @@ interface JournalistPublicPageProps {
 }
 
 export const JournalistPublicPage: React.FC<JournalistPublicPageProps> = ({ journalistId, onNavigate }) => {
-  const [journalist, setJournalist] = useState<User | null>(null);
+  const [journalist, setJournalist] = useState<PublicProfile | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [posts, setPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [users, allPosts] = await Promise.all([getAllUsers(), getBlogPosts()]);
-      
-      let journalist = users.find(u => u.id === journalistId);
-      // Fallback: Look up by email if finding Yuri Guida by a mismatched internal ID
-      if (!journalist && (journalistId === 'yuri_guida' || journalistId === 'contato.yuriguida@gmail.com')) {
-        journalist = users.find(u => (u.email || '').toLowerCase() === 'contato.yuriguida@gmail.com');
-      }
-      
-      setJournalist(journalist || null);
-      
-      if (journalist) {
-        const isYuri = (journalist.email || '').toLowerCase() === 'contato.yuriguida@gmail.com';
-        setPosts(allPosts.filter(p => {
-          const isMatch = isYuri
-            ? (p.authorId === journalist!.id || p.authorId === 'yuri_guida' || (p.author || '').toLowerCase() === 'yuri guida')
-            : (p.authorId === journalist!.id);
-          return isMatch && p.status === 'published';
-        }));
-      } else {
-        setPosts([]);
-      }
+      const [profile, allPosts] = await Promise.all([
+        getPublicProfileById(journalistId).catch(() => undefined),
+        getBlogPosts()
+      ]);
+      setJournalist(profile || null);
+      const authorName = (profile?.name || '').trim().toLowerCase();
+      setPosts(allPosts.filter(p =>
+        (p.authorId === journalistId || (!!authorName && (p.author || '').trim().toLowerCase() === authorName)) &&
+        (!p.status || p.status === 'published')
+      ));
+      setLoaded(true);
     };
     fetchData();
   }, [journalistId]);
 
-  if (!journalist) return <div>Jornalista não encontrado.</div>;
+  if (!loaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin h-8 w-8 border-4 border-ocean-500 rounded-full border-t-transparent" aria-label="Carregando" />
+      </div>
+    );
+  }
+
+  if (!journalist) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
+        <p className="text-lg font-black text-ocean-950">Autor não encontrado</p>
+        <p className="text-sm text-slate-500">Este perfil não existe ou ainda não foi publicado.</p>
+        <button onClick={() => onNavigate('blog')} className="bg-ocean-600 text-white px-6 py-3 rounded-xl font-bold">Ver dicas e notícias</button>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 pt-12 min-h-screen bg-slate-50">

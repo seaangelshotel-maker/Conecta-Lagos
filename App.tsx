@@ -1,41 +1,65 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
+import { LanguageProvider } from './hooks/useLanguage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { NavBar } from './components/NavBar';
 import { Home } from './pages/Home';
-import { UserDashboard } from './pages/UserDashboard';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { JournalistDashboard } from './pages/JournalistDashboard';
-import { JournalistPublicPage } from './pages/JournalistPublicPage';
-import { SearchPage } from './pages/Search';
-import { BusinessGuide } from './pages/BusinessGuide';
-import { BusinessDetail } from './pages/BusinessDetail';
-import { Blog } from './pages/Blog';
-import { BlogDetail } from './pages/BlogDetail';
-import { Collections } from './pages/Collections';
-import { CollectionDetail } from './pages/CollectionDetail';
 import { Login } from './pages/Login';
-import { MapPage } from './pages/MapPage';
-import { SubscribePage } from './pages/Subscribe';
-import { CreateBusiness } from './pages/CreateBusiness';
-import { PricingPlans } from './pages/PricingPlans';
 import { getCurrentUser, logout, getAppConfig, isAuthInitialized } from './services/dataService';
+import { captureReferral } from './services/interactionService';
+import { setNavigationOrigin } from './services/navigation';
 import { User, UserRole } from './types';
+import { LoadingState } from './components/ui/States';
 
-const parseUrl = (): { page: string; params: any } => {
-  const path = window.location.pathname;
-  
+// Telas carregadas sob demanda (divide o JavaScript em partes menores e acelera a abertura do app).
+const UserDashboard = lazy(() => import('./pages/UserDashboard').then(m => ({ default: m.UserDashboard })));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const JournalistDashboard = lazy(() => import('./pages/JournalistDashboard').then(m => ({ default: m.JournalistDashboard })));
+const JournalistPublicPage = lazy(() => import('./pages/JournalistPublicPage').then(m => ({ default: m.JournalistPublicPage })));
+const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.SearchPage })));
+const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
+const BusinessDetail = lazy(() => import('./pages/BusinessDetail').then(m => ({ default: m.BusinessDetail })));
+const Blog = lazy(() => import('./pages/Blog').then(m => ({ default: m.Blog })));
+const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
+const Collections = lazy(() => import('./pages/Collections').then(m => ({ default: m.Collections })));
+const CollectionDetail = lazy(() => import('./pages/CollectionDetail').then(m => ({ default: m.CollectionDetail })));
+const MapPage = lazy(() => import('./pages/MapPage').then(m => ({ default: m.MapPage })));
+const CreateBusiness = lazy(() => import('./pages/CreateBusiness').then(m => ({ default: m.CreateBusiness })));
+const PricingPlans = lazy(() => import('./pages/PricingPlans').then(m => ({ default: m.PricingPlans })));
+const OpportunitiesPage = lazy(() => import('./pages/Opportunities').then(m => ({ default: m.OpportunitiesPage })));
+const OpportunityDetail = lazy(() => import('./pages/OpportunityDetail').then(m => ({ default: m.OpportunityDetail })));
+const OpportunityForm = lazy(() => import('./pages/OpportunityForm').then(m => ({ default: m.OpportunityForm })));
+const MyOpportunities = lazy(() => import('./pages/MyOpportunities').then(m => ({ default: m.MyOpportunities })));
+const OpportunityManage = lazy(() => import('./pages/OpportunityManage').then(m => ({ default: m.OpportunityManage })));
+
+type Route = { page: string; params: any };
+
+const parseUrl = (): Route => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
   const businessMatch = path.match(/^\/business\/([^/]+)/);
-  if (businessMatch) return { page: 'business-detail', params: { businessId: businessMatch[1] } };
+  if (businessMatch) return { page: 'business-detail', params: { businessId: decodeURIComponent(businessMatch[1]) } };
 
   const blogMatch = path.match(/^\/blog\/([^/]+)/);
-  if (blogMatch) return { page: 'blog-detail', params: { postId: blogMatch[1] } };
+  if (blogMatch) return { page: 'blog-detail', params: { postId: decodeURIComponent(blogMatch[1]) } };
 
   const journalistMatch = path.match(/^\/journalist\/([^/]+)/);
-  if (journalistMatch) return { page: 'journalist-profile', params: { journalistId: journalistMatch[1] } };
+  if (journalistMatch) return { page: 'journalist-profile', params: { journalistId: decodeURIComponent(journalistMatch[1]) } };
 
   const colMatch = path.match(/^\/collection\/([^/]+)/);
-  if (colMatch) return { page: 'collection-detail', params: { collectionId: colMatch[1] } };
+  if (colMatch) return { page: 'collection-detail', params: { collectionId: decodeURIComponent(colMatch[1]) } };
+
+  // Ajuda Colaborativa
+  if (path === '/ajuda') return { page: 'opportunities', params: null };
+  if (path === '/ajuda/publicar') return { page: 'opportunity-form', params: null };
+  if (path === '/ajuda/minhas') return { page: 'my-opportunities', params: null };
+  if (path === '/ajuda/interesses') return { page: 'my-opportunities', params: { tab: 'interests' } };
+  const editMatch = path.match(/^\/ajuda\/editar\/([^/]+)/);
+  if (editMatch) return { page: 'opportunity-form', params: { opportunityId: decodeURIComponent(editMatch[1]) } };
+  const manageMatch = path.match(/^\/ajuda\/gerenciar\/([^/]+)/);
+  if (manageMatch) return { page: 'opportunity-manage', params: { opportunityId: decodeURIComponent(manageMatch[1]) } };
+  const oppMatch = path.match(/^\/ajuda\/([^/]+)/);
+  if (oppMatch) return { page: 'opportunity-detail', params: { opportunityId: decodeURIComponent(oppMatch[1]) } };
 
   switch (path) {
     case '/guide': return { page: 'guide', params: null };
@@ -43,10 +67,12 @@ const parseUrl = (): { page: string; params: any } => {
     case '/blog': return { page: 'blog', params: null };
     case '/collections': return { page: 'collections', params: null };
     case '/map': return { page: 'map', params: null };
-    case '/subscribe': return { page: 'subscribe', params: null };
+    // Página antiga do "Clube" (botões sem ação e valores fictícios) foi retirada; o link leva aos planos.
+    case '/subscribe': return { page: 'pricing-plans', params: null };
     case '/login': return { page: 'login', params: null };
     case '/user-dashboard': return { page: 'user-dashboard', params: null };
     case '/admin-dashboard': return { page: 'admin-dashboard', params: null };
+    case '/super-admin-dashboard': return { page: 'admin-dashboard', params: null };
     case '/journalist-dashboard': return { page: 'journalist-dashboard', params: null };
     case '/create-business': return { page: 'create-business', params: null };
     case '/pricing-plans': return { page: 'pricing-plans', params: null };
@@ -55,6 +81,7 @@ const parseUrl = (): { page: string; params: any } => {
 };
 
 const buildUrl = (page: string, params?: any): string => {
+  const id = (v?: string) => encodeURIComponent(v || '');
   switch (page) {
     case 'home': return '/';
     case 'guide': return '/guide';
@@ -62,23 +89,33 @@ const buildUrl = (page: string, params?: any): string => {
     case 'blog': return '/blog';
     case 'collections': return '/collections';
     case 'map': return '/map';
-    case 'subscribe': return '/subscribe';
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
     case 'admin-dashboard': return '/admin-dashboard';
     case 'journalist-dashboard': return '/journalist-dashboard';
     case 'create-business': return '/create-business';
     case 'pricing-plans': return '/pricing-plans';
-    case 'business-detail': return `/business/${params?.businessId}`;
-    case 'blog-detail': return `/blog/${params?.postId}`;
-    case 'journalist-profile': return `/journalist/${params?.journalistId}`;
-    case 'collection-detail': return `/collection/${params?.collectionId}`;
+    case 'business-detail': return `/business/${id(params?.businessId)}`;
+    case 'blog-detail': return `/blog/${id(params?.postId)}`;
+    case 'journalist-profile': return `/journalist/${id(params?.journalistId)}`;
+    case 'collection-detail': return `/collection/${id(params?.collectionId)}`;
+    case 'opportunities': return '/ajuda';
+    case 'opportunity-detail': return `/ajuda/${id(params?.opportunityId)}`;
+    case 'opportunity-form': return params?.opportunityId ? `/ajuda/editar/${id(params.opportunityId)}` : '/ajuda/publicar';
+    case 'my-opportunities': return params?.tab === 'interests' ? '/ajuda/interesses' : '/ajuda/minhas';
+    case 'opportunity-manage': return `/ajuda/gerenciar/${id(params?.opportunityId)}`;
     default: return '/';
   }
 };
 
-import { HelmetProvider } from 'react-helmet-async';
-import { LanguageProvider } from './hooks/useLanguage';
+/** Telas que exigem login. Ao entrar, a pessoa volta para a tela que pediu. */
+const AUTH_PAGES = new Set([
+  'user-dashboard', 'admin-dashboard', 'journalist-dashboard', 'create-business',
+  'opportunity-form', 'my-opportunities', 'opportunity-manage'
+]);
+
+/** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
+const FULLSCREEN_PAGES = new Set(['business-detail', 'blog-detail', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -92,28 +129,30 @@ export default function App() {
   );
 }
 
+/** Redireciona depois da renderização (evita mudar estado durante o render). */
+const Redirect: React.FC<{ to: string; onNavigate: (page: string) => void }> = ({ to, onNavigate }) => {
+  useEffect(() => { onNavigate(to); }, [to]);
+  return null;
+};
+
 function AppContent() {
-  const [page, setPage] = useState('home');
-  const [pageParams, setPageParams] = useState<any>(null);
+  const [route, setRoute] = useState<Route>(() => parseUrl());
   const [user, setUser] = useState<User | null>(getCurrentUser());
-  const [loading, setLoading] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(isAuthInitialized());
+  const [afterLogin, setAfterLogin] = useState<Route | null>(null);
+  const { page, params: pageParams } = route;
 
   useEffect(() => {
-    const { page: initialPage, params: initialParams } = parseUrl();
-    setPage(initialPage);
-    setPageParams(initialParams);
+    captureReferral();
 
     const handlePopState = () => {
-        const { page: newPage, params: newParams } = parseUrl();
-        setPage(newPage);
-        setPageParams(newParams);
+        setRoute(parseUrl());
         window.scrollTo(0, 0);
     };
     window.addEventListener('popstate', handlePopState);
 
     const handleDataUpdate = () => {
-        setUser(getCurrentUser()); 
+        setUser(getCurrentUser());
         setIsAuthReady(isAuthInitialized());
     };
     window.addEventListener('dataUpdated', handleDataUpdate);
@@ -128,38 +167,43 @@ function AppContent() {
     }
   }, []);
 
+  // Guarda a tela protegida que pediu login, para voltar a ela depois de entrar.
+  useEffect(() => {
+    if (AUTH_PAGES.has(page) && !user) setAfterLogin({ page, params: pageParams });
+  }, [page, user]);
+
   const updateBranding = () => {
       const config = getAppConfig();
       document.title = `${config.appName} ${config.appNameHighlight}`;
   };
 
   const handleNavigate = (newPage: string, params?: any) => {
-      if (page === newPage && JSON.stringify(params) === JSON.stringify(pageParams)) return;
-      const url = buildUrl(newPage, params);
+      const nextParams = params ?? null;
+      if (page === newPage && JSON.stringify(nextParams) === JSON.stringify(pageParams)) return;
+      setNavigationOrigin(page);
+      const url = buildUrl(newPage, nextParams);
       window.history.pushState({}, '', url);
-      setPage(newPage);
-      if (params) setPageParams(params);
+      setRoute({ page: newPage, params: nextParams });
       window.scrollTo(0, 0);
+  };
+
+  const homeFor = (u: User | null) => {
+    if (!u) return 'home';
+    if (u.role === UserRole.SUPER_ADMIN || u.role === UserRole.COMPANY) return 'admin-dashboard';
+    if (u.role === UserRole.JOURNALIST) return 'journalist-dashboard';
+    return 'home';
   };
 
   const handleLoginSuccess = async () => {
     const u = getCurrentUser();
     setUser(u);
-    
-    if (!u) {
-      handleNavigate('home');
+    if (afterLogin && u) {
+      const target = afterLogin;
+      setAfterLogin(null);
+      handleNavigate(target.page, target.params);
       return;
     }
-
-    if (u.role === UserRole.SUPER_ADMIN) {
-      handleNavigate('admin-dashboard');
-    } else if (u.role === UserRole.COMPANY) {
-      handleNavigate('admin-dashboard');
-    } else if (u.role === UserRole.JOURNALIST) {
-      handleNavigate('journalist-dashboard');
-    } else {
-      handleNavigate('home');
-    }
+    handleNavigate(homeFor(u));
   };
 
   const handleLogout = () => {
@@ -168,11 +212,15 @@ function AppContent() {
     handleNavigate('home');
   };
 
-  if (loading || !isAuthReady) {
-      return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin h-8 w-8 border-4 border-ocean-500 rounded-full border-t-transparent"></div></div>;
+  if (!isAuthReady) {
+      return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin h-8 w-8 border-4 border-ocean-500 rounded-full border-t-transparent" aria-label="Carregando"></div></div>;
   }
 
+  const requireLogin = () => <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
+
   const renderPage = () => {
+    if (AUTH_PAGES.has(page) && !user) return requireLogin();
+
     switch (page) {
       case 'home':
         return <Home currentUser={user} onNavigate={handleNavigate} />;
@@ -193,58 +241,66 @@ function AppContent() {
       case 'collection-detail':
         return <CollectionDetail collectionId={pageParams?.collectionId} onNavigate={handleNavigate} />;
       case 'user-dashboard':
-        if (!user) return <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
-        return <UserDashboard currentUser={user} onLogout={handleLogout} onNavigate={handleNavigate} />;
+        return <UserDashboard currentUser={user!} onLogout={handleLogout} onNavigate={handleNavigate} />;
       case 'admin-dashboard':
-        if (!user) return <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
-        if (user.role !== UserRole.COMPANY && user.role !== UserRole.SUPER_ADMIN) {
-            handleNavigate('home');
-            return null;
+        if (user!.role !== UserRole.COMPANY && user!.role !== UserRole.SUPER_ADMIN) {
+            return <Redirect to="user-dashboard" onNavigate={handleNavigate} />;
         }
-        return <AdminDashboard currentUser={user} onNavigate={handleNavigate} onLogout={handleLogout} />;
+        return <AdminDashboard currentUser={user!} onNavigate={handleNavigate} onLogout={handleLogout} />;
       case 'journalist-dashboard':
-        if (!user) return <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
-        if (user.role !== UserRole.JOURNALIST) {
-            handleNavigate('home');
-            return null;
+        if (user!.role !== UserRole.JOURNALIST && user!.role !== UserRole.CONTENT_CREATOR) {
+            return <Redirect to="user-dashboard" onNavigate={handleNavigate} />;
         }
-        return <JournalistDashboard currentUser={user} onNavigate={handleNavigate} onLogout={handleLogout} />;
+        return <JournalistDashboard currentUser={user!} onNavigate={handleNavigate} onLogout={handleLogout} />;
       case 'create-business':
-        if (!user) return <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
-        if (!user.permissions?.canCreateBusiness && user.role !== UserRole.COMPANY) {
-            handleNavigate('home');
-            return null;
+        if (!user!.permissions?.canCreateBusiness && user!.role !== UserRole.COMPANY && user!.role !== UserRole.SUPER_ADMIN) {
+            return <Redirect to="pricing-plans" onNavigate={handleNavigate} />;
         }
-        return <CreateBusiness currentUser={user} onNavigate={handleNavigate} />;
+        return <CreateBusiness currentUser={user!} onNavigate={handleNavigate} />;
       case 'pricing-plans':
         return <PricingPlans currentUser={user} onNavigate={handleNavigate} />;
       case 'login':
+        if (user) return <Redirect to={homeFor(user)} onNavigate={handleNavigate} />;
         return <Login onLogin={handleLoginSuccess} onNavigate={handleNavigate} />;
-      case 'map': 
+      case 'map':
          return <MapPage />;
-      case 'subscribe':
-         return <SubscribePage />;
+      case 'opportunities':
+        return <OpportunitiesPage currentUser={user} onNavigate={handleNavigate} />;
+      case 'opportunity-detail':
+        return <OpportunityDetail opportunityId={pageParams?.opportunityId} currentUser={user} onNavigate={handleNavigate} />;
+      case 'opportunity-form':
+        return <OpportunityForm key={pageParams?.opportunityId || 'new'} currentUser={user!} opportunityId={pageParams?.opportunityId} onNavigate={handleNavigate} />;
+      case 'my-opportunities':
+        return <MyOpportunities currentUser={user!} initialTab={pageParams?.tab === 'interests' ? 'interests' : 'posts'} onNavigate={handleNavigate} />;
+      case 'opportunity-manage':
+        return <OpportunityManage opportunityId={pageParams?.opportunityId} currentUser={user!} onNavigate={handleNavigate} />;
       default:
         return <Home currentUser={user} onNavigate={handleNavigate} />;
     }
   };
 
-  if (page === 'login') return renderPage();
+  const content = (
+    <Suspense fallback={<LoadingState className="min-h-[60vh]" />}>
+      {renderPage()}
+    </Suspense>
+  );
 
-  const isOnboarding = page === 'pricing-plans' || page === 'create-business';
+  if (page === 'login' || (AUTH_PAGES.has(page) && !user)) return content;
+
+  const showChrome = !FULLSCREEN_PAGES.has(page);
 
   return (
     <div className="min-h-screen font-sans text-ocean-950 bg-slate-50 selection:bg-ocean-200">
-      {page !== 'business-detail' && page !== 'blog-detail' && page !== 'collection-detail' && page !== 'map' && !isOnboarding && (
-          <NavBar 
-            currentUser={user} 
-            onNavigate={handleNavigate} 
+      {showChrome && (
+          <NavBar
+            currentUser={user}
+            onNavigate={handleNavigate}
             currentPage={page}
-            onLogout={handleLogout} 
+            onLogout={handleLogout}
           />
       )}
-      <main className={`animate-in fade-in duration-500 ${page !== 'business-detail' && page !== 'blog-detail' && page !== 'collection-detail' && page !== 'map' && !isOnboarding ? 'md:pt-16' : ''}`}>
-        {renderPage()}
+      <main className={`animate-in fade-in duration-300 ${showChrome ? 'md:pt-16' : ''}`}>
+        {content}
       </main>
     </div>
   );

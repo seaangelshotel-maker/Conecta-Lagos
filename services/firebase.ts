@@ -3,31 +3,31 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
-// --- CONFIGURAÇÃO DO FIREBASE (KONECTA RIO) ---
+// --- CONFIGURAÇÃO DO FIREBASE (LAGOS GO) ---
+// Estes valores são públicos por natureza (identificam o projeto no navegador);
+// a proteção dos dados é feita pelas regras do Firestore (firestore.rules).
+// Para apontar para outro projeto sem mudar o código, defina VITE_FIREBASE_* na Vercel.
+const env = import.meta.env;
 export const firebaseConfig = {
-  apiKey: "AIzaSyCLyaiF_RVOd4BXNE9sZ4sGNsjlqu6ihdQ",
-  authDomain: "conectario-dd04b.firebaseapp.com",
-  projectId: "conectario-dd04b",
-  storageBucket: "conectario-dd04b.firebasestorage.app",
-  messagingSenderId: "733864820546",
-  appId: "1:733864820546:web:9dc7affdf1e76ec92cd2db",
-  measurementId: "G-39XG38B9GK"
+  apiKey: env.VITE_FIREBASE_API_KEY || "AIzaSyCLyaiF_RVOd4BXNE9sZ4sGNsjlqu6ihdQ",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "conectario-dd04b.firebaseapp.com",
+  projectId: env.VITE_FIREBASE_PROJECT_ID || "conectario-dd04b",
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "conectario-dd04b.firebasestorage.app",
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "733864820546",
+  appId: env.VITE_FIREBASE_APP_ID || "1:733864820546:web:9dc7affdf1e76ec92cd2db",
+  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || "G-39XG38B9GK"
 };
 
-// Inicializa o App do Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inicializa os serviços que o site usa
-const auth = getAuth(app);        // Para login
-const db = getFirestore(app);     // Para banco de dados (cupons, empresas)
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-let analytics: any = null;
+let analytics: ReturnType<typeof getAnalytics> | null = null;
 isSupported().then(supported => {
   if (supported) {
-    analytics = getAnalytics(app); // Para métricas de acesso
+    analytics = getAnalytics(app);
   }
-});
-
-console.log("🔥 Firebase conectado e pronto para uso!");
+}).catch(() => undefined);
 
 export { auth, db, analytics };
