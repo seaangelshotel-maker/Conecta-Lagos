@@ -75,7 +75,7 @@ async function ensureNeighborhood(name: string, cityId: string, neighborhoods: N
 /**
  * Ensures a category and its subcategories exist.
  */
-async function ensureCategory(catName: string, subNames: string[], categories: AppCategory[]): Promise<AppCategory> {
+export async function ensureCategory(catName: string, subNames: string[], categories: AppCategory[]): Promise<AppCategory> {
   const existing = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
   if (existing) {
     // Ensure subcategories exist

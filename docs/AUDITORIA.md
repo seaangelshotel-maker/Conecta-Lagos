@@ -114,3 +114,13 @@ deste repositório foram publicadas pelo console (antes estava tudo liberado par
 por qualquer pessoa — cópia em `docs/backup/firestore.rules.antes-2026-11-05`; o console também
 guarda o histórico de versões) e criados os 6 índices compostos de `firestore.indexes.json`
 (opportunities ×2, applications [grupo], interactions, redemptions, blog_comments).
+
+## 7. Lugares públicos para o Guia (05/nov/2026)
+
+`data/publicPlaces.ts` reúne 56 lugares públicos (praias, mirantes, trilhas, pontos históricos,
+cultura e natureza) de Búzios, Cabo Frio e Arraial do Cabo que ainda não estavam no banco, cada um
+com as fontes consultadas. Nada de nota, horário, telefone ou coordenadas: só o que as fontes dizem.
+A importação é feita pelo administrador em **Painel → Ecossistema → Lugares públicos para o Guia**
+(prévia antes de gravar, cria a cidade Búzios, não duplica e pode ser repetida com segurança).
+A página do lugar mostra as fontes; o selo "Aberto agora" e o quadro de horário só aparecem quando há
+horário informado.

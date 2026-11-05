@@ -2632,10 +2632,9 @@ export const formatDayHours = (openingHours: { [key: string]: string } | undefin
 };
 
 export const checkIfOpen = (openingHours: { [key: string]: string }, category?: string): boolean => {
-    // BOM SENSO: Se for Passeio ou local público e não tiver horário, assume-se aberto (24h)
-    // Praias, Mirantes e Praças são essencialmente abertos.
+    // Sem horário informado não dá para dizer que está aberto (antes praias, igrejas e
+    // praças apareciam como "Aberto agora" até de madrugada). As telas escondem o selo nesse caso.
     if (!hasOpeningHours(openingHours)) {
-        if (category === 'Passeios' || category === 'Entretenimento') return true;
         return false;
     }
 

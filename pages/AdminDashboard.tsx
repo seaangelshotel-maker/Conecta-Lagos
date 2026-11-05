@@ -36,6 +36,7 @@ import { BlogAdsManager } from '../components/admin/BlogAdsManager';
 import { BlogPostsManager } from '../components/admin/BlogPostsManager';
 import { ModerationPanel } from '../components/admin/ModerationPanel';
 import { EcosystemSettings } from '../components/admin/EcosystemSettings';
+import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -2920,6 +2921,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </button>
               </div>
               <EcosystemSettings />
+              <PublicPlacesImport />
           </div>
       )}
 

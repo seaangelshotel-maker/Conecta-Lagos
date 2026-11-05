@@ -164,7 +164,14 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
           case 'website': if(business.website) window.open(business.website.startsWith('http') ? business.website : `https://${business.website}`, '_blank'); break;
           case 'delivery': if(business.deliveryUrl) window.open(business.deliveryUrl, '_blank'); break;
           case 'booking': if(business.bookingUrl) window.open(business.bookingUrl, '_blank'); break;
-          case 'map': if(business.address) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`, '_blank'); break;
+          case 'map': {
+              // Coordenadas quando houver; senão nome + localização (sem os complementos entre parênteses).
+              const q = (typeof business.lat === 'number' && typeof business.lng === 'number')
+                  ? `${business.lat},${business.lng}`
+                  : `${business.name}, ${(business.address || '').replace(/\(.*?\)/g, '').trim()}`;
+              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
+              break;
+          }
           case 'share': 
             if (navigator.share) {
                 navigator.share({ title: business.name, url: window.location.href }).catch(() => {});
@@ -350,6 +357,18 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             <div className="space-y-4">
                 <h3 className="text-xl font-black text-ocean-950">Sobre o Local</h3>
                 <p className="text-slate-600 leading-relaxed text-sm">{business.description}</p>
+                {/* Lugares públicos pesquisados: mostra de onde veio a informação */}
+                {Array.isArray((business as any).sources) && (business as any).sources.length > 0 && (
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                        Informações baseadas em:{' '}
+                        {((business as any).sources as string[]).map((src, i) => {
+                            let host = src;
+                            try { host = new URL(src).hostname.replace('www.', ''); } catch { /* mantém o texto */ }
+                            return <React.Fragment key={src}>{i > 0 && ', '}<a href={src} target="_blank" rel="noreferrer" className="underline hover:text-ocean-600">{host}</a></React.Fragment>;
+                        })}
+                        . Confira as condições no local antes de ir.
+                    </p>
+                )}
             </div>
 
             {/* COMODIDADES VISUAIS */}
@@ -416,6 +435,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             )}
 
+            {hasOpeningHours(business.openingHours) && (
             <div className="space-y-4">
                 <h3 className="text-xl font-black text-ocean-950 flex items-center gap-2"><Clock size={20} className="text-ocean-600"/> Horário de Funcionamento</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-6 rounded-2xl border border-slate-100">
@@ -434,6 +454,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     })}
                 </div>
             </div>
+            )}
 
             {coupons.length > 0 && (
                 <div className="space-y-6">
