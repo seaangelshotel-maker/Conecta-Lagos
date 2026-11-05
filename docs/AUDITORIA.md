@@ -109,6 +109,8 @@ Revisão geral (mesmo dia):
 
 Testes de navegador: `e2e.py` (42), `e2e_existing.py` (13) e `e2e_feed.py` (22) — 77/77.
 
-**Atenção:** o Conecta-Lagos e o conectario usam o **mesmo Firebase** (`conectario-dd04b`).
-As regras novas ainda não foram publicadas no Firebase; até lá, a proteção real dos dados
-continua sendo a das regras antigas.
+**Firebase (`conectario-dd04b`, compartilhado com o antigo conectario):** em 05/nov/2026 as regras
+deste repositório foram publicadas pelo console (antes estava tudo liberado para leitura e escrita
+por qualquer pessoa — cópia em `docs/backup/firestore.rules.antes-2026-11-05`; o console também
+guarda o histórico de versões) e criados os 6 índices compostos de `firestore.indexes.json`
+(opportunities ×2, applications [grupo], interactions, redemptions, blog_comments).

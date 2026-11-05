@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Permite leitura de tudo
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    // Libera a gravação de avaliações para qualquer um (Modo Teste)
+    match /reviews/{reviewId} {
+      allow write: if true;
+    }
+
+    // Libera a edição de empresas para qualquer um (Modo Teste)
+    match /businesses/{businessId} {
+      allow write: if true;
+    }
+
+    // Mantém o resto liberado para usuários logados
+    match /users/{userId} { allow write: if true; }
+    match /companyRequests/{requestId} { allow write: if true; }
+    match /coupons/{couponId} { allow write: if true; }
+    match /app_categories_guia/{id} { allow write: if true; }
+    match /app_categories_dicas/{id} { allow write: if true; }
+    match /pricingPlans/{id} { allow write: if true; }
+    match /home_highlights/{id} { allow write: if true; }
+    match /cities/{id} { allow write: if true; }
+    match /neighborhoods/{id} { allow write: if true; }
+    match /blog_posts/{id} { allow write: if true; }
+  }
+}
