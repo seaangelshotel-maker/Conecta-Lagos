@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Clock, Loader2, MapPin, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Loader2, MapPin, BookOpen, Share2 } from 'lucide-react';
+import { shareContent } from '../services/native';
 import { BlogPost, BusinessProfile } from '../types';
 import { getAllBusinesses } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
@@ -36,6 +37,14 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
     return bySlug.length ? bySlug : articles.filter(a => a.id !== article.id && (a.collections || []).some(c => (article.collections || []).includes(c))).slice(0, 4);
   }, [article, articles]);
 
+  const [shareMsg, setShareMsg] = useState('');
+  const share = async () => {
+    if (!article) return;
+    const r = await shareContent({ title: article.title, text: article.excerpt, url: `${window.location.origin}/guia/${article.slug}` });
+    setShareMsg(r === 'copied' ? 'Link copiado!' : r === 'failed' ? 'Não foi possível compartilhar.' : '');
+    if (r === 'copied' || r === 'failed') setTimeout(() => setShareMsg(''), 2500);
+  };
+
   const open = (a: BlogPost) => onNavigate('guide-article', { slug: a.slug || a.id });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando"><Loader2 className="animate-spin text-ocean-600" /></div>;
@@ -66,6 +75,10 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
           <button onClick={() => onNavigate('discover')} className="flex items-center gap-1.5 text-xs font-bold bg-white/20 rounded-full px-3 py-1.5" aria-label="Voltar para Descubra">
             <ArrowLeft size={14} /> Descubra
           </button>
+          <button onClick={share} aria-label="Compartilhar matéria" data-testid="share" className="absolute right-0 top-0 flex items-center gap-1.5 text-xs font-bold bg-white/20 rounded-full px-3 py-1.5">
+            <Share2 size={14} /> Compartilhar
+          </button>
+          {shareMsg && <p role="status" className="absolute right-0 top-10 text-[11px] font-bold bg-white text-ocean-950 rounded-full px-3 py-1" data-testid="share-msg">{shareMsg}</p>}
           <p className="mt-6 text-[11px] font-black uppercase tracking-[0.2em] text-white/80">{article.category}</p>
           <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mt-1" data-testid="article-title">{article.title}</h1>
           {article.subtitle && <p className="text-base text-white/90 mt-2">{article.subtitle}</p>}

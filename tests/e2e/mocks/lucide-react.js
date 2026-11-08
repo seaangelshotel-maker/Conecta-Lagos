@@ -132,3 +132,4 @@ export const Wine = mk('Wine');
 export const Mountain = mk('Mountain');
 export const Landmark = mk('Landmark');
 export const Briefcase = mk('Briefcase');
+export const WifiOff = mk('WifiOff');

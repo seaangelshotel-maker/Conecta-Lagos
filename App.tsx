@@ -1,3 +1,5 @@
+import { bindNativeEvents, watchKeyboard } from './services/native';
+import { OfflineBanner } from './components/OfflineBanner';
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
@@ -180,6 +182,16 @@ function AppContent() {
     }
   }, []);
 
+  // Ponte nativa (Capacitor): links profundos, botão voltar do Android e teclado virtual. No navegador não faz nada além do teclado.
+  useEffect(() => {
+    const unbindNative = bindNativeEvents({
+      goTo: (path) => { window.history.pushState({}, '', path); setRoute(parseUrl()); window.scrollTo(0, 0); },
+      canGoBack: () => window.history.length > 1 && window.location.pathname !== '/',
+    });
+    const unbindKb = watchKeyboard();
+    return () => { unbindNative(); unbindKb(); };
+  }, []);
+
   // Guarda a tela protegida que pediu login, para voltar a ela depois de entrar.
   useEffect(() => {
     if (AUTH_PAGES.has(page) && !user) setAfterLogin({ page, params: pageParams });
@@ -308,6 +320,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen font-sans text-ocean-950 bg-slate-50 selection:bg-ocean-200">
+      <OfflineBanner />
       {showChrome && (
           <NavBar
             currentUser={user}

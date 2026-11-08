@@ -87,6 +87,8 @@
       @media (min-width: 768px) { .above-bottom-nav { bottom: 0; } }
       /* Folhas (modais de baixo para cima) respeitam a área segura do iPhone */
       .sheet-safe-bottom.sheet-safe-bottom { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+      /* Teclado aberto: some a barra de abas fixa para não cobrir o campo */
+      .kb-open nav[aria-label="Navegação principal"] { display: none; }
       .leaflet-pane { z-index: 10 !important; }
       /* Experiência de app: sem seleção acidental em botões e rolagem suave no iOS */
       button { -webkit-user-select: none; user-select: none; touch-action: manipulation; }

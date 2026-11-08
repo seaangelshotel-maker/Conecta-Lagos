@@ -1,3 +1,4 @@
+import { shareContent } from '../services/native';
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send, Zap } from 'lucide-react';
 import { SEO } from '../components/SEO';
@@ -212,17 +213,8 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
   }
 
   const handleShare = async () => {
-      const shareData = {
-          title: post.title,
-          text: post.excerpt,
-          url: window.location.href
-      };
-      if (navigator.share) {
-          try { await navigator.share(shareData); } catch (err) { /* ignore */ }
-      } else {
-          navigator.clipboard.writeText(window.location.href);
-          notify('success', "Link copiado!");
-      }
+      const r = await shareContent({ title: post.title, text: post.excerpt, url: window.location.href });
+      if (r === 'copied') notify('success', "Link copiado!");
   };
 
   const toggleLike = () => {

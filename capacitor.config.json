@@ -1,0 +1,18 @@
+{
+  "appId": "org.lagosgo.app",
+  "appName": "Lagos GO",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https",
+    "allowNavigation": ["conecta-lagos-one.vercel.app", "lagosgo.org", "*.firebaseapp.com", "*.googleapis.com"]
+  },
+  "ios": { "contentInset": "always", "limitsNavigationsToAppBoundDomains": true },
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 800, "backgroundColor": "#0c4a6e" },
+    "Keyboard": { "resize": "body", "resizeOnFullScreen": true },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#0c4a6e" }
+  }
+}
