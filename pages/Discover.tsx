@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store, X, Loader2, Sparkles, MapPin } from 'lucide-react';
+import { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store, Loader2, Sparkles, MapPin } from 'lucide-react';
 import { BlogPost, BusinessProfile, City } from '../types';
 import { getAllBusinesses, getCities } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
@@ -8,6 +8,7 @@ import {
   MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
+import { SearchBar, HScroller, EditorialFeed } from '../components/DiscoverUI';
 
 const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
 
@@ -73,6 +74,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
 
   const openArticle = (a: BlogPost) => onNavigate('guide-article', { slug: a.slug || a.id });
+  const openFeedItem = (a: BlogPost) => (a.kind === 'guia' ? openArticle(a) : onNavigate('blog-detail', { postId: a.id }));
   const openBusiness = (b: BusinessProfile) => onNavigate('business-detail', { businessId: b.id });
 
   const byCollection = useMemo(() => COLLECTION_ORDER
@@ -92,14 +94,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Encontre lugares, planeje roteiros e descubra dicas de quem conhece a região.</p>
-          <label className="mt-5 flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-lg">
-            <Search size={18} className="text-slate-400" />
-            <input
-              value={q} onChange={e => setQ(e.target.value)} type="search" aria-label="Buscar lugares, experiências e matérias"
-              placeholder="Buscar praias, restaurantes, roteiros…"
-              className="flex-1 bg-transparent outline-none text-slate-800 text-sm placeholder:text-slate-400" />
-            {q && <button onClick={() => setQ('')} aria-label="Limpar busca" className="text-slate-400"><X size={16} /></button>}
-          </label>
+          <SearchBar className="mt-5" value={q} onChange={setQ} />
           {cities.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar" role="group" aria-label="Cidade">
               {[{ id: '', name: 'Toda a região' }, ...cities].map(c => (
@@ -114,31 +109,31 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
 
       <div className="max-w-5xl mx-auto">
         {/* Categorias */}
-        <section aria-label="Categorias" className="px-4 pt-5">
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+        <section aria-label="Categorias" className="pt-5">
+          <HScroller label="Categorias">
             {MAIN_CATEGORIES.map(c => {
               const Icon = ICONS[c.icon] || Compass; const on = cat === c.id;
               return (
                 <button key={c.id} onClick={() => setCat(on ? '' : c.id)} aria-pressed={on} data-testid={`cat-${c.id}`}
-                  className={`flex flex-col items-center gap-1.5 w-[84px] shrink-0 py-3 rounded-2xl border text-center ${on ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-ocean-950 border-slate-100'}`}>
+                  className={`flex flex-col items-center justify-start pt-3 gap-1.5 w-[88px] h-[96px] shrink-0 rounded-2xl border text-center ${on ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-ocean-950 border-slate-100'}`}>
                   <Icon size={22} />
-                  <span className="text-[11px] font-bold leading-tight px-1">{c.label}</span>
+                  <span className="text-[11px] font-bold leading-tight px-1 min-h-[26px] flex items-center">{c.label}</span>
                   <span className={`text-[10px] font-bold ${on ? 'text-white/80' : 'text-slate-400'}`}>{counts[c.id] ?? 0}</span>
                 </button>
               );
             })}
-          </div>
+          </HScroller>
         </section>
 
         {/* Filtros contextuais */}
-        <section aria-label="Filtros" className="px-4 pt-2">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+        <section aria-label="Filtros" className="pt-1">
+          <HScroller label="Filtros" gap="gap-2">
             {CONTEXT_FILTERS.map(f => (
               <button key={f.id} onClick={() => pickFilter(f.id)} aria-pressed={flt === f.id} data-testid={`flt-${f.id}`}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border ${flt === f.id ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200'}`}>{f.label}</button>
+                className={`px-4 h-9 flex items-center rounded-full text-xs font-bold whitespace-nowrap border ${flt === f.id ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200'}`}>{f.label}</button>
             ))}
-          </div>
-          {geoMsg && <p className="text-xs text-amber-700 font-bold mt-1" role="status">{geoMsg}</p>}
+          </HScroller>
+          {geoMsg && <p className="px-4 text-xs text-amber-700 font-bold mt-1" role="status">{geoMsg}</p>}
         </section>
 
         {loading && (
@@ -178,9 +173,9 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
             )}
 
             {matchedArticles.length > 0 && (
-              <div>
-                <h2 className="font-black text-ocean-950 text-lg mb-3">Matérias sobre "{q}"</h2>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">{matchedArticles.map(a => <ArticleCard key={a.id} article={a} onOpen={openArticle} />)}</div>
+              <div className="-mx-4">
+                <h2 className="px-4 font-black text-ocean-950 text-lg mb-3">Matérias sobre "{q}"</h2>
+                <HScroller label="Matérias encontradas">{matchedArticles.map(a => <ArticleCard key={a.id} article={a} onOpen={openArticle} />)}</HScroller>
               </div>
             )}
           </section>
@@ -200,6 +195,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
             )}
             {byCollection.map(s => <Row key={s.name} title={s.name} items={s.items} onOpen={openArticle} />)}
             {recent.length > 0 && <Row title="Recentes" subtitle="Últimas matérias publicadas" items={recent} onOpen={openArticle} />}
+            <EditorialFeed onOpen={openFeedItem} />
           </div>
         )}
       </div>
@@ -213,8 +209,8 @@ const Row: React.FC<{ title: string; subtitle?: string; items: BlogPost[]; onOpe
       <h2 className="text-xl font-black text-ocean-950 tracking-tight">{title}</h2>
       {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
     </div>
-    <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
+    <HScroller label={title}>
       {items.map(a => <ArticleCard key={a.id} article={a} onOpen={onOpen} />)}
-    </div>
+    </HScroller>
   </section>
 );

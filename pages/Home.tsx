@@ -358,6 +358,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       </div>
 
       <div className="max-w-7xl mx-auto pt-4 relative z-10 space-y-8">
+        {/* DESCUBRA (topo da Home): busca rápida, categorias e matérias do Guia */}
+        <DiscoverTeaser onNavigate={onNavigate} />
+
         {/* CARTEIRA DE ECONOMIA (Delicate & Discrete) */}
         {currentUser && (
           <div className="px-4">
@@ -460,9 +463,6 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           <WhatYouCanDo onNavigate={onNavigate} isLoggedIn={!!currentUser} />
           <InstallAppPrompt />
         </div>
-
-        {/* DESCUBRA: busca rápida, categorias e matérias do Guia */}
-        <DiscoverTeaser onNavigate={onNavigate} />
 
         {/* CATEGORIES GRID (Round Icons) */}
         <div>

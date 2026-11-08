@@ -98,7 +98,7 @@ export const writeBatch = () => {
 export const where = (field, op, value) => ({ kind: 'where', field, op, value });
 export const orderBy = (field, dir = 'asc') => ({ kind: 'orderBy', field, dir });
 export const limit = (n) => ({ kind: 'limit', n });
-export const startAfter = () => ({ kind: 'noop' });
+export const startAfter = (snapshot) => ({ kind: 'startAfter', path: snapshot && snapshot.ref ? snapshot.ref.path : snapshot && snapshot.__path });
 export const query = (ref, ...constraints) => ({ ...ref, constraints: [...(ref.constraints || []), ...constraints] });
 
 const get = (obj, field) => field.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
@@ -139,6 +139,8 @@ export const getDocs = async (ref) => {
       return c.dir === 'desc' ? -cmp : cmp;
     });
   }
+  const sa = (ref.constraints || []).find(c => c.kind === 'startAfter');
+  if (sa && sa.path) { const i = rows.findIndex(r => r.path === sa.path); if (i >= 0) rows = rows.slice(i + 1); }
   const lim = (ref.constraints || []).find(c => c.kind === 'limit');
   if (lim) rows = rows.slice(0, lim.n);
   const docs = rows.map(r => snap(r.path));

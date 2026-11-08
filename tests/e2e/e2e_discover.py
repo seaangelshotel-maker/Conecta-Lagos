@@ -121,6 +121,24 @@ async def main():
         await logout(page)
         await page.goto(BASE + '/descubra'); await page.wait_for_timeout(1500)
         ok('seções editoriais aparecem', await page.locator('[data-testid=editorial]').count() == 1 and await page.locator('[data-testid=no-articles]').count() == 0)
+        # 8b. Feed editorial com rolagem infinita e alinhamento visual
+        await page.goto(BASE + '/descubra'); await page.wait_for_timeout(1500)
+        first_n = await page.locator('[data-testid=feed-items] > button').count()
+        ok('feed carrega só a primeira página (8)', first_n == 8, str(first_n))
+        for _ in range(8):
+            await page.evaluate("document.querySelector('[data-testid=editorial-feed] > div[aria-hidden]')?.scrollIntoView()"); await page.wait_for_timeout(700)
+        labels = await page.locator('[data-testid=feed-items] > button').evaluate_all('els => els.map(e => e.getAttribute("aria-label"))')
+        ok('rolagem infinita carrega as demais páginas', len(labels) >= 20 and len(labels) > first_n, str(len(labels)))
+        ok('feed sem cards repetidos', len(set(labels)) == len(labels))
+        ok('feed mostra fim da lista', await page.locator('[data-testid=feed-end]').count() == 1)
+        await page.evaluate("document.querySelector('header')?.scrollIntoView()"); await page.wait_for_timeout(300)
+        xs = await page.evaluate("""() => { const l = e => e ? Math.round(e.getBoundingClientRect().left) : null;
+          return { search: l(document.querySelector('form[role=search]')), cat: l(document.querySelector('[data-testid=cat-praias]')), flt: l(document.querySelector('[data-testid=flt-populares]')), card: l(document.querySelector('[data-testid=editorial] [aria-label^="Ler matéria"]')) }; }""")
+        ok('busca, categorias, filtros e cards alinhados à mesma margem', len({xs['search'], xs['cat'], xs['flt'], xs['card']}) == 1, str(xs))
+        hs = await page.evaluate("""() => [...document.querySelectorAll('[data-testid^=cat-]')].map(e => Math.round(e.getBoundingClientRect().height))""")
+        ok('categorias com a mesma altura', len(set(hs)) == 1, str(hs))
+        await page.screenshot(path='shots/34-feed-descubra.png', full_page=False)
+
         await page.goto(BASE + '/descubra?q=forno'); await page.wait_for_timeout(1500)
         ok('busca encontra matéria sobre Praia do Forno', await page.locator('text=Ler matéria').count() > 0 or await page.locator('[aria-label^="Ler matéria"]').count() > 0)
         await page.goto(BASE + '/guia/praia-do-forno'); await page.wait_for_timeout(1500)

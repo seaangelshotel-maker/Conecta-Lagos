@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { BlogPost } from '../types';
 import { getGuideArticles } from '../services/guideService';
 import { MAIN_CATEGORIES } from '../services/discoverLogic';
 import { ArticleCard } from './GuideCards';
+import { SearchBar, HScroller } from './DiscoverUI';
 
 /** Convite da Home para a tela Descubra: busca rápida, categorias e matérias em destaque. */
 export const DiscoverTeaser: React.FC<{ onNavigate: (page: string, params?: any) => void }> = ({ onNavigate }) => {
@@ -23,12 +24,8 @@ export const DiscoverTeaser: React.FC<{ onNavigate: (page: string, params?: any)
       <div className="rounded-3xl bg-gradient-to-br from-ocean-600 to-ocean-950 text-white p-5 shadow-md">
         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
         <h2 className="text-xl font-black mt-1 leading-tight">Lugares, roteiros e dicas de quem conhece a região</h2>
-        <form onSubmit={e => { e.preventDefault(); onNavigate('discover', { q: q.trim() }); }} className="mt-4 flex items-center gap-2 bg-white rounded-2xl px-4 py-3">
-          <Search size={17} className="text-slate-400" />
-          <input value={q} onChange={e => setQ(e.target.value)} aria-label="Buscar na Região dos Lagos" placeholder="O que você quer encontrar?" className="flex-1 bg-transparent outline-none text-sm text-slate-800 placeholder:text-slate-400" />
-          <button type="submit" className="text-xs font-black text-ocean-600">Buscar</button>
-        </form>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mt-3">
+        <SearchBar className="mt-4" value={q} onChange={setQ} onSubmit={v => onNavigate('discover', { q: v })} placeholder="O que você quer encontrar?" />
+        <div className="flex gap-2 overflow-x-auto no-scrollbar mt-3 -mx-1 px-1">
           {MAIN_CATEGORIES.slice(0, 6).map(c => (
             <button key={c.id} onClick={() => onNavigate('discover', { cat: c.id })} className="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white/15 border border-white/30">{c.label}</button>
           ))}
@@ -36,9 +33,9 @@ export const DiscoverTeaser: React.FC<{ onNavigate: (page: string, params?: any)
         </div>
       </div>
       {shown.length > 0 && (
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pt-4 pb-1">
+        <div className="-mx-4 pt-4"><HScroller label="Matérias do Guia">
           {shown.map(a => <ArticleCard key={a.id} article={a} onOpen={x => onNavigate('guide-article', { slug: x.slug || x.id })} />)}
-        </div>
+        </HScroller></div>
       )}
     </section>
   );
