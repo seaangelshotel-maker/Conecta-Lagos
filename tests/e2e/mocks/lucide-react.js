@@ -168,3 +168,4 @@ export const ArrowDown = mk('ArrowDown');
 export const RotateCcw = mk('RotateCcw');
 export const LayoutGrid = mk('LayoutGrid');
 export const Scale = mk('Scale');
+export const BellOff = mk('BellOff');

@@ -1,5 +1,6 @@
 
 import { LegalFooter } from '../components/LegalFooter';
+import { PushPreferences } from '../components/PushPreferences';
 import React, { useState, useEffect } from 'react';
 import { User, SavingsRecord, Coupon, BusinessProfile, UserRole } from '../types';
 import { Tag, LogOut, ChevronRight, HelpCircle, Trophy, TrendingUp, Wallet, Star, Heart, Store, Ticket, Send, Camera, Loader2, ShieldCheck, Zap, Bell, Clock, ShoppingBag, Settings, PenTool } from 'lucide-react';
@@ -572,6 +573,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
               </div>
           </div>
       )}
+      <div className="mt-8"><PushPreferences uid={currentUser.id} /></div>
       <LegalFooter onNavigate={onNavigate} />
     </div>
   );

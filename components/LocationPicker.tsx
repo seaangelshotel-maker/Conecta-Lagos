@@ -9,8 +9,10 @@ interface LocationPickerProps {
   onLocationSelect: (lat: number, lng: number) => void;
 }
 
-// Declare Leaflet global (loaded via CDN in index.html)
-declare const L: any;
+import { loadLeaflet } from '../services/loadLeaflet';
+
+// Leaflet é carregado sob demanda (services/loadLeaflet) só nesta tela.
+let L: any;
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, initialLng, onLocationSelect }) => {
   const { notify } = useNotification();
@@ -21,12 +23,20 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  // Rio de Janeiro Default Center (Centralizado para cobrir Zonas Norte, Sul, Oeste e Centro)
-  const DEFAULT_LAT = -22.9068;
-  const DEFAULT_LNG = -43.1729;
+  // Centro padrão: Região dos Lagos (Arraial do Cabo / Cabo Frio)
+  const DEFAULT_LAT = -22.9;
+  const DEFAULT_LNG = -42.03;
+  const [leafletReady, setLeafletReady] = useState(!!(typeof window !== 'undefined' && (window as any).L));
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
+    let alive = true;
+    loadLeaflet().then(lib => { L = lib; if (alive) setLeafletReady(true); }).catch(() => notify('error', 'Não foi possível carregar o mapa. Verifique a conexão.'));
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !leafletReady) return;
+    L = L || (window as any).L;
 
     // Initialize Map only once
     if (!mapInstanceRef.current) {
@@ -36,7 +46,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
         // Create Map
         const map = L.map(mapContainerRef.current, {
             center: [startLat, startLng],
-            zoom: 11, // Zoom ajustado para ver o Rio como um todo
+            zoom: 11, // visão da Região dos Lagos
             zoomControl: false, 
             attributionControl: false
         });
@@ -82,7 +92,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
             mapInstanceRef.current = null;
         }
     };
-  }, []); // Run once on mount
+  }, [leafletReady]); // cria o mapa assim que o Leaflet terminar de carregar
 
   // Update marker if props change externally (e.g. loading saved data)
   useEffect(() => {

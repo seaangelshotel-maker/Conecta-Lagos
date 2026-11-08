@@ -4,7 +4,7 @@
  * - CDNs de estilo/mapa/fontes: usa o cache e atualiza em segundo plano.
  * - Nunca guarda /api/*, Firebase/Firestore ou métodos diferentes de GET.
  */
-const VERSION = 'lagosgo-v1';
+const VERSION = 'lagosgo-v2';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const CDN_CACHE = `${VERSION}-cdn`;
@@ -69,4 +69,35 @@ self.addEventListener('fetch', (event) => {
       return cached || network;
     })());
   }
+});
+
+/* ---------- Notificações push (Firebase Cloud Messaging) ---------- */
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; } catch { payload = { notification: { body: event.data && event.data.text() } }; }
+  const n = payload.notification || {};
+  const d = payload.data || {};
+  const title = n.title || d.title || 'Lagos GO';
+  const link = d.link || (payload.fcmOptions && payload.fcmOptions.link) || '/';
+  event.waitUntil(self.registration.showNotification(title, {
+    body: n.body || d.body || '',
+    icon: n.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    image: n.image || d.image || undefined,
+    data: { link },
+    tag: d.tag || undefined,
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const raw = (event.notification.data && event.notification.data.link) || '/';
+  const target = new URL(raw, self.location.origin);
+  if (target.origin !== self.location.origin) return; // só abre telas do próprio app
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const open = all.find((c) => new URL(c.url).origin === self.location.origin);
+    if (open) { await open.focus(); return open.navigate(target.href); }
+    return self.clients.openWindow(target.href);
+  })());
 });

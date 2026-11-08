@@ -6,7 +6,7 @@ const H = path.dirname(new URL(import.meta.url).pathname);
 const M = (f) => path.join(H, 'mocks', f);
 const alias = {
   'firebase/app': M('firebase-app.js'), 'firebase/auth': M('firebase-auth.js'),
-  'firebase/firestore': M('firebase-firestore.js'), 'firebase/analytics': M('firebase-analytics.js'),
+  'firebase/firestore': M('firebase-firestore.js'), 'firebase/analytics': M('firebase-analytics.js'), 'firebase/messaging': M('firebase-messaging.js'),
   'lucide-react': M('lucide-react.js'), 'recharts': M('recharts.js'), 'react-helmet-async': M('react-helmet-async.js'),
   'swr': M('swr.js'), 'motion/react': M('motion-react.js'), '@google/genai': M('google-genai.js'),
 };
@@ -14,7 +14,7 @@ const alias = {
 await esbuild.build({
   entryPoints: [path.join(H, 'entry.tsx')], bundle: true, format: 'esm', splitting: true, outdir: path.join(H, 'www/assets'),
   jsx: 'automatic', logLevel: 'warning', sourcemap: true,
-  define: { 'import.meta.env.PROD': 'false', 'import.meta.env.DEV': 'false', 'import.meta.env': '{}', 'process.env.NODE_ENV': '"production"' },
+  define: { 'import.meta.env.PROD': 'false', 'import.meta.env.DEV': 'false', 'import.meta.env': '{"VITE_FIREBASE_VAPID_KEY":"test-vapid"}', 'process.env.NODE_ENV': '"production"' },
   plugins: [{ name: 'alias', setup(b) {
     b.onResolve({ filter: /.*/ }, (a) => {
       if (alias[a.path]) return { path: alias[a.path] };

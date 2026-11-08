@@ -379,6 +379,23 @@ service cloud.firestore {
     }
 
     // Configurações privadas (pagamentos).
+    // Aparelhos que aceitaram notificações. O id é o próprio token (segredo do aparelho).
+    match /push_tokens/{token} {
+      allow read: if isAdmin();
+      allow create, update: if request.resource.data.token == token
+        && request.resource.data.keys().hasOnly(['token', 'topics', 'platform', 'updatedAt', 'lang', 'uid'])
+        && request.resource.data.topics is list && request.resource.data.topics.size() <= 10
+        && request.resource.data.platform in ['web', 'android', 'ios']
+        && (!('uid' in request.resource.data) || (isAuthenticated() && request.resource.data.uid == uid()));
+      allow delete: if true;
+    }
+
+    // Histórico de envios (gravado pelo servidor).
+    match /push_campaigns/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /settings/{settingId} {
       allow read, write: if isAdmin();
     }

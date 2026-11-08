@@ -39,4 +39,4 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export { auth, db, analytics };
+export { auth, db, analytics, app as firebaseApp };
