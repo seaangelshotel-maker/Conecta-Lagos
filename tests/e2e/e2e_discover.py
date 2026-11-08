@@ -190,6 +190,8 @@ async def main():
         ok('desktop: Descubra abre', await dp.locator('[data-testid=cat-praias]').count() == 1)
         ok('desktop: sem rolagem horizontal da página', await dp.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'))
         ok('desktop: link Descubra no menu', await dp.locator('header >> text=Descubra').count() + await dp.locator('nav >> text=Descubra').count() > 0)
+        xs = await dp.evaluate("""() => { const l = e => e ? Math.round(e.getBoundingClientRect().left) : null; return [l(document.querySelector('form[role=search]')), l(document.querySelector('[data-testid=cat-praias]')), l(document.querySelector('[data-testid=flt-populares]'))]; }""")
+        ok('desktop: busca, categorias e filtros alinhados', len(set(xs)) == 1, str(xs))
         await dp.screenshot(path='shots/33-descubra-desktop.png', full_page=True)
         await dctx.close()
 

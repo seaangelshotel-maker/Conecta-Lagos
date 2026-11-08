@@ -89,8 +89,8 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   return (
     <div className="bg-slate-50 min-h-screen pb-28 font-sans">
       {/* Cabeçalho + busca */}
-      <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white px-4 pt-8 pb-7">
-        <div className="max-w-5xl mx-auto">
+      <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
+        <div className="max-w-5xl mx-auto px-4">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Encontre lugares, planeje roteiros e descubra dicas de quem conhece a região.</p>
