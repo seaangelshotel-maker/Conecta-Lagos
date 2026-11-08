@@ -60,7 +60,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
         <BookOpen className="text-slate-300" size={40} />
         <h1 className="font-black text-ocean-950 text-xl">Matéria não encontrada</h1>
         <p className="text-sm text-slate-500">Ela pode ter sido despublicada ou o endereço mudou.</p>
-        <button onClick={() => onNavigate('discover')} className="mt-2 bg-ocean-600 text-white font-black rounded-full px-6 py-3 text-sm">Ver outras matérias</button>
+        <button onClick={() => onNavigate('blog')} className="mt-2 bg-ocean-600 text-white font-black rounded-full px-6 py-3 text-sm">Ver outras matérias</button>
       </div>
     );
   }
@@ -77,8 +77,8 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
         {article.imageUrl && <img src={article.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" referrerPolicy="no-referrer" />}
         <div className="absolute -right-10 -bottom-12 w-56 h-56 rounded-full bg-white/10" />
         <div className="relative max-w-3xl mx-auto">
-          <button onClick={() => onNavigate('discover')} className="flex items-center gap-1.5 text-xs font-bold bg-white/20 rounded-full px-3 py-1.5" aria-label="Voltar para Descubra">
-            <ArrowLeft size={14} /> Descubra
+          <button onClick={() => onNavigate('blog')} className="flex items-center gap-1.5 text-xs font-bold bg-white/20 rounded-full px-3 py-1.5" aria-label="Voltar para o Feed">
+            <ArrowLeft size={14} /> Feed
           </button>
           <button onClick={share} aria-label="Compartilhar matéria" data-testid="share" className="absolute right-0 top-0 flex items-center gap-1.5 text-xs font-bold bg-white/20 rounded-full px-3 py-1.5">
             <Share2 size={14} /> Compartilhar

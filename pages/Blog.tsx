@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { BlogPost, PublicProfile, AppCategory, BlogAd } from "../types";
 import {
   getBlogPosts,
@@ -24,7 +24,11 @@ import {
   Flame,
   Sparkles,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { getGuideArticles } from "../services/guideService";
+import { COLLECTION_ORDER } from "../data/guideArticles";
+import { ArticleCard } from "../components/GuideCards";
+import { HScroller } from "../components/DiscoverUI";
+import { LeadCard, CompactCard, StreamCard, contentType, openContent, ContentType, TYPE_META } from "../components/FeedCards";
 
 interface BlogProps {
   onNavigate?: (page: string, params?: any) => void;
@@ -62,528 +66,242 @@ const DEFAULT_ADS: BlogAd[] = [
 ];
 
 export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
+  const nav = onNavigate || (() => {});
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [guides, setGuides] = useState<BlogPost[]>([]);
   const [users, setUsers] = useState<PublicProfile[]>([]);
   const [categories, setCategories] = useState<AppCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  const initialType = (() => { try { return (new URLSearchParams(window.location.search).get("tipo") || "") as ContentType | ""; } catch { return ""; } })();
   const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<ContentType | "">(initialType);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [adsSlides, setAdsSlides] = useState<BlogAd[]>(DEFAULT_ADS);
+  const [theme, setTheme] = useState<string>("");
+  const [visible, setVisible] = useState(9);
+  const sentinel = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (adsSlides.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % adsSlides.length);
-    }, 4500);
+    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % adsSlides.length), 4500);
     return () => clearInterval(timer);
   }, [adsSlides.length]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [p, u, c, ads] = await Promise.all([
-          getBlogPosts().catch((err) => {
-            console.error("Error fetching blog posts:", err);
-            return [];
-          }),
-          getPublicProfiles().catch((err) => {
-            console.error("Error fetching author profiles:", err);
-            return [];
-          }),
-          getDicasCategories().catch((err) => {
-            console.error("Error fetching categories:", err);
-            return [];
-          }),
-          getBlogAds().catch((err) => {
-            console.error("Error fetching blog ads:", err);
-            return [];
-          }),
+        const [p, g, u, c, ads] = await Promise.all([
+          getBlogPosts().catch(() => []),
+          getGuideArticles(false).catch(() => []),
+          getPublicProfiles().catch(() => []),
+          getDicasCategories().catch(() => []),
+          getBlogAds().catch(() => []),
         ]);
-        setPosts(p || []);
-        setUsers(u || []);
-        setCategories(c || []);
-        if (ads && ads.filter((a) => a.active).length > 0) {
-          setAdsSlides(ads.filter((a) => a.active));
-        } else {
-          setAdsSlides(DEFAULT_ADS);
-        }
-      } catch (err) {
-        console.error("Critical error in fetchData on Blog page:", err);
-      }
+        setPosts(p || []); setGuides(g || []); setUsers(u || []); setCategories(c || []);
+        const activeAds = (ads || []).filter((a) => a.active);
+        setAdsSlides(activeAds.length ? activeAds : DEFAULT_ADS);
+      } finally { setLoading(false); }
     };
     fetchData();
-
-    // Listen to real-time events from administrative updates
     window.addEventListener("dataUpdated", fetchData);
-
-    // Load liked posts from localStorage
-    try {
-      const savedLikes = localStorage.getItem("lagos_go_liked_posts");
-      if (savedLikes) {
-        setLikedPosts(JSON.parse(savedLikes));
-      }
-    } catch (e) {
-      console.warn("Could not load liked posts", e);
-    }
-
-    return () => {
-      window.removeEventListener("dataUpdated", fetchData);
-    };
+    try { const saved = localStorage.getItem("lagos_go_liked_posts"); if (saved) setLikedPosts(JSON.parse(saved)); } catch { /* sem favoritos */ }
+    return () => window.removeEventListener("dataUpdated", fetchData);
   }, []);
 
-  const handlePostClick = (postId: string) => {
-    if (onNavigate) {
-      onNavigate("blog-detail", { postId });
-    }
-  };
-
-  const handleAuthorClick = (e: React.MouseEvent, authorId?: string) => {
-    e.stopPropagation();
-    if (onNavigate && authorId) {
-      onNavigate("journalist-profile", { journalistId: authorId });
-    }
-  };
-
-  const toggleLike = (e: React.MouseEvent, postId: string) => {
-    e.stopPropagation();
-    let updated: string[];
-    if (likedPosts.includes(postId)) {
-      updated = likedPosts.filter((id) => id !== postId);
-    } else {
-      updated = [...likedPosts, postId];
-    }
-    setLikedPosts(updated);
+  useEffect(() => {
     try {
-      localStorage.setItem("lagos_go_liked_posts", JSON.stringify(updated));
-    } catch (e) {
-      console.warn("Could not save liked posts", e);
+      const url = new URL(window.location.href);
+      if (typeFilter) url.searchParams.set("tipo", typeFilter); else url.searchParams.delete("tipo");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    } catch { /* ignora */ }
+  }, [typeFilter]);
+
+  const open = (p: BlogPost) => openContent(p, nav);
+  const openAuthor = (p: BlogPost) => p.authorId && nav("journalist-profile", { journalistId: p.authorId });
+  const toggleLike = (p: BlogPost) => {
+    const updated = likedPosts.includes(p.id) ? likedPosts.filter((id) => id !== p.id) : [...likedPosts, p.id];
+    setLikedPosts(updated);
+    try { localStorage.setItem("lagos_go_liked_posts", JSON.stringify(updated)); } catch { /* ignora */ }
+  };
+
+  // Uma única fonte: matérias do Guia + posts do Feed (mesma coleção blog_posts), sem duplicar ids.
+  // Intercala matérias e publicações (cada lista na sua ordem) para o fluxo não virar blocos de um só formato.
+  const all = useMemo(() => {
+    const seen = new Set<string>();
+    const ok = (p: BlogPost) => p && p.title && !seen.has(p.id) && !!seen.add(p.id);
+    const g = guides.filter(ok);
+    const o = [...posts].sort((a, b) => (b.date || "").localeCompare(a.date || "")).filter(ok);
+    const out: BlogPost[] = [];
+    for (let i = 0; i < Math.max(g.length, o.length); i++) { if (g[i]) out.push(g[i]); if (o[i]) out.push(o[i]); }
+    return out;
+  }, [guides, posts]);
+
+  const q = searchQuery.trim().toLowerCase();
+  const filtering = !!(q || typeFilter || selectedCategory !== "Todos" || showOnlyLiked);
+  const filtered = useMemo(() => all.filter((p) => {
+    if (typeFilter && contentType(p) !== typeFilter) return false;
+    if (selectedCategory !== "Todos" && p.category !== selectedCategory) return false;
+    if (showOnlyLiked && !likedPosts.includes(p.id)) return false;
+    if (q) {
+      const text = [p.title, p.subtitle, p.excerpt, p.category, (p.tags || []).join(" ")].join(" ").toLowerCase();
+      if (!q.split(/\s+/).every((t) => text.includes(t))) return false;
     }
-  };
+    return true;
+  }), [all, typeFilter, selectedCategory, showOnlyLiked, likedPosts, q]);
 
-  // Helper to find author
-  const getAuthor = (authorId?: string) => {
-    let found = users.find((u) => u.id === authorId);
-    // Posts antigos do Yuri foram gravados com o autor "yuri_guida": localiza o perfil público pelo nome.
-    if (!found && (authorId === "yuri_guida" || authorId?.toLowerCase() === "yuri guida")) {
-      found = users.find((u) => (u.name || "").trim().toLowerCase() === "yuri guida");
-    }
-    return found;
-  };
+  // Destaques: matéria em destaque do Guia + as notícias e dicas mais recentes.
+  const lead = useMemo(() => guides.find((g) => g.featured) || all[0], [guides, all]);
+  const secondary = useMemo(() => {
+    const news = posts.slice(0, 2);
+    const moreGuides = guides.filter((g) => g.id !== lead?.id && (g.featured || g.popular)).slice(0, 4 - news.length);
+    return [...news, ...moreGuides].filter((p) => p.id !== lead?.id).slice(0, 4);
+  }, [posts, guides, lead]);
+  const events = useMemo(() => posts.filter((p) => contentType(p) === "evento").slice(0, 6), [posts]);
+  const themes = useMemo(() => COLLECTION_ORDER.filter((c) => guides.some((g) => (g.collections || []).includes(c))), [guides]);
+  const activeTheme = theme || themes[0] || "";
+  const themeItems = useMemo(() => guides.filter((g) => (g.collections || []).includes(activeTheme)), [guides, activeTheme]);
 
-  // Filter posts based on search, category tab, and liked filter
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      (post.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (post.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (post.tags || []).some((t) =>
-        t.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
+  const heroIds = useMemo(() => new Set([lead?.id, ...secondary.map((s) => s.id)]), [lead, secondary]);
+  const stream = filtering ? filtered : all.filter((p) => !heroIds.has(p.id));
 
-    const matchesCategory =
-      selectedCategory === "Todos" || post.category === selectedCategory;
-    const matchesLiked = !showOnlyLiked || likedPosts.includes(post.id);
+  useEffect(() => { setVisible(9); }, [typeFilter, selectedCategory, showOnlyLiked, q]);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || visible >= stream.length || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => { if (es[0].isIntersecting) setVisible((v) => v + 9); }, { rootMargin: "500px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible, stream.length]);
 
-    return matchesSearch && matchesCategory && matchesLiked;
-  });
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { materia: 0, noticia: 0, evento: 0, dica: 0 };
+    all.forEach((p) => { c[contentType(p)] += 1; });
+    return c;
+  }, [all]);
 
-  // Hot right now / Destaques: First 3 posts matching category or general
-  const hotPosts = posts.slice(0, 3);
-
-  // Próximos Eventos
-  const eventPosts = posts
-    .filter((post) => post.category === "Eventos")
-    .slice(0, 5);
-
-  // Beautiful vector Lucide Icon mapping for categories (super elegant outline branding)
-  const getCategoryIcon = (catName: string, size = 12) => {
-    const c = catName.toLowerCase();
-    if (c.includes("roteiro")) return <Compass size={size} />;
-    if (c.includes("gastro")) return <Utensils size={size} />;
-    if (c.includes("evento")) return <Sparkles size={size} />;
-    if (c.includes("notícia")) return <Newspaper size={size} />;
-    if (c.includes("dica")) return <Lightbulb size={size} />;
-    return <Layers size={size} />;
-  };
+  const chip = (on: boolean) => `px-4 h-9 flex items-center gap-1.5 rounded-full text-xs font-bold whitespace-nowrap border ${on ? "bg-ocean-950 text-white border-ocean-950" : "bg-white text-slate-600 border-slate-200"}`;
 
   return (
-    <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
-      {/* AUTOMATIC LANDING CAROUSEL (Publicidade / Destaque de Notícias) */}
-      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-        <div className="relative h-48 md:h-64 rounded-[2.2rem] overflow-hidden shadow-lg border border-slate-100 group">
-          {/* Slides Render */}
-          <div className="w-full h-full relative">
-            {adsSlides.map((slide, index) => {
-              const isActive = index === currentSlide;
-              return (
-                <div
-                  key={slide.id}
-                  onClick={() => {
-                    if (onNavigate && slide.targetCategory) {
-                      onNavigate("guide", { category: slide.targetCategory });
-                    }
-                  }}
-                  className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-1000 ease-in-out ${isActive ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-95 pointer-events-none"}`}
-                >
-                  <img
-                    src={slide.imageUrl}
-                    referrerPolicy="no-referrer"
-                    alt={slide.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
-                  />
-                  {/* Subtle Premium Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10"></div>
+    <div className="pb-28 min-h-screen bg-slate-50 font-sans">
+      {/* Cabeçalho do portal */}
+      <header className="bg-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-red-500">Feed Lagos GO</p>
+          <h1 className="text-3xl md:text-4xl font-black text-ocean-950 tracking-tight mt-1">Notícias, matérias e dicas da região</h1>
+          <label className="mt-4 flex items-center gap-2 bg-slate-100 rounded-2xl px-4 h-12">
+            <Search size={16} className="text-slate-400" />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} aria-label="Buscar no Feed" placeholder="Buscar notícias, matérias e dicas" className="flex-1 bg-transparent outline-none text-sm text-slate-800" />
+          </label>
+        </div>
+        <div className="max-w-6xl mx-auto pb-3">
+          <HScroller label="Tipo de conteúdo" gap="gap-2">
+            <button onClick={() => { setTypeFilter(""); setShowOnlyLiked(false); }} className={chip(!typeFilter && !showOnlyLiked)} data-testid="type-all"><Layers size={13} /> Tudo</button>
+            {(Object.keys(TYPE_META) as ContentType[]).filter((t) => counts[t] > 0).map((t) => {
+              const M = TYPE_META[t];
+              return <button key={t} onClick={() => { setTypeFilter(typeFilter === t ? "" : t); setShowOnlyLiked(false); }} aria-pressed={typeFilter === t} className={chip(typeFilter === t)} data-testid={`type-${t}`}><M.Icon size={13} /> {M.label === "Matéria" ? "Matérias" : M.label === "Notícia" ? "Notícias" : M.label === "Evento" ? "Eventos" : "Dicas"} <span className="opacity-60">{counts[t]}</span></button>;
+            })}
+            <button onClick={() => setShowOnlyLiked(!showOnlyLiked)} aria-pressed={showOnlyLiked} className={chip(showOnlyLiked)} data-testid="type-liked"><Heart size={13} className={showOnlyLiked ? "fill-white" : ""} /> Favoritos</button>
+          </HScroller>
+          {categories.length > 0 && (
+            <div className="mt-2">
+              <HScroller label="Categorias" gap="gap-2">
+                {["Todos", ...categories.map((c) => c.name)].map((name) => (
+                  <button key={name} onClick={() => setSelectedCategory(name)} aria-pressed={selectedCategory === name}
+                    className={`px-3 h-8 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedCategory === name ? "bg-red-50 text-red-600" : "text-slate-500"}`}>{name}</button>
+                ))}
+              </HScroller>
+            </div>
+          )}
+        </div>
+      </header>
 
-                  {/* Slide Content */}
-                  <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 text-white z-20">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${slide.badgeColor} mb-2.5 shadow-sm`}
-                    >
-                      {slide.tag}
-                    </span>
-                    <h2 className="text-base sm:text-[19px] md:text-2.5xl font-black tracking-tight leading-snug mb-1 text-white pr-4 drop-shadow">
-                      {slide.title}
-                    </h2>
-                    <p className="text-white/85 text-[11px] sm:text-xs md:text-sm line-clamp-1 max-w-2xl font-light">
-                      {slide.subtitle}
-                    </p>
+      <div className="max-w-6xl mx-auto pt-6 space-y-10">
+        {loading && <div className="flex justify-center py-16" role="status" aria-label="Carregando"><div className="w-8 h-8 border-4 border-ocean-600 border-t-transparent rounded-full animate-spin" /></div>}
+
+        {!loading && !filtering && (
+          <>
+            {/* Destaques: matéria principal + secundárias */}
+            {lead && (
+              <section className="px-4 grid gap-4 lg:grid-cols-5" aria-label="Em destaque" data-testid="feed-highlights">
+                <div className="lg:col-span-3"><LeadCard post={lead} onOpen={open} /></div>
+                <div className="lg:col-span-2 grid gap-3 content-start">
+                  <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Também em destaque</h2>
+                  {secondary.map((p) => <CompactCard key={p.id} post={p} onOpen={open} />)}
+                </div>
+              </section>
+            )}
+
+            {/* Publicidade / campanhas do Feed (mantido) */}
+            {adsSlides.length > 0 && (
+              <section className="px-4" aria-label="Destaques patrocinados">
+                <div className="relative h-44 md:h-56 rounded-3xl overflow-hidden shadow-sm">
+                  {adsSlides.map((slide, index) => (
+                    <div key={slide.id} onClick={() => slide.targetCategory && nav("guide", { category: slide.targetCategory })}
+                      className={`absolute inset-0 cursor-pointer transition-opacity duration-700 ${index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}>
+                      <img src={slide.imageUrl} referrerPolicy="no-referrer" alt={slide.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                      <div className="absolute bottom-5 left-5 right-14 text-white">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${slide.badgeColor} mb-2`}>{slide.tag}</span>
+                        <h2 className="text-lg md:text-2xl font-black leading-snug">{slide.title}</h2>
+                        <p className="text-white/85 text-xs line-clamp-1">{slide.subtitle}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="absolute bottom-5 right-5 flex gap-1.5 z-20">
+                    {adsSlides.map((_, i) => <button key={i} aria-label={`Destaque ${i + 1}`} onClick={() => setCurrentSlide(i)} className={`h-1.5 rounded-full ${i === currentSlide ? "bg-white w-4" : "bg-white/40 w-1.5"}`} />)}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </section>
+            )}
 
-          {/* Navigation Dot Indicators */}
-          <div className="absolute bottom-6 right-6 flex gap-1.5 z-20">
-            {adsSlides.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentSlide(index);
-                }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-white w-4" : "bg-white/40 hover:bg-white/60"}`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+            {/* Matérias do Guia por tema */}
+            {themes.length > 0 && (
+              <section aria-label="Matérias por tema" data-testid="feed-themes">
+                <div className="px-4 mb-3">
+                  <h2 className="text-xl font-black text-ocean-950 tracking-tight">Explore por tema</h2>
+                  <p className="text-xs text-slate-500">Matérias do Guia sobre Arraial do Cabo e arredores</p>
+                </div>
+                <HScroller label="Temas" gap="gap-2">
+                  {themes.map((t) => <button key={t} onClick={() => setTheme(t)} aria-pressed={activeTheme === t} className={chip(activeTheme === t)}>{t}</button>)}
+                </HScroller>
+                <div className="mt-3"><HScroller label={activeTheme}>{themeItems.map((a) => <ArticleCard key={a.id} article={a} onOpen={open} />)}</HScroller></div>
+              </section>
+            )}
 
-      {/* COMPACT FLOATING SEARCH BAR & SECTION TITLE */}
-      <div className="px-4 mb-8 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-            Lagos GO Feed
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Informação premium, agenda local e os melhores roteiros.
-          </p>
-        </div>
-
-        <div className="relative w-full md:max-w-xs shadow-sm rounded-2xl">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-            <Search size={15} />
-          </span>
-          <input
-            type="text"
-            placeholder="Buscar notícias, dicas ou roteiros..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl bg-white text-slate-800 placeholder-slate-400 font-semibold border border-slate-200 focus:ring-4 focus:ring-red-500/10 text-xs transition-all"
-          />
-        </div>
-      </div>
-
-      {/* QUICK CATEGORY CHIPS */}
-      <div className="px-4 mb-8 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-slate-800 font-bold text-sm tracking-tight flex items-center gap-1.5">
-            <Compass size={15} className="text-red-500" /> Categorias de
-            Exploração
-          </h3>
-          <button
-            onClick={() => {
-              setShowOnlyLiked(!showOnlyLiked);
-              setSelectedCategory("Todos");
-            }}
-            className={`text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${showOnlyLiked ? "bg-red-50 text-red-500" : "text-slate-500 hover:text-red-500"}`}
-          >
-            <Heart
-              size={12}
-              className={
-                showOnlyLiked ? "fill-red-500 text-red-500" : "text-slate-400"
-              }
-            />{" "}
-            {showOnlyLiked ? "Ver Todos" : "Favoritos"}
-          </button>
-        </div>
-
-        {/* Categories Horizontal Carousel */}
-        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-2.5 pt-1">
-          <button
-            onClick={() => {
-              setSelectedCategory("Todos");
-              setShowOnlyLiked(false);
-            }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${selectedCategory === "Todos" && !showOnlyLiked ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
-          >
-            <Layers size={13} /> Todos
-          </button>
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat.name && !showOnlyLiked;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedCategory(cat.name);
-                  setShowOnlyLiked(false);
-                }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-250 active:scale-95 ${isSelected ? "bg-red-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"}`}
-              >
-                <span className={isSelected ? "text-white" : "text-slate-400"}>
-                  {getCategoryIcon(cat.name, 13)}
-                </span>{" "}
-                {cat.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* "HOT RIGHT NOW" SECTION - Screen mockup exact match */}
-      {selectedCategory === "Todos" &&
-        !showOnlyLiked &&
-        searchQuery === "" &&
-        hotPosts.length > 0 && (
-          <div className="px-4 mb-12 max-w-7xl mx-auto w-full">
-            <div className="flex justify-between items-center mb-4 px-1 pb-1">
-              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                Mais Lidas Agora{" "}
-                <span className="text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-650 px-2.5 py-0.5 rounded-full">
-                  Hot now
-                </span>
-              </h2>
-            </div>
-
-            {/* Elegant horizontal scroll on mobile, responsive grid on desktop */}
-            <div className="flex md:grid md:grid-cols-3 gap-5 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory hide-scrollbar pb-3 md:pb-0">
-              {hotPosts.map((post) => {
-                const isLiked = likedPosts.includes(post.id);
-                return (
-                  <div
-                    key={`hot_${post.id}`}
-                    onClick={() => handlePostClick(post.id)}
-                    className="relative h-72 md:h-80 w-[270px] sm:w-[320px] md:w-full shrink-0 snap-start rounded-[1.75rem] overflow-hidden shadow-xs group cursor-pointer active:scale-98 transition-transform border border-slate-100"
-                  >
-                    <img
-                      src={post.imageUrl}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-                      alt={post.title}
-                    />
-                    {/* Subtle dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
-
-                    {/* Floating favorite button */}
-                    <button
-                      onClick={(e) => toggleLike(e, post.id)}
-                      className="absolute top-4 right-4 w-8.5 h-8.5 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 active:scale-90 hover:bg-white/35 transition-all shadow-sm"
-                    >
-                      <Heart
-                        size={14}
-                        className={`transition-transform duration-200 ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`}
-                      />
-                    </button>
-
-                    <span className="absolute top-4 left-4 bg-white/95 text-[9px] font-black text-slate-800 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs">
-                      {post.category}
-                    </span>
-
-                    <div className="absolute bottom-0 left-0 w-full p-5">
-                      <p className="text-[10px] text-white/60 font-semibold tracking-wider mb-1.5 font-sans uppercase">
-                        Feed • 5 min leitura
-                      </p>
-                      <h3 className="text-white font-black text-sm sm:text-base leading-snug group-hover:text-red-400 transition-colors line-clamp-2 drop-shadow-sm">
-                        {post.title}
-                      </h3>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            {/* Agenda (mantida) */}
+            {events.length > 0 && (
+              <section aria-label="Agenda de eventos">
+                <h2 className="px-4 text-xl font-black text-ocean-950 tracking-tight mb-3">Agenda de eventos</h2>
+                <HScroller label="Eventos">{events.map((p) => <div key={p.id} className="w-72 shrink-0"><CompactCard post={p} onOpen={open} /></div>)}</HScroller>
+              </section>
+            )}
+          </>
         )}
 
-      {/* EVENTS SECTION - Screen mockup exact match */}
-      {selectedCategory === "Todos" &&
-        !showOnlyLiked &&
-        searchQuery === "" &&
-        eventPosts.length > 0 && (
-          <div className="px-4 mb-12 max-w-7xl mx-auto w-full">
-            <div className="flex justify-between items-center mb-4 px-1">
-              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                Agenda de Eventos{" "}
-                <span className="text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 px-2.5 py-0.5 rounded-full">
-                  Vem aí
-                </span>
-              </h2>
-            </div>
-
-            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-3 gap-5">
-              {eventPosts.map((post) => {
-                return (
-                  <div
-                    key={`event_${post.id}`}
-                    onClick={() => handlePostClick(post.id)}
-                    className="relative h-44 w-44 md:h-52 md:w-52 shrink-0 snap-start rounded-[1.75rem] overflow-hidden shadow-xs group cursor-pointer active:scale-95 transition-transform border border-slate-100"
-                  >
-                    <img
-                      src={post.imageUrl}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      alt={post.title}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
-
-                    <span className="absolute top-3.5 left-3.5 bg-white/95 text-[9px] font-black text-slate-800 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs">
-                      EVENTOS
-                    </span>
-
-                    <div className="absolute bottom-0 left-0 w-full p-4">
-                      <p className="text-[9px] text-white/60 font-semibold tracking-wider mb-1.5 font-sans uppercase">
-                        {post.date}
-                      </p>
-                      <h3 className="text-white font-black text-xs sm:text-sm leading-snug group-hover:text-amber-300 transition-colors line-clamp-2 drop-shadow-sm">
-                        {post.title}
-                      </h3>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-      {/* EXPLORE FEED */}
-      <div className="px-4 max-w-7xl mx-auto w-full mb-12">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 px-1">
-          Feed da Cidade e Dicas
-        </h3>
-
-        {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
-              {filteredPosts.map((post, index) => {
-                const author = getAuthor(post.authorId);
-                const isLiked = likedPosts.includes(post.id);
-                return (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    onClick={() => handlePostClick(post.id)}
-                    className="bg-white rounded-[1.75rem] overflow-hidden shadow-xs border border-slate-100 flex flex-col hover:shadow-md transition-all cursor-pointer h-full group"
-                  >
-                    {/* Cover image wrap */}
-                    <div className="h-52 w-full relative shrink-0 overflow-hidden">
-                      <img
-                        src={post.imageUrl}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
-                        alt={post.title}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-
-                      {/* Floating Category tag */}
-                      <span className="absolute top-4 left-4 bg-white/95 text-slate-800 text-[9px] font-black px-3 py-1.5 rounded-lg shadow-xs uppercase tracking-wider">
-                        {post.category}
-                      </span>
-
-                      {/* Floating Like button */}
-                      <button
-                        onClick={(e) => toggleLike(e, post.id)}
-                        className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center text-slate-700 border border-slate-100 active:scale-90 transition-all shadow-md z-10"
-                      >
-                        <Heart
-                          size={16}
-                          className={
-                            isLiked
-                              ? "fill-red-500 text-red-500 scale-110"
-                              : "text-slate-600"
-                          }
-                        />
-                      </button>
-                    </div>
-
-                    {/* Meta and Description card block */}
-                    <div className="p-6 flex flex-col justify-between flex-1">
-                      <div>
-                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2.5">
-                          <span>5 min leitura</span>
-                          <span className="text-slate-200">•</span>
-                          <span>{post.date}</span>
-                        </div>
-
-                        <h3 className="font-extrabold text-slate-900 mb-2 leading-snug text-lg group-hover:text-red-500 transition-colors line-clamp-2">
-                          {post.title}
-                        </h3>
-                        <p className="text-slate-500 text-sm line-clamp-2 mb-5 leading-relaxed font-normal">
-                          {post.excerpt}
-                        </p>
-                      </div>
-
-                      {/* Author mini bio metadata row */}
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
-                        <div
-                          onClick={(e) => handleAuthorClick(e, post.authorId)}
-                          className="flex items-center gap-3 cursor-pointer group/author"
-                        >
-                          {author?.avatarUrl ? (
-                            <img
-                              src={author.avatarUrl}
-                              className="w-9 h-9 rounded-full object-cover border border-slate-100 shadow-sm"
-                              alt={post.author}
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold border border-slate-50 shadow-sm">
-                              {post.author.charAt(0)}
-                            </div>
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-800 leading-none mb-0.5 group-hover/author:text-red-500 transition-colors">
-                              {post.author}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {author?.profession || "Membro do Lagos GO"}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-slate-400 bg-slate-50 w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all shadow-sm">
-                          <ChevronRight size={16} />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-[2rem] border border-slate-100 px-6">
-            <div className="text-4xl mb-3">🔍</div>
-            <h4 className="font-extrabold text-slate-800 mb-1">
-              Nenhum resultado encontrado
-            </h4>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Tente redefinir seus termos de busca ou mude a categoria de
-              exploração selecionada no topo.
-            </p>
-          </div>
+        {/* Fluxo contínuo */}
+        {!loading && (
+          <section className="px-4" aria-label="Últimas do Feed" data-testid="feed-stream">
+            <h2 className="text-xl font-black text-ocean-950 tracking-tight mb-3">{filtering ? `${stream.length} ${stream.length === 1 ? "conteúdo" : "conteúdos"}` : "Últimas do Feed"}</h2>
+            {stream.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 px-6" data-testid="feed-empty">
+                <p className="font-black text-ocean-950">Nada encontrado</p>
+                <p className="text-sm text-slate-500 mt-1">Tente outra busca ou remova um filtro.</p>
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {stream.slice(0, visible).map((p, i) => (
+                  <StreamCard key={p.id} post={p} onOpen={open} liked={likedPosts.includes(p.id)} onLike={toggleLike} onAuthor={openAuthor} wide={!filtering && i % 7 === 0} />
+                ))}
+              </div>
+            )}
+            <div ref={sentinel} className="h-6" aria-hidden />
+            {visible < stream.length && <button onClick={() => setVisible((v) => v + 9)} className="mx-auto mt-2 block text-sm font-black text-ocean-600" data-testid="feed-more">Carregar mais</button>}
+            {stream.length > 0 && visible >= stream.length && <p className="text-center text-xs text-slate-400 py-6" data-testid="feed-end">Você está em dia com o Feed.</p>}
+          </section>
         )}
       </div>
     </div>

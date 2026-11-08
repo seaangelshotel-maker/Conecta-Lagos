@@ -94,7 +94,7 @@ const buildUrl = (page: string, params?: any): string => {
     case 'home': return '/';
     case 'guide': return '/guide';
     case 'search': return '/search';
-    case 'blog': return '/blog';
+    case 'blog': return '/blog' + (params?.tipo ? `?tipo=${encodeURIComponent(params.tipo)}` : '');
     case 'discover': {
       const qs = new URLSearchParams();
       ['q', 'cat', 'f', 'city'].forEach(k => { if (params?.[k]) qs.set(k, params[k]); });

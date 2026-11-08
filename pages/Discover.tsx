@@ -4,17 +4,16 @@ import { BlogPost, BusinessProfile, City, AppAmenity, DEFAULT_AMENITIES } from '
 import { getAllBusinesses, getCities, getAmenities } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
 import { getGuideArticles } from '../services/guideService';
-import { COLLECTION_ORDER } from '../data/guideArticles';
 import {
   MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
-import { SearchBar, HScroller, EditorialFeed } from '../components/DiscoverUI';
+import { SearchBar, HScroller } from '../components/DiscoverUI';
 
 const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
 
-interface Props { onNavigate: (page: string, params?: any) => void; home?: boolean; }
+interface Props { onNavigate: (page: string, params?: any) => void; }
 
 const FLAGS = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
@@ -23,7 +22,7 @@ const readUrl = () => {
   return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || '', am: (p.get('am') || '').split(',').filter(Boolean) };
 };
 
-export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
+export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const init = readUrl();
   const { language, setLanguage } = useLanguage();
   const [showFlags, setShowFlags] = useState(false);
@@ -40,6 +39,7 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
   const [city, setCity] = useState(init.city);
   const [where, setWhere] = useState<{ lat: number; lng: number } | null>(null);
   const [geoMsg, setGeoMsg] = useState('');
+  const [shown, setShown] = useState(24);
 
   useEffect(() => {
     let alive = true;
@@ -86,16 +86,10 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
 
   const openArticle = (a: BlogPost) => onNavigate('guide-article', { slug: a.slug || a.id });
-  const openFeedItem = (a: BlogPost) => (a.kind === 'guia' ? openArticle(a) : onNavigate('blog-detail', { postId: a.id }));
   const openBusiness = (b: BusinessProfile) => onNavigate('business-detail', { businessId: b.id });
 
-  const byCollection = useMemo(() => COLLECTION_ORDER
-    .map(name => ({ name, items: articles.filter(a => (a.collections || []).includes(name)) }))
-    .filter(s => s.items.length > 0), [articles]);
-  const featured = articles.filter(a => a.featured);
-  const popular = articles.filter(a => a.popular);
-  const recent = [...articles].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 6);
 
+  useEffect(() => { setShown(24); }, [cat, flt, q, city, am]);
   const clearAll = () => { setCat(''); setFlt(''); setQ(''); setCity(''); setAm([]); };
 
   return (
@@ -104,7 +98,7 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
       <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Lugares</p>
             <div className="relative">
               <button onClick={() => setShowFlags(v => !v)} aria-label="Alterar idioma" aria-expanded={showFlags} data-testid="lang-btn" className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-lg flex items-center justify-center">{language}</button>
               {showFlags && (
@@ -119,8 +113,8 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
               )}
             </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
-          <p className="text-sm text-white/80 mt-1 max-w-xl">Encontre lugares, planeje roteiros e descubra dicas de quem conhece a região.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Todos os lugares da região</h1>
+          <p className="text-sm text-white/80 mt-1 max-w-xl">Praias, restaurantes, passeios, hospedagens e serviços, com filtros e comodidades.</p>
           <SearchBar className="mt-5" value={q} onChange={setQ} />
           {cities.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar" role="group" aria-label="Cidade">
@@ -185,11 +179,11 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
         {loadError && <p className="px-4 py-10 text-center text-sm text-red-600">{loadError}</p>}
 
         {/* Resultados */}
-        {!loading && !loadError && active && (
+        {!loading && !loadError && (
           <section className="px-4 pt-4 space-y-5" aria-label="Resultados">
             <div className="flex items-center justify-between">
               <h2 className="font-black text-ocean-950 text-lg" data-testid="results-count">{results.length} {results.length === 1 ? 'lugar' : 'lugares'}</h2>
-              <button onClick={clearAll} className="text-xs font-bold text-ocean-600">Limpar tudo</button>
+              {active && <button onClick={clearAll} className="text-xs font-bold text-ocean-600">Limpar tudo</button>}
             </div>
             {filterInfo && <p className="text-xs text-slate-500 -mt-3">{filterInfo.hint}</p>}
 
@@ -209,12 +203,13 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {results.slice(0, 60).map(b => (
+                {results.slice(0, shown).map(b => (
                   <BusinessMiniCard key={b.id} business={b} onOpen={openBusiness}
                     distanceKm={flt === 'perto' && where && typeof b.lat === 'number' ? haversineKm(where, { lat: b.lat!, lng: b.lng! }) : undefined} />
                 ))}
               </div>
             )}
+            {results.length > shown && <button onClick={() => setShown(n => n + 24)} data-testid="places-more" className="w-full h-12 rounded-2xl bg-white border border-slate-200 text-sm font-black text-ocean-600">Mostrar mais ({results.length - shown} restantes)</button>}
 
             {matchedArticles.length > 0 && (
               <div className="-mx-4">
@@ -225,37 +220,8 @@ export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
           </section>
         )}
 
-        {/* Navegação editorial */}
-        {!loading && !loadError && !active && (
-          <div className="pt-6 space-y-9" data-testid="editorial">
-            {articles.length === 0 && (
-              <p className="px-4 text-sm text-slate-500" data-testid="no-articles">As matérias do Guia ainda não foram publicadas. Volte em breve!</p>
-            )}
-            {featured.length > 0 && (
-              <Row title="Destaques" subtitle="Para começar" items={featured} onOpen={openArticle} />
-            )}
-            {popular.length > 0 && (
-              <Row title="Leituras populares" subtitle="As mais procuradas pelos visitantes" items={popular} onOpen={openArticle} />
-            )}
-            {byCollection.map(s => <Row key={s.name} title={s.name} items={s.items} onOpen={openArticle} />)}
-            {recent.length > 0 && <Row title="Recentes" subtitle="Últimas matérias publicadas" items={recent} onOpen={openArticle} />}
-            <CollaborationCta onNavigate={onNavigate} />
-            <EditorialFeed onOpen={openFeedItem} />
-          </div>
-        )}
+        {!loading && !loadError && <div className="pt-8"><CollaborationCta onNavigate={onNavigate} /></div>}
       </div>
     </div>
   );
 };
-
-const Row: React.FC<{ title: string; subtitle?: string; items: BlogPost[]; onOpen: (a: BlogPost) => void }> = ({ title, subtitle, items, onOpen }) => (
-  <section aria-label={title}>
-    <div className="px-4 mb-3">
-      <h2 className="text-xl font-black text-ocean-950 tracking-tight">{title}</h2>
-      {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
-    </div>
-    <HScroller label={title}>
-      {items.map(a => <ArticleCard key={a.id} article={a} onOpen={onOpen} />)}
-    </HScroller>
-  </section>
-);
