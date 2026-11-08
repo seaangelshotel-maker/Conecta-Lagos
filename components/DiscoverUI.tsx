@@ -9,7 +9,7 @@ export const SearchBar: React.FC<{
     className={`flex items-center bg-white rounded-2xl shadow-lg pl-4 pr-1.5 h-14 gap-2 ${className}`}>
     <Search size={18} className="text-slate-400 shrink-0" aria-hidden />
     <input value={value} onChange={e => onChange(e.target.value)} aria-label="Buscar lugares, experiências e matérias" placeholder={placeholder}
-      enterKeyHint="search" className="flex-1 min-w-0 bg-transparent outline-none text-slate-800 text-[15px] placeholder:text-slate-400" />
+      enterKeyHint="search" className="flex-1 min-w-0 bg-transparent border-0 shadow-none outline-none ring-0 focus:ring-0 focus:outline-none p-0 text-slate-800 text-[15px] placeholder:text-slate-400" />
     {value && <button type="button" onClick={() => { onChange(''); onSubmit?.(''); }} aria-label="Limpar busca" className="w-8 h-8 flex items-center justify-center text-slate-400 shrink-0"><X size={16} /></button>}
     <button type="submit" aria-label="Buscar" className="h-11 px-5 rounded-xl bg-ocean-600 text-white text-sm font-black shrink-0 active:scale-95 transition-transform">Buscar</button>
   </form>

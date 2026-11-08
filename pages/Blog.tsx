@@ -194,7 +194,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
           <h1 className="text-3xl md:text-4xl font-black text-ocean-950 tracking-tight mt-1">Notícias, matérias e dicas da região</h1>
           <label className="mt-4 flex items-center gap-2 bg-slate-100 rounded-2xl px-4 h-12">
             <Search size={16} className="text-slate-400" />
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} aria-label="Buscar no Feed" placeholder="Buscar notícias, matérias e dicas" className="flex-1 bg-transparent outline-none text-sm text-slate-800" />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} aria-label="Buscar no Feed" placeholder="Buscar notícias, matérias e dicas" className="flex-1 bg-transparent border-0 shadow-none outline-none ring-0 focus:ring-0 p-0 text-sm text-slate-800" />
           </label>
         </div>
         <div className="max-w-6xl mx-auto pb-3">
