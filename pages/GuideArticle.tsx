@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Clock, Loader2, MapPin, BookOpen } from 'lucide-react';
 import { BlogPost, BusinessProfile } from '../types';
-import { getBusinesses } from '../services/dataService';
+import { getAllBusinesses } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
 import { resolveRelated } from '../services/discoverLogic';
 import { SEO } from '../components/SEO';
@@ -19,7 +19,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
     let alive = true;
     (async () => {
       try {
-        const [a, b] = await Promise.all([getGuideArticles(false), getBusinesses()]);
+        const [a, b] = await Promise.all([getGuideArticles(false), getAllBusinesses()]);
         if (alive) { setArticles(a); setBusinesses(b); }
       } finally { if (alive) setLoading(false); }
     })();

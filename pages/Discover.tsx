@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store, X, Loader2, Sparkles, MapPin } from 'lucide-react';
 import { BlogPost, BusinessProfile, City } from '../types';
-import { getBusinesses, getCities } from '../services/dataService';
+import { getAllBusinesses, getCities } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
 import { COLLECTION_ORDER } from '../data/guideArticles';
 import {
@@ -36,7 +36,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
     let alive = true;
     (async () => {
       try {
-        const [b, a, c] = await Promise.all([getBusinesses(), getGuideArticles(false), getCities()]);
+        const [b, a, c] = await Promise.all([getAllBusinesses(), getGuideArticles(false), getCities()]);
         if (!alive) return;
         setBusinesses(b); setArticles(a); setCities(c.filter((x: City) => x.active !== false));
       } catch (e: any) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Loader2, Eye, EyeOff, Star, Flame, Save, Search, Sparkles } from 'lucide-react';
 import { BlogPost, BusinessProfile } from '../../types';
-import { getBusinesses } from '../../services/dataService';
+import { getAllBusinesses } from '../../services/dataService';
 import { getGuideArticles, previewGuideImport, runGuideImport, setGuideArticleFlags, saveBusinessExperienceTags, GuideImportPreview } from '../../services/guideService';
 import { resolveRelated, EXPERIENCE_TAGS, norm } from '../../services/discoverLogic';
 import { C } from '../../data/guideArticles';
@@ -26,7 +26,7 @@ export const GuideContentAdmin: React.FC = () => {
     const reload = async () => {
         setLoading(true);
         try {
-            const [a, b] = await Promise.all([getGuideArticles(true, true), getBusinesses()]);
+            const [a, b] = await Promise.all([getGuideArticles(true, true), getAllBusinesses()]);
             setArticles(a); setBusinesses(b); setPreview(await previewGuideImport());
         } catch (e: any) { notify('error', e?.message || 'Não foi possível ler o banco.'); }
         finally { setLoading(false); }

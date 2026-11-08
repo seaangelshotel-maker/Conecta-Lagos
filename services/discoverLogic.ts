@@ -72,7 +72,7 @@ export const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; l
 export interface DiscoverState { categoryId?: string; filterId?: string; cityId?: string; query?: string; where?: { lat: number; lng: number } | null; }
 
 export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
-  let list = all.filter(b => !b.status || b.status === 'approved');
+  let list = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
   if (st.cityId) list = list.filter(b => b.cityId === st.cityId);
   if (st.categoryId) {
     const cat = MAIN_CATEGORIES.find(c => c.id === st.categoryId);
@@ -101,7 +101,7 @@ export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): Bus
 };
 
 export const countByCategory = (all: BusinessProfile[]) =>
-  Object.fromEntries(MAIN_CATEGORIES.map(c => [c.id, all.filter(b => (!b.status || b.status === 'approved') && c.match(b)).length]));
+  Object.fromEntries(MAIN_CATEGORIES.map(c => [c.id, all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved') && c.match(b)).length]));
 
 export const searchArticles = (articles: BlogPost[], query: string) => {
   const terms = norm(query).split(/\s+/).filter(Boolean);
@@ -115,7 +115,7 @@ export const searchArticles = (articles: BlogPost[], query: string) => {
 /** Estabelecimentos reais ligados a uma matéria (nada é inventado: vem das regras `related`). */
 export const resolveRelated = (rel: GuideRelated | undefined, all: BusinessProfile[]): BusinessProfile[] => {
   if (!rel) return [];
-  const approved = all.filter(b => !b.status || b.status === 'approved');
+  const approved = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
   const out = new Map<string, BusinessProfile>();
   (rel.businessIds || []).forEach(id => { const b = approved.find(x => x.id === id); if (b) out.set(b.id, b); });
   const byRule = approved.filter(b => {
