@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store, Loader2, Sparkles, MapPin } from 'lucide-react';
-import { BlogPost, BusinessProfile, City } from '../types';
-import { getAllBusinesses, getCities } from '../services/dataService';
+import { BlogPost, BusinessProfile, City, AppAmenity, DEFAULT_AMENITIES } from '../types';
+import { getAllBusinesses, getCities, getAmenities } from '../services/dataService';
+import { useLanguage } from '../hooks/useLanguage';
 import { getGuideArticles } from '../services/guideService';
 import { COLLECTION_ORDER } from '../data/guideArticles';
 import {
-  MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, searchArticles, haversineKm,
+  MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
@@ -13,15 +14,21 @@ import { SearchBar, HScroller, EditorialFeed } from '../components/DiscoverUI';
 
 const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
 
-interface Props { onNavigate: (page: string, params?: any) => void; }
+interface Props { onNavigate: (page: string, params?: any) => void; home?: boolean; }
+
+const FLAGS = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
 const readUrl = () => {
   const p = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || '' };
+  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || '', am: (p.get('am') || '').split(',').filter(Boolean) };
 };
 
-export const Discover: React.FC<Props> = ({ onNavigate }) => {
+export const Discover: React.FC<Props> = ({ onNavigate, home }) => {
   const init = readUrl();
+  const { language, setLanguage } = useLanguage();
+  const [showFlags, setShowFlags] = useState(false);
+  const [amenityDefs, setAmenityDefs] = useState<AppAmenity[]>(DEFAULT_AMENITIES);
+  const [am, setAm] = useState<string[]>(init.am);
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [articles, setArticles] = useState<BlogPost[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -39,6 +46,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
     (async () => {
       try {
         const [b, a, c] = await Promise.all([getAllBusinesses(), getGuideArticles(false), getCities()]);
+        getAmenities().then(list => { if (alive && list?.length) setAmenityDefs(list); }).catch(() => { /* usa a lista padrão */ });
         if (!alive) return;
         setBusinesses(b); setArticles(a); setCities(c.filter((x: City) => x.active !== false));
       } catch (e: any) {
@@ -50,10 +58,10 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
 
   useEffect(() => {
     const p = new URLSearchParams();
-    if (cat) p.set('cat', cat); if (flt) p.set('f', flt); if (q) p.set('q', q); if (city) p.set('city', city);
+    if (cat) p.set('cat', cat); if (flt) p.set('f', flt); if (q) p.set('q', q); if (city) p.set('city', city); if (am.length) p.set('am', am.join(','));
     const qs = p.toString();
     try { window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : '')); } catch { /* ignora */ }
-  }, [cat, flt, q, city]);
+  }, [cat, flt, q, city, am]);
 
   const pickFilter = (id: string) => {
     if (flt === id) { setFlt(''); return; }
@@ -69,8 +77,11 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   };
 
   const counts = useMemo(() => countByCategory(businesses), [businesses]);
-  const active = !!(cat || flt || q.trim());
-  const results = useMemo(() => filterBusinesses(businesses, { categoryId: cat, filterId: flt, cityId: city, query: q, where }), [businesses, cat, flt, city, q, where]);
+  const active = !!(cat || flt || q.trim() || am.length);
+  const amCounts = useMemo(() => countByAmenity(businesses, amenityDefs), [businesses, amenityDefs]);
+  const amList = useMemo(() => [...amenityDefs].sort((a, b) => (amCounts[b.id] || 0) - (amCounts[a.id] || 0)), [amenityDefs, amCounts]);
+  const toggleAm = (id: string) => setAm(cur => (cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]));
+  const results = useMemo(() => filterBusinesses(businesses, { categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs }), [businesses, cat, flt, city, q, where, am, amenityDefs]);
   const matchedArticles = useMemo(() => (q.trim() ? searchArticles(articles, q) : []), [articles, q]);
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
 
@@ -85,14 +96,29 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const popular = articles.filter(a => a.popular);
   const recent = [...articles].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 6);
 
-  const clearAll = () => { setCat(''); setFlt(''); setQ(''); setCity(''); };
+  const clearAll = () => { setCat(''); setFlt(''); setQ(''); setCity(''); setAm([]); };
 
   return (
     <div className="bg-slate-50 min-h-screen pb-28 font-sans">
       {/* Cabeçalho + busca */}
       <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
         <div className="max-w-5xl mx-auto px-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Descubra</p>
+            <div className="relative">
+              <button onClick={() => setShowFlags(v => !v)} aria-label="Alterar idioma" aria-expanded={showFlags} data-testid="lang-btn" className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-lg flex items-center justify-center">{language}</button>
+              {showFlags && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowFlags(false)} />
+                  <div className="absolute right-0 mt-2 p-1.5 bg-white rounded-xl shadow-xl flex flex-col gap-1 z-50">
+                    {FLAGS.filter(f => f !== language).map(f => (
+                      <button key={f} onClick={() => { setLanguage(f); setShowFlags(false); }} className="w-10 h-10 flex items-center justify-center text-xl rounded-lg hover:bg-slate-50" aria-label={`Idioma ${f}`}>{f}</button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Encontre lugares, planeje roteiros e descubra dicas de quem conhece a região.</p>
           <SearchBar className="mt-5" value={q} onChange={setQ} />
@@ -137,6 +163,22 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
           {geoMsg && <p className="px-4 text-xs text-amber-700 font-bold mt-1" role="status">{geoMsg}</p>}
         </section>
 
+        {/* Comodidades */}
+        <section aria-label="Comodidades" className="pt-1" data-testid="amenities">
+          <p className="px-4 text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Comodidades</p>
+          <HScroller label="Comodidades" gap="gap-2">
+            {amList.map(a => {
+              const on = am.includes(a.id); const n = amCounts[a.id] || 0;
+              return (
+                <button key={a.id} onClick={() => toggleAm(a.id)} aria-pressed={on} data-testid={`am-${a.id}`}
+                  className={`px-4 h-9 flex items-center gap-1.5 rounded-full text-xs font-bold whitespace-nowrap border ${on ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}`}>
+                  {a.label}<span className={on ? 'text-white/80' : 'text-slate-400'}>{n}</span>
+                </button>
+              );
+            })}
+          </HScroller>
+        </section>
+
         {loading && (
           <div className="flex justify-center py-16" role="status" aria-label="Carregando"><Loader2 className="animate-spin text-ocean-600" /></div>
         )}
@@ -158,6 +200,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
                 <p className="text-sm text-slate-500 mt-1">
                   {flt === 'perto' && !where ? 'Libere a localização para ver o que está perto de você.'
                     : flt && ['gratuito', 'familias', 'casais', 'criancas', 'chuva', 'imperdivel', 'aventura'].includes(flt) ? 'Ainda não há lugares marcados com este perfil. A curadoria é feita pela equipe da Lagos GO.'
+                    : am.length && !flt ? 'Nenhum lugar cadastrou esta comodidade neste recorte ainda. As empresas marcam as comodidades no próprio perfil.'
                     : flt === 'melhores' ? 'Ainda não há avaliações aprovadas para este recorte.'
                     : flt === 'perto' ? 'Nenhum lugar com coordenadas cadastradas neste recorte.'
                     : 'Tente outra busca ou remova um filtro.'}

@@ -66,7 +66,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
       style={{ height: 'calc(4rem + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Navegação principal"
     >
-      <button onClick={() => onNavigate('home')} className={tabClass(['home'])} aria-current={isActive(['home']) ? 'page' : undefined}>
+      <button onClick={() => onNavigate('home')} className={tabClass(['home', 'discover', 'guide-article'])} aria-current={isActive(['home', 'discover', 'guide-article']) ? 'page' : undefined}>
         <Home size={22} fill={currentPage === 'home' ? "currentColor" : "none"} />
         <span className="text-[10px] font-bold">{t('Início')}</span>
       </button>
@@ -88,9 +88,9 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         <span className="text-[10px] font-bold">{t('Cupons')}</span>
       </button>
 
-      <button onClick={() => onNavigate('discover')} className={tabClass(['discover', 'guide-article', 'blog', 'blog-detail', 'journalist-profile'])} aria-current={isActive(['discover']) ? 'page' : undefined}>
+      <button onClick={() => onNavigate('blog')} className={tabClass(['blog', 'blog-detail', 'journalist-profile'])} aria-current={isActive(['blog']) ? 'page' : undefined}>
         <Sparkles size={22} />
-        <span className="text-[10px] font-bold">{t('Descubra')}</span>
+        <span className="text-[10px] font-bold">{t('Feed')}</span>
       </button>
 
       <button onClick={() => onNavigate('opportunities')} className={tabClass(['opportunities', 'opportunity-detail', 'opportunity-form', 'my-opportunities', 'opportunity-manage'])} aria-current={isActive(['opportunities']) ? 'page' : undefined}>
@@ -137,9 +137,8 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
       </div>
       
       <div className="flex items-center gap-6 lg:gap-8">
-        <button onClick={() => onNavigate('home')} className={`font-medium hover:text-gold-500 ${currentPage === 'home' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Início')}</button>
+        <button onClick={() => onNavigate('home')} className={`font-medium hover:text-gold-500 ${(currentPage === 'home' || currentPage === 'discover' || currentPage === 'guide-article') ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Início')}</button>
         <button onClick={() => onNavigate('guide')} className={`font-medium hover:text-gold-500 ${currentPage === 'guide' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Guia')}</button>
-        <button onClick={() => onNavigate('discover')} className={`font-medium hover:text-gold-500 ${currentPage === 'discover' || currentPage === 'guide-article' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Descubra')}</button>
         <button onClick={handleNavigateToSearch} className={`font-medium hover:text-gold-500 relative ${currentPage === 'search' ? 'text-ocean-950' : 'text-slate-500'}`}>
             {t('Cupons')}
             {newCouponsCount > 0 && (

@@ -10,11 +10,11 @@ def ok(name, cond, detail=''):
 
 SEED = """() => { const s = JSON.parse(sessionStorage.getItem('__mock_fs__'));
  const b = (id, o) => s.docs['businesses/' + id] = Object.assign({ id, ownerId: id, description: 'Descrição ' + id, coverImage: '', gallery: [], amenities: [], openingHours: {}, rating: 0, isBlocked: false, status: 'approved', cityId: 'city_arraial_do_cabo', reviews: [] }, o);
- b('praia1', { name: 'Praia do Forno Teste', category: 'Passeios', subcategory: 'Praias', address: 'Rua A', lat: -22.97, lng: -42.00, views: 50, experienceTags: ['gratuito', 'familias'] });
+ b('praia1', { name: 'Praia do Forno Teste', category: 'Passeios', subcategory: 'Praias', address: 'Rua A', lat: -22.97, lng: -42.00, views: 50, experienceTags: ['gratuito', 'familias'], amenities: ['wifi', 'Pet Friendly'] });
  b('praia2', { name: 'Praia Grande Teste', category: 'Passeios', subcategory: 'Praias', address: 'Rua B', lat: -22.95, lng: -42.02, views: 5 });
  b('rest1', { name: 'Restaurante Maré Teste', category: 'Gastronomia', subcategory: 'Restaurantes', address: 'Rua C', reviews: [{ id: 'r1', rating: 5, status: 'approved', comment: 'ok' }, { id: 'r2', rating: 4, status: 'approved', comment: 'ok' }] });
  b('trilha1', { name: 'Trilha do Pontal Teste', category: 'Passeios', subcategory: 'Trilhas', address: 'Rua D' });
- b('hotel1', { name: 'Pousada Teste', category: 'Hospedagem', subcategory: 'Pousadas', address: 'Rua E', experienceTags: ['casais'] });
+ b('hotel1', { name: 'Pousada Teste', category: 'Hospedagem', subcategory: 'Pousadas', address: 'Rua E', experienceTags: ['casais'], amenities: ['wifi', 'pool'] });
  b('rascunho', { name: 'Rascunho Invisível', category: 'Gastronomia', subcategory: 'Restaurantes', status: 'draft' });
  sessionStorage.setItem('__mock_fs__', JSON.stringify(s)); }"""
 
@@ -60,6 +60,25 @@ async def main():
         await page.locator('[data-testid=cat-restaurantes]').click(); await page.wait_for_timeout(300)
         ok('rascunho de empresa não aparece', await page.locator('text=Rascunho Invisível').count() == 0)
         await page.locator('[data-testid=cat-restaurantes]').click(); await page.wait_for_timeout(300)
+
+        # 2b. Comodidades
+        await page.locator('[data-testid=cat-praias]').click(); await page.wait_for_timeout(200)
+        ok('12 comodidades disponíveis com contagem real', await page.locator('[data-testid^=am-]').count() == 12)
+        wifi_txt = await page.locator('[data-testid=am-wifi]').inner_text()
+        ok('Wi-Fi conta 2 lugares (id e rótulo aceitos)', wifi_txt.strip().endswith('2'), wifi_txt)
+        await page.locator('[data-testid=cat-praias]').click(); await page.wait_for_timeout(200)
+        await page.locator('[data-testid=am-wifi]').click(); await page.wait_for_timeout(400)
+        ok('filtro Wi-Fi: praia e hotel', await count_results(page) == 2)
+        await page.locator('[data-testid=am-pool]').click(); await page.wait_for_timeout(400)
+        ok('Wi-Fi + piscina (todas as comodidades): só o hotel', await count_results(page) == 1 and await page.locator('text=Pousada Teste').count() > 0)
+        ok('comodidades na URL', 'am=' in page.url, page.url)
+        await page.locator('[data-testid=am-pool]').click(); await page.locator('[data-testid=cat-hospedagens]').click(); await page.wait_for_timeout(300)
+        await page.locator('[data-testid=am-pet]').click(); await page.wait_for_timeout(400)
+        ok('comodidade que ninguém tem em Hospedagens: vazio explicado', await page.locator('[data-testid=empty-state]').count() == 1)
+        await page.locator('[data-testid=am-pet]').click(); await page.locator('[data-testid=am-wifi]').click(); await page.locator('[data-testid=cat-hospedagens]').click(); await page.wait_for_timeout(300)
+        await page.goto(BASE + '/descubra?am=pet'); await page.wait_for_timeout(1500)
+        ok('comodidade pela URL (Pet Friendly)', await count_results(page) == 1 and await page.locator('text=Praia do Forno Teste').count() > 0)
+        await page.goto(BASE + '/descubra'); await page.wait_for_timeout(1200)
 
         # 3. Filtros contextuais
         await page.locator('[data-testid=cat-praias]').click()
@@ -160,13 +179,16 @@ async def main():
         await page.goto(BASE + '/guia/prainhas-do-pontal-do-atalaia'); await page.wait_for_timeout(1500)
         ok('tema sem cadastro mostra aviso honesto', await page.locator('[data-testid=related-empty]').count() + await page.locator('[data-testid=related-businesses] [aria-label^="Abrir"]').count() > 0)
 
-        # 9. Home tem convite e navegação
-        await page.goto(BASE + '/'); await page.wait_for_timeout(1500)
-        ok('Home tem convite Descubra', await page.locator('[data-testid=discover-teaser]').count() == 1)
-        await page.locator('[data-testid=discover-teaser] input').fill('barco')
-        await page.locator('[data-testid=discover-teaser] button', has_text='Buscar').click(); await page.wait_for_timeout(1200)
-        ok('busca da Home leva ao Descubra', '/descubra' in page.url and 'q=barco' in page.url, page.url)
-        ok('aba Descubra na barra inferior', await page.locator('nav >> text=Descubra').count() > 0)
+        # 9. A Home é a tela Descubra
+        await page.goto(BASE + '/'); await page.wait_for_timeout(1800)
+        ok('Home tem as 10 categorias e 10 filtros do Descubra', await page.locator('[data-testid^=cat-]').count() == 10 and await page.locator('[data-testid^=flt-]').count() == 10)
+        ok('Home mostra destaques e seções editoriais', await page.locator('[data-testid=editorial]').count() == 1 and await page.locator('text=Destaques').count() > 0)
+        ok('Home tem o feed com rolagem infinita', await page.locator('[data-testid=editorial-feed]').count() == 1)
+        ok('Home tem seletor de idioma', await page.locator('[data-testid=lang-btn]').count() == 1)
+        await page.locator('form[role=search] input').fill('barco')
+        await page.locator('form[role=search] button[type=submit]').click(); await page.wait_for_timeout(900)
+        ok('busca da Home filtra na própria Home', page.url.rstrip('/').endswith('q=barco') or 'q=barco' in page.url, page.url)
+        ok('aba Feed e Início na barra inferior', await page.locator('nav[aria-label="Navegação principal"] >> text=Feed').count() > 0 and await page.locator('nav[aria-label="Navegação principal"] >> text=Início').count() > 0)
 
         # 10. Despublicar esconde
         await login(page, 'admin@teste.com')
@@ -199,7 +221,7 @@ async def main():
         await dp.goto(BASE + '/descubra'); await dp.wait_for_timeout(1500)
         ok('desktop: Descubra abre', await dp.locator('[data-testid=cat-praias]').count() == 1)
         ok('desktop: sem rolagem horizontal da página', await dp.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'))
-        ok('desktop: link Descubra no menu', await dp.locator('header >> text=Descubra').count() + await dp.locator('nav >> text=Descubra').count() > 0)
+        ok('desktop: Home abre direto no Descubra', await dp.goto(BASE + '/') is not None and await dp.locator('[data-testid=cat-praias]').count() == 1)
         xs = await dp.evaluate("""() => { const l = e => e ? Math.round(e.getBoundingClientRect().left) : null; return [l(document.querySelector('form[role=search]')), l(document.querySelector('[data-testid=cat-praias]')), l(document.querySelector('[data-testid=flt-populares]'))]; }""")
         ok('desktop: busca, categorias e filtros alinhados', len(set(xs)) == 1, str(xs))
         await dp.screenshot(path='shots/33-descubra-desktop.png', full_page=True)

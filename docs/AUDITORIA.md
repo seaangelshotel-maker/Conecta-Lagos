@@ -144,3 +144,8 @@ Publicado em https://conecta-lagos-one.vercel.app (Vercel, branch `main`; rollba
 - **Ciclo 3:** ecossistema: matéria → lugares reais → cupons dos lugares → "Ver todos" no Descubra → Ajuda Colaborativa; perfil do lugar → matérias que falam dele.
 - Testes: `e2e_discover` (60), `e2e` (42), `e2e_existing` (13), `e2e_feed` (29), `e2e_native` (12), unitário `tests/native.test.ts` (4).
 - Nenhuma regra comercial, plano, preço ou fluxo de pagamento foi alterado.
+
+## 10. Home = Descubra + filtros de comodidades (08/nov/2026)
+- A Home (`/`) agora renderiza a tela Descubra completa (cabeçalho, busca, categorias, filtros, comodidades, destaques, seções editoriais e feed infinito), com seletor de idioma. `/descubra` continua funcionando.
+- Filtros de **Comodidades** (12 padrão do sistema, mais as que o admin cadastrar): seleção múltipla, só aparecem lugares que têm todas as marcadas; contagem real em cada chip; aceita comodidade salva como id ou rótulo; estado na URL (`am=`).
+- Barra inferior: "Início" é o Descubra; "Feed" voltou como aba. Os blocos antigos da Home (carteira, banners, cupons, coleções, lista) saíram da Home; continuam no histórico do Git (commit anterior a esta mudança) se for preciso recuperar algo.

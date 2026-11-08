@@ -3,7 +3,7 @@
  * Tudo funciona sobre os dados reais do banco. Filtro sem dado correspondente devolve lista vazia
  * (a tela explica por quê) em vez de fingir resultados.
  */
-import { BusinessProfile, BlogPost, GuideRelated } from '../types';
+import { BusinessProfile, BlogPost, GuideRelated, AMENITIES_LABELS, DEFAULT_AMENITIES, AppAmenity } from '../types';
 
 export const norm = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -69,7 +69,19 @@ export const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; l
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-export interface DiscoverState { categoryId?: string; filterId?: string; cityId?: string; query?: string; where?: { lat: number; lng: number } | null; }
+export interface DiscoverState { categoryId?: string; filterId?: string; cityId?: string; query?: string; where?: { lat: number; lng: number } | null; amenities?: string[]; amenityDefs?: AppAmenity[]; }
+
+/** Comodidade marcada na empresa pode estar salva como id ("wifi") ou como rótulo ("Wi-Fi Grátis"). */
+export const hasAmenity = (b: BusinessProfile, id: string, defs: AppAmenity[] = DEFAULT_AMENITIES): boolean => {
+  const label = defs.find(d => d.id === id)?.label || AMENITIES_LABELS[id] || '';
+  return (b.amenities || []).some(a => norm(a) === norm(id) || (!!label && norm(a) === norm(label)));
+};
+
+/** Quantas empresas aprovadas têm cada comodidade (para mostrar o número no filtro). */
+export const countByAmenity = (all: BusinessProfile[], defs: AppAmenity[] = DEFAULT_AMENITIES) => {
+  const live = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
+  return Object.fromEntries(defs.map(d => [d.id, live.filter(b => hasAmenity(b, d.id, defs)).length]));
+};
 
 export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
   let list = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
@@ -78,6 +90,7 @@ export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): Bus
     const cat = MAIN_CATEGORIES.find(c => c.id === st.categoryId);
     if (cat) list = list.filter(cat.match);
   }
+  if (st.amenities?.length) list = list.filter(b => st.amenities!.every(a => hasAmenity(b, a, st.amenityDefs)));
   const q = norm(st.query);
   if (q) {
     const terms = q.split(/\s+/).filter(Boolean);
