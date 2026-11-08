@@ -8,6 +8,7 @@ import {
   MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
+import { CollaborationCta } from '../components/RelatedContent';
 import { SearchBar, HScroller, EditorialFeed } from '../components/DiscoverUI';
 
 const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
@@ -195,6 +196,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
             )}
             {byCollection.map(s => <Row key={s.name} title={s.name} items={s.items} onOpen={openArticle} />)}
             {recent.length > 0 && <Row title="Recentes" subtitle="Últimas matérias publicadas" items={recent} onOpen={openArticle} />}
+            <CollaborationCta onNavigate={onNavigate} />
             <EditorialFeed onOpen={openFeedItem} />
           </div>
         )}

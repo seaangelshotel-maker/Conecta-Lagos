@@ -12,6 +12,7 @@ import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementB
 import { CouponCard } from '../components/CouponCard';
 import { getNavigationSource } from '../services/navigation';
 import { CouponModal } from '../components/CouponModal';
+import { BusinessArticles } from '../components/RelatedContent';
 import { useNotification } from '../components/NotificationSystem';
 import { useLanguage, Translate } from '../hooks/useLanguage';
 
@@ -353,6 +354,8 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     )}
                 </div>
             </div>
+
+            <BusinessArticles business={business} onNavigate={onNavigate} />
 
             <div className="space-y-4">
                 <h3 className="text-xl font-black text-ocean-950">Sobre o Local</h3>

@@ -136,3 +136,11 @@ Implementado e testado só localmente. **Nada foi enviado ao GitHub/Vercel/Fireb
 - Regras (`firestore.rules`, ainda não publicadas): `experienceTags` protegido para não-admin; só admin cria/edita `kind: 'guia'`. Testes de regra adicionados em `tests/rules` (não rodados: sem emulador neste ambiente).
 - Testes: `tests/e2e/e2e_discover.py` (49) + suítes anteriores (42, 13, 29) sem regressão.
 - Depois do deploy: publicar as regras, abrir o painel e clicar "Cadastrar matérias", curar `experienceTags` e conferir no site no ar.
+
+## 9. Missão autônoma: ciclos publicados (08/nov/2026)
+Publicado em https://conecta-lagos-one.vercel.app (Vercel, branch `main`; rollback = promover o deploy anterior na Vercel).
+- **Ciclo 1:** Descubra padronizado (busca com botão integrado, categorias e filtros com mesmo tamanho e margem, carrosséis com encaixe), feed editorial com rolagem infinita (`services/feedService.ts`, `EditorialFeed`; 8 por página, sem repetição, erro com "tentar de novo"), convite Descubra no topo da Home.
+- **Ciclo 2:** ponte nativa (`services/native.ts`), aviso offline, teclado, links profundos, botão voltar, compartilhamento, `capacitor.config.json` e `docs/MOBILE_APP.md` (o que falta na etapa nativa).
+- **Ciclo 3:** ecossistema: matéria → lugares reais → cupons dos lugares → "Ver todos" no Descubra → Ajuda Colaborativa; perfil do lugar → matérias que falam dele.
+- Testes: `e2e_discover` (60), `e2e` (42), `e2e_existing` (13), `e2e_feed` (29), `e2e_native` (12), unitário `tests/native.test.ts` (4).
+- Nenhuma regra comercial, plano, preço ou fluxo de pagamento foi alterado.

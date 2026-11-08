@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Clock, Loader2, MapPin, BookOpen, Share2 } from 'lucide-react';
 import { shareContent } from '../services/native';
-import { BlogPost, BusinessProfile } from '../types';
-import { getAllBusinesses } from '../services/dataService';
+import { BlogPost, BusinessProfile, Coupon } from '../types';
+import { getAllBusinesses, getCoupons } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
-import { resolveRelated } from '../services/discoverLogic';
+import { resolveRelated, discoverCategoryFor, couponsForBusinesses } from '../services/discoverLogic';
+import { ArticleCoupons, CollaborationCta } from '../components/RelatedContent';
 import { SEO } from '../components/SEO';
 import { ArticleCard, BusinessMiniCard, GuideContent, gradientFor } from '../components/GuideCards';
 
@@ -13,6 +14,7 @@ interface Props { slug: string; onNavigate: (page: string, params?: any) => void
 export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
   const [articles, setArticles] = useState<BlogPost[]>([]);
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
@@ -22,6 +24,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
       try {
         const [a, b] = await Promise.all([getGuideArticles(false), getAllBusinesses()]);
         if (alive) { setArticles(a); setBusinesses(b); }
+        getCoupons().then(c => { if (alive) setCoupons(c); }).catch(() => { /* sem cupons: a seção some */ });
       } finally { if (alive) setLoading(false); }
     })();
     window.scrollTo?.(0, 0);
@@ -31,6 +34,8 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
   const idx = articles.findIndex(a => a.slug === slug || a.id === slug);
   const article = idx >= 0 ? articles[idx] : null;
   const related = useMemo(() => (article ? resolveRelated(article.related, businesses) : []), [article, businesses]);
+  const relatedCoupons = useMemo(() => couponsForBusinesses(coupons, related), [coupons, related]);
+  const exploreCat = useMemo(() => discoverCategoryFor(related), [related]);
   const relatedArticles = useMemo(() => {
     if (!article) return [];
     const bySlug = (article.relatedSlugs || []).map(s => articles.find(a => a.slug === s)).filter(Boolean) as BlogPost[];
@@ -112,6 +117,9 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
             ) : (
               <>
                 <div className="grid gap-3 md:grid-cols-2">{shown.map(b => <BusinessMiniCard key={b.id} business={b} onOpen={x => onNavigate('business-detail', { businessId: x.id })} />)}</div>
+                {exploreCat && (
+                  <button onClick={() => onNavigate('discover', { cat: exploreCat.id })} data-testid="explore-more" className="mt-3 text-sm font-black text-ocean-600 flex items-center gap-1.5">Ver todos em {exploreCat.label} <ArrowRight size={14} /></button>
+                )}
                 {related.length > 6 && !showAll && (
                   <button onClick={() => setShowAll(true)} className="mt-3 text-sm font-black text-ocean-600 flex items-center gap-1.5"><MapPin size={14} /> Ver todos os {related.length}</button>
                 )}
@@ -119,6 +127,10 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
             )}
           </section>
         )}
+
+        <ArticleCoupons coupons={relatedCoupons} onNavigate={onNavigate} />
+
+        <div className="mt-9 -mx-4"><CollaborationCta onNavigate={onNavigate} /></div>
 
         {relatedArticles.length > 0 && (
           <section className="mt-9" aria-label="Matérias relacionadas">

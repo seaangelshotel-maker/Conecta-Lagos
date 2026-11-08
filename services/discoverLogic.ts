@@ -129,3 +129,19 @@ export const resolveRelated = (rel: GuideRelated | undefined, all: BusinessProfi
   if (rel.nameKeywords?.length && !rel.categories?.length) return Array.from(out.values());
   return Array.from(out.values());
 };
+
+/** Categoria do Descubra que melhor representa um conjunto de lugares (para o botão "Ver mais" das matérias). */
+export const discoverCategoryFor = (list: BusinessProfile[]): MainCategory | null => {
+  let best: MainCategory | null = null; let n = 0;
+  for (const c of MAIN_CATEGORIES) {
+    const k = list.filter(c.match).length;
+    if (k > n) { best = c; n = k; }
+  }
+  return best;
+};
+
+/** Cupons ativos que pertencem a lugares ligados à matéria (nada inventado: vem do campo companyId). */
+export const couponsForBusinesses = <T extends { companyId: string }>(coupons: T[], list: BusinessProfile[]): T[] => {
+  const ids = new Set(list.flatMap(b => [b.id, b.ownerId].filter(Boolean) as string[]));
+  return coupons.filter(c => ids.has(c.companyId));
+};
