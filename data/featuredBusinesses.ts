@@ -238,14 +238,6 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     description: 'Pousada em Geribá, em Búzios.',
     sources: ['https://mardegeriba.com.br/'], checkedAt: D,
   },
-  {
-    name: 'Pousada Nanina de Geribá', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
-    address: '',
-    phone: '(21) 99148-7963', whatsapp: '(21) 99148-7963',
-    instagram: 'https://www.instagram.com/pousadananinadegeriba/', website: 'https://naninadegeriba.com',
-    description: 'Pousada em Geribá, em Búzios. Endereço ainda não confirmado.',
-    sources: ['https://naninadegeriba.com/'], checkedAt: D,
-  },
   // ───────── Búzios · Restaurantes
   {
     name: 'Xerelete Bar e Restaurante', cityId: BZ, category: 'Gastronomia', subcategory: 'Restaurantes',
@@ -290,13 +282,5 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     hours: { Domingo: '12:00 - 22:00', Quarta: '17:00 - 23:00', Quinta: '17:00 - 23:00', Sexta: '17:00 - 00:00', 'Sábado': '12:00 - 00:00' },
     description: 'Restaurante no bairro São Bento, em Cabo Frio. Outro telefone: (22) 99773-5096. Horário publicado de quarta a domingo.',
     sources: ['https://saboresdecabofrio.com.br/mar/'], checkedAt: D,
-  },
-  {
-    name: 'Verace Pizzeria', cityId: CF, category: 'Gastronomia', subcategory: 'Pizzarias',
-    address: 'Rua Nicola Aslan, 377, Braga, Cabo Frio - RJ', neighborhood: 'Braga',
-    phone: '',
-    hours: { Domingo: '18:00 - 23:59', 'Terça': '18:00 - 23:59', Quarta: '18:00 - 23:59', Quinta: '18:00 - 23:59', Sexta: '18:00 - 23:59', 'Sábado': '18:00 - 23:59' },
-    description: 'Pizzaria no bairro Braga, em Cabo Frio. Telefone ainda não confirmado.',
-    sources: ['https://www.duogourmet.com.br/restaurantes/cabo-frio/verace-pizzeria'], checkedAt: D,
   },
 ];
