@@ -343,8 +343,9 @@ export const initFirebaseData = () => {
             _coupons = couponSnap.docs.map(d => ({ id: d.id, ...d.data() } as Coupon));
 
             // Load only first 10 blog posts
-            const postSnap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(10)));
-            _posts = postSnap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost));
+            const postSnap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(40)));
+            // Matérias do Guia têm página própria: ficam fora do Feed (a folga de 40 evita que elas ocupem as vagas dos posts)
+            _posts = postSnap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost)).filter(p => p.kind !== 'guia').slice(0, 10);
 
             notifyListeners();
         } catch (err) {
@@ -1129,8 +1130,9 @@ Por isso, Arraial do Cabo é conhecida orgulhosamente como a **Capital Nacional 
 
 export const getBlogPosts = async () => {
     if (_posts.length === 0) {
-        const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(50)));
-        _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost));
+        const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(100)));
+        // Matérias do Guia (kind 'guia') têm página própria e não entram no Feed.
+        _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost)).filter(p => p.kind !== 'guia');
     }
     
     // Auto-seed checking: ensure ALL default seed posts exist in the database and local array
@@ -1266,7 +1268,7 @@ export const BUSINESS_PROTECTED_KEYS = [
     'isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
     'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
     'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
-    'isClaimed', 'canBeClaimed', 'active', 'id'
+    'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags'
 ];
 
 const isCurrentUserAdmin = () => getCurrentUser()?.role === UserRole.SUPER_ADMIN;

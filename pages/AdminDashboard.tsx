@@ -38,6 +38,7 @@ import { ModerationPanel } from '../components/admin/ModerationPanel';
 import { EcosystemSettings } from '../components/admin/EcosystemSettings';
 import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
+import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -2924,6 +2925,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               <EcosystemSettings />
               <PublicPlacesImport />
               <FeaturedBusinessesImport />
+              <GuideContentAdmin />
           </div>
       )}
 

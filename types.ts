@@ -113,6 +113,9 @@ export interface BusinessProfile {
   paymentSubscriptionId?: string;
   status?: string;
   active?: boolean;
+  /** Curadoria do administrador: familias, casais, criancas, aventura, chuva, gratuito, imperdivel */
+  experienceTags?: string[];
+  sources?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -285,6 +288,31 @@ export interface BlogPost {
   eventDate?: string;
   eventLocation?: string;
   connectedUsers?: string[];
+  // ── Matérias do Guia (kind: 'guia'): ficam em blog_posts mas não aparecem no Feed ──
+  kind?: 'guia';
+  slug?: string;
+  subtitle?: string;
+  readingMinutes?: number;
+  /** Coleções temáticas em que a matéria aparece (ex.: "Roteiros para aproveitar melhor a cidade") */
+  collections?: string[];
+  /** Como achar, no banco, os estabelecimentos relacionados (resolvido em tempo real; nada é inventado) */
+  related?: GuideRelated;
+  relatedSlugs?: string[];
+  featured?: boolean;
+  popular?: boolean;
+  order?: number;
+}
+
+export interface GuideRelated {
+  /** Categoria ou subcategoria do Guia (comparação sem acento/maiúscula) */
+  categories?: string[];
+  /** Palavras que devem aparecer no nome do estabelecimento */
+  nameKeywords?: string[];
+  cityId?: string;
+  /** IDs escolhidos à mão pelo administrador */
+  businessIds?: string[];
+  /** Texto do botão (ex.: "Ver praias cadastradas") */
+  label?: string;
 }
 
 export interface Collection {

@@ -124,3 +124,15 @@ A importação é feita pelo administrador em **Painel → Ecossistema → Lugar
 (prévia antes de gravar, cria a cidade Búzios, não duplica e pode ser repetida com segurança).
 A página do lugar mostra as fontes; o selo "Aberto agora" e o quadro de horário só aparecem quando há
 horário informado.
+
+## 8. Descubra: filtros, busca e matérias editoriais (08/nov/2026) — NÃO publicado
+
+Implementado e testado só localmente. **Nada foi enviado ao GitHub/Vercel/Firebase.**
+
+- Tela `/descubra`: busca (empresas, lugares, experiências e matérias), 10 categorias principais e 10 filtros contextuais funcionando sobre os dados reais. Filtros que dependem de curadoria (Gratuitos, Famílias, Casais, Crianças, Dias de chuva, Imperdíveis) usam `experienceTags` marcadas pelo admin; sem marcação, a tela mostra estado vazio explicado (nada é inventado).
+- Matérias: 20 artigos em `data/guideArticles.ts`, gravados em `blog_posts` com `kind: 'guia'` (não aparecem no Feed). Página `/guia/:slug` com empresas reais ligadas por regra (`related`), matérias relacionadas e anterior/próxima.
+- Admin (ECOSSISTEMA → "Descubra: matérias e curadoria"): cadastrar as 20 matérias, publicar/despublicar, destaque, popular, coleções, tags, resumo, empresas ligadas e curadoria de `experienceTags`.
+- Home: convite Descubra. Navegação: aba "Descubra" substitui "Feed" na barra inferior mobile; menu superior ganhou "Descubra".
+- Regras (`firestore.rules`, ainda não publicadas): `experienceTags` protegido para não-admin; só admin cria/edita `kind: 'guia'`. Testes de regra adicionados em `tests/rules` (não rodados: sem emulador neste ambiente).
+- Testes: `tests/e2e/e2e_discover.py` (49) + suítes anteriores (42, 13, 29) sem regressão.
+- Depois do deploy: publicar as regras, abrir o painel e clicar "Cadastrar matérias", curar `experienceTags` e conferir no site no ar.

@@ -152,7 +152,7 @@ service cloud.firestore {
       return ['isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
               'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
               'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
-              'isClaimed', 'canBeClaimed', 'active', 'id'];
+              'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags'];
     }
 
     match /businesses/{bizId} {
@@ -273,10 +273,12 @@ service cloud.firestore {
 
     match /blog_posts/{postId} {
       allow read: if true;
-      allow create: if isAdmin() || (canWriteBlog() && request.resource.data.authorId == uid());
+      allow create: if isAdmin() || (canWriteBlog() && request.resource.data.authorId == uid()
+        && request.resource.data.get('kind', '') != 'guia');
       allow update: if isAdmin() || (
         canWriteBlog() && resource.data.get('authorId', '') == uid()
         && request.resource.data.authorId == uid()
+        && request.resource.data.get('kind', '') != 'guia'
       );
       allow delete: if isAdmin() || (canWriteBlog() && resource.data.get('authorId', '') == uid());
 

@@ -99,7 +99,7 @@ async def main():
         await logout(page); await login(page, 'admin@teste.com')
         await page.goto(BASE + '/admin-dashboard'); await page.wait_for_timeout(1500)
         await page.locator('button', has_text='ECOSSISTEMA').first.click(); await page.wait_for_timeout(1000)
-        await page.locator('button', has_text='Ver prévia').click(); await page.wait_for_timeout(1500)
+        await page.locator('button', has_text='Ver prévia').first.click(); await page.wait_for_timeout(1500)
         ok('prévia mostra Búzios como cidade nova', await page.locator('text=Cidade nova: Búzios').count() > 0)
         btn = page.locator('button', has_text='Importar ')
         label = await btn.inner_text()

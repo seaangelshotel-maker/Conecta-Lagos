@@ -72,6 +72,8 @@ const SkeletonList = () => (
   </div>
 );
 
+import { DiscoverTeaser } from "../components/DiscoverTeaser";
+
 export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const { coupons: swrCoupons, isLoading: couponsLoading } = useCoupons();
   const { businesses: swrBusinesses, isLoading: businessesLoading } =
@@ -458,6 +460,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           <WhatYouCanDo onNavigate={onNavigate} isLoggedIn={!!currentUser} />
           <InstallAppPrompt />
         </div>
+
+        {/* DESCUBRA: busca rápida, categorias e matérias do Guia */}
+        <DiscoverTeaser onNavigate={onNavigate} />
 
         {/* CATEGORIES GRID (Round Icons) */}
         <div>

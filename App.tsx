@@ -19,6 +19,8 @@ const JournalistPublicPage = lazy(() => import('./pages/JournalistPublicPage').t
 const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.SearchPage })));
 const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
 const BusinessDetail = lazy(() => import('./pages/BusinessDetail').then(m => ({ default: m.BusinessDetail })));
+const Discover = lazy(() => import('./pages/Discover').then(m => ({ default: m.Discover })));
+const GuideArticle = lazy(() => import('./pages/GuideArticle').then(m => ({ default: m.GuideArticle })));
 const Blog = lazy(() => import('./pages/Blog').then(m => ({ default: m.Blog })));
 const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
 const Collections = lazy(() => import('./pages/Collections').then(m => ({ default: m.Collections })));
@@ -43,6 +45,9 @@ const parseUrl = (): Route => {
   const blogMatch = path.match(/^\/blog\/([^/]+)/);
   if (blogMatch) return { page: 'blog-detail', params: { postId: decodeURIComponent(blogMatch[1]) } };
 
+  const guiaMatch = path.match(/^\/guia\/([^/]+)/);
+  if (guiaMatch) return { page: 'guide-article', params: { slug: decodeURIComponent(guiaMatch[1]) } };
+
   const journalistMatch = path.match(/^\/journalist\/([^/]+)/);
   if (journalistMatch) return { page: 'journalist-profile', params: { journalistId: decodeURIComponent(journalistMatch[1]) } };
 
@@ -64,6 +69,7 @@ const parseUrl = (): Route => {
   switch (path) {
     case '/guide': return { page: 'guide', params: null };
     case '/search': return { page: 'search', params: null };
+    case '/descubra': return { page: 'discover', params: null };
     case '/blog': return { page: 'blog', params: null };
     case '/collections': return { page: 'collections', params: null };
     case '/map': return { page: 'map', params: null };
@@ -87,6 +93,13 @@ const buildUrl = (page: string, params?: any): string => {
     case 'guide': return '/guide';
     case 'search': return '/search';
     case 'blog': return '/blog';
+    case 'discover': {
+      const qs = new URLSearchParams();
+      ['q', 'cat', 'f', 'city'].forEach(k => { if (params?.[k]) qs.set(k, params[k]); });
+      const str = qs.toString();
+      return '/descubra' + (str ? `?${str}` : '');
+    }
+    case 'guide-article': return `/guia/${id(params?.slug)}`;
     case 'collections': return '/collections';
     case 'map': return '/map';
     case 'login': return '/login';
@@ -115,7 +128,7 @@ const AUTH_PAGES = new Set([
 ]);
 
 /** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
-const FULLSCREEN_PAGES = new Set(['business-detail', 'blog-detail', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
+const FULLSCREEN_PAGES = new Set(['business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -230,6 +243,10 @@ function AppContent() {
         return <BusinessDetail businessId={pageParams?.businessId} onNavigate={handleNavigate} />;
       case 'search':
         return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} onNavigate={handleNavigate} />;
+      case 'discover':
+        return <Discover onNavigate={handleNavigate} />;
+      case 'guide-article':
+        return <GuideArticle slug={pageParams?.slug} onNavigate={handleNavigate} />;
       case 'blog':
         return <Blog onNavigate={handleNavigate} />;
       case 'blog-detail':

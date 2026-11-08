@@ -165,3 +165,18 @@ test('denúncia só pode ser lida por quem denunciou e por admin', async () => {
     await assertFails(getDoc(doc(as('ana'), 'reports/r1')));
     await assertSucceeds(getDoc(doc(as('adm'), 'reports/r1')));
 });
+
+// ---- Descubra: matérias do Guia e curadoria ----
+test('só o admin cria matéria do Guia (kind guia)', async () => {
+    const post = { id: 'guia_x', kind: 'guia', title: 'T', authorId: 'adm', status: 'published' };
+    await assertSucceeds(setDoc(doc(as('adm'), 'blog_posts/guia_x'), post));
+    await assertFails(setDoc(doc(as('bruno'), 'blog_posts/guia_y'), { ...post, id: 'guia_y', authorId: 'bruno' }));
+});
+test('qualquer visitante lê matérias do Guia', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => { await setDoc(doc(ctx.firestore(), 'blog_posts/guia_x'), { kind: 'guia', title: 'T', status: 'published' }); });
+    await assertSucceeds(getDocs(query(collection(as(null), 'blog_posts'), where('kind', '==', 'guia'))));
+});
+test('dono da empresa NÃO altera experienceTags (curadoria é do admin)', async () => {
+    await assertFails(updateDoc(doc(as('ana'), 'businesses/ana'), { experienceTags: ['gratuito'] }));
+    await assertSucceeds(updateDoc(doc(as('adm'), 'businesses/ana'), { experienceTags: ['gratuito'] }));
+});
