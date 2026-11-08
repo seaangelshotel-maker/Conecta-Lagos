@@ -73,7 +73,8 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
 
   return (
     <div className="bg-slate-50 min-h-screen pb-28 font-sans">
-      <SEO title={article.metaTitle || article.title} description={article.metaDescription || article.excerpt} image={article.imageUrl} type="article" url={`/guia/${article.slug}`} />
+      <SEO title={article.metaTitle || article.title} description={article.metaDescription || article.excerpt} image={article.imageUrl} type="article" url={`/guia/${article.slug}`}
+        jsonLd={{ "@context": "https://schema.org", "@type": "Article", headline: article.title, description: article.excerpt, inLanguage: "pt-BR", datePublished: article.date, author: { "@type": "Organization", name: article.author || "Lagos GO" }, publisher: { "@type": "Organization", name: "Lagos GO" }, keywords: (article.tags || []).join(", ") }} />
 
       <header className={`relative bg-gradient-to-br ${gradientFor(article.slug || article.id)} text-white px-4 pt-6 pb-10 overflow-hidden`}>
         {article.imageUrl && <img src={article.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" referrerPolicy="no-referrer" />}
