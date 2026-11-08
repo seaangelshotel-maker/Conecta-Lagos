@@ -40,6 +40,7 @@ import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
+import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -2935,6 +2936,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               <PublicPlacesImport />
               <FeaturedBusinessesImport />
               <GuideContentAdmin />
+              <LegalSettingsAdmin />
           </div>
       )}
 

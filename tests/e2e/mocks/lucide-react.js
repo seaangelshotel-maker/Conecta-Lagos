@@ -167,3 +167,4 @@ export const ArrowUp = mk('ArrowUp');
 export const ArrowDown = mk('ArrowDown');
 export const RotateCcw = mk('RotateCcw');
 export const LayoutGrid = mk('LayoutGrid');
+export const Scale = mk('Scale');

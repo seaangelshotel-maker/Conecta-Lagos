@@ -42,3 +42,5 @@ export class GoogleAuthProvider { setCustomParameters() {} }
 export const signInWithPopup = async () => { throw err('auth/popup-blocked'); };
 export const sendPasswordResetEmail = async () => {};
 export const updatePassword = async () => {};
+export const deleteUser = async (u) => { if (!u) throw err('auth/no-current-user'); delete state.users[u.uid]; state.currentUid = null; save(); notify(); };
+export const signOut = async () => { state.currentUid = null; save(); notify(); };

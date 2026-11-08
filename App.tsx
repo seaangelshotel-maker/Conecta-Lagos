@@ -1,5 +1,6 @@
 import { bindNativeEvents, watchKeyboard } from './services/native';
 import { OfflineBanner } from './components/OfflineBanner';
+import { ConsentBanner } from './components/ConsentBanner';
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
@@ -20,6 +21,9 @@ const JournalistDashboard = lazy(() => import('./pages/JournalistDashboard').the
 const JournalistPublicPage = lazy(() => import('./pages/JournalistPublicPage').then(m => ({ default: m.JournalistPublicPage })));
 const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.SearchPage })));
 const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
+const PrivacyPolicy = lazy(() => import('./pages/Legal').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfUse = lazy(() => import('./pages/Legal').then(m => ({ default: m.TermsOfUse })));
+const DeleteAccountPage = lazy(() => import('./pages/Legal').then(m => ({ default: m.DeleteAccountPage })));
 const BusinessDetail = lazy(() => import('./pages/BusinessDetail').then(m => ({ default: m.BusinessDetail })));
 const Discover = lazy(() => import('./pages/Discover').then(m => ({ default: m.Discover })));
 const GuideArticle = lazy(() => import('./pages/GuideArticle').then(m => ({ default: m.GuideArticle })));
@@ -72,6 +76,9 @@ const parseUrl = (): Route => {
     case '/guide': return { page: 'guide', params: null };
     case '/search': return { page: 'search', params: null };
     case '/descubra': return { page: 'discover', params: null };
+    case '/privacidade': return { page: 'privacy', params: null };
+    case '/termos': return { page: 'terms', params: null };
+    case '/excluir-conta': return { page: 'delete-account', params: null };
     case '/blog': return { page: 'blog', params: null };
     case '/collections': return { page: 'collections', params: null };
     case '/map': return { page: 'map', params: null };
@@ -103,6 +110,9 @@ const buildUrl = (page: string, params?: any): string => {
     }
     case 'guide-article': return `/guia/${id(params?.slug)}`;
     case 'collections': return '/collections';
+    case 'privacy': return '/privacidade';
+    case 'terms': return '/termos';
+    case 'delete-account': return '/excluir-conta';
     case 'map': return '/map';
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
@@ -255,6 +265,12 @@ function AppContent() {
         return <BusinessDetail businessId={pageParams?.businessId} onNavigate={handleNavigate} />;
       case 'search':
         return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} onNavigate={handleNavigate} />;
+      case 'privacy':
+        return <PrivacyPolicy onNavigate={handleNavigate} />;
+      case 'terms':
+        return <TermsOfUse onNavigate={handleNavigate} />;
+      case 'delete-account':
+        return <DeleteAccountPage onNavigate={handleNavigate} currentUser={user} />;
       case 'discover':
         return <Discover onNavigate={handleNavigate} />;
       case 'guide-article':
@@ -321,6 +337,7 @@ function AppContent() {
   return (
     <div className="min-h-screen font-sans text-ocean-950 bg-slate-50 selection:bg-ocean-200">
       <OfflineBanner />
+      <ConsentBanner onNavigate={handleNavigate} />
       {showChrome && (
           <NavBar
             currentUser={user}

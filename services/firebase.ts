@@ -1,7 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getAnalytics, isSupported, setAnalyticsCollectionEnabled } from 'firebase/analytics';
+import { getConsent, CONSENT_EVENT } from './consent';
 
 // --- CONFIGURAÇÃO DO FIREBASE (LAGOS GO) ---
 // Estes valores são públicos por natureza (identificam o projeto no navegador);
@@ -23,11 +24,19 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Analytics só liga depois do consentimento (LGPD). Recusa ou sem escolha = nada é coletado.
 let analytics: ReturnType<typeof getAnalytics> | null = null;
-isSupported().then(supported => {
-  if (supported) {
-    analytics = getAnalytics(app);
-  }
-}).catch(() => undefined);
+const startAnalytics = () => {
+  if (analytics) { setAnalyticsCollectionEnabled(analytics, true); return; }
+  isSupported().then(supported => { if (supported) analytics = getAnalytics(app); }).catch(() => undefined);
+};
+if (getConsent() === 'granted') startAnalytics();
+if (typeof window !== 'undefined') {
+  window.addEventListener(CONSENT_EVENT, (e: Event) => {
+    const v = (e as CustomEvent).detail;
+    if (v === 'granted') startAnalytics();
+    else if (analytics) setAnalyticsCollectionEnabled(analytics, false);
+  });
+}
 
 export { auth, db, analytics };

@@ -127,7 +127,8 @@ service cloud.firestore {
         && exists(businessPath(uid()))
       );
 
-      allow delete: if isAdmin();
+      // Exclusão da própria conta (Google Play e LGPD).
+      allow delete: if isAdmin() || (isAuthenticated() && uid() == userId);
     }
 
     // Perfil público mínimo (sem e-mail/telefone): blog, autores, anunciantes.

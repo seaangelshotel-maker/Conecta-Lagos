@@ -4,6 +4,7 @@ import { CategoryIcon } from '../components/categoryIcons';
 import { useHomeConfig } from '../services/homeConfigService';
 import { BlogPost, BusinessProfile, Collection, Coupon, HomeHighlight, User } from '../types';
 import { SEO } from '../components/SEO';
+import { LegalFooter } from '../components/LegalFooter';
 import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 import { WhatYouCanDo } from '../components/WhatYouCanDo';
@@ -277,6 +278,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
 
         <div className="px-4"><SpecialistReferral source="home" /></div>
       </div>
+      <LegalFooter onNavigate={onNavigate} />
 
       {selectedCoupon && (
         <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={handleRedeem} isRedeemed={false} />
