@@ -461,7 +461,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   };
 
   const handleManageSubscription = async () => {
-    notify('info', 'Para gerenciar sua assinatura, acesse sua conta no PagBank ou entre em contato com nosso suporte.');
+    notify('info', 'Para gerenciar seu plano, fale com o suporte da Lagos GO.');
   };
 
   const handleDeletePlan = async (id: string) => {
@@ -3696,7 +3696,7 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                 </button>
                 <div>
                     <h2 className="text-2xl font-black text-ocean-950 tracking-tight">Configurações de Pagamento</h2>
-                    <p className="text-sm font-medium text-slate-500">Gerencie o sistema de pagamentos PagBank</p>
+                    <p className="text-sm font-medium text-slate-500">Integração com o Asaas (PIX, boleto e cartão)</p>
                 </div>
             </div>
 
@@ -3705,7 +3705,7 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                     <div className="space-y-6">
                         <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
                             <div>
-                                <h3 className="font-black text-ocean-950">PagBank</h3>
+                                <h3 className="font-black text-ocean-950">Asaas</h3>
                                 <p className="text-xs text-slate-500 font-bold">Ativar ou desativar cobranças no sistema</p>
                             </div>
                             <button 
@@ -3719,9 +3719,10 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                         <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
                             <h3 className="font-black text-amber-950">Cobrança automática desativada nesta etapa</h3>
                             <p className="text-xs text-amber-800 font-bold mt-1 leading-relaxed">
-                                Não existe mais "pagamento direto" (bypass). Planos são atribuídos manualmente pelo administrador
-                                na lista de empresas. A integração com o PagBank só funciona no servidor, com
-                                PAYMENTS_ENABLED=true e as credenciais configuradas (veja docs/MIGRACAO_VERCEL.md).
+                                Não existe "pagamento direto" (bypass). Planos são atribuídos manualmente pelo administrador
+                                na lista de empresas. A cobrança pelo Asaas só funciona no servidor, com
+                                PAYMENTS_ENABLED=true, ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN na Vercel (veja docs/PAGAMENTOS.md).
+                                Webhook do Asaas: https://SEU_DOMINIO/api/webhook.
                             </p>
                         </div>
                     </div>

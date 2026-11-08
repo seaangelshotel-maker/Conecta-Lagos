@@ -1,39 +1,33 @@
-# Pagamentos — estado atual e integração futura
+# Pagamentos — Asaas (preparado, desligado por padrão)
 
-**Estado:** preparado e **desativado**. A aplicação funciona normalmente sem nenhum sistema financeiro ativo.
+**Estado:** código pronto para o Asaas, **desativado**. Nada é cobrado e nenhum plano é ativado sem as variáveis abaixo.
+Planos, preços, periodicidade, split e regras comerciais **não** são definidos no código: o preço vem sempre de `pricingPlans/{id}` no Firestore (cadastrado pelo admin).
 
-## O que foi corrigido
+## Fluxo
+1. Empresa logada chama `POST /api/create-checkout-session` com `Authorization: Bearer <Firebase ID token>` e `{ planId, businessId, cpfCnpj? }`.
+2. Servidor confere login, posse da empresa e preço do plano; cria (uma vez) o cliente no Asaas e guarda `paymentCustomerId` na empresa.
+3. Cria a cobrança (`billingType: UNDEFINED`: a pessoa escolhe PIX, boleto ou cartão na fatura), vencimento em 3 dias, `externalReference = userId:businessId:planId`. Responde `{ id, url }` (fatura do Asaas) e registra `payment_intents/{id}`.
+4. Asaas chama `POST /api/webhook` com o cabeçalho `asaas-access-token`. O servidor:
+   - confere o token (comparação em tempo constante);
+   - para `PAYMENT_RECEIVED`/`PAYMENT_CONFIRMED`, **consulta a cobrança na API** e exige status pago e valor ≥ preço do plano;
+   - ativa o plano uma única vez (`payments/asaas_<id>`), somando o período ao prazo vigente;
+   - estornos e contestações só são registrados (`payment_events`); a decisão sobre o plano é do admin.
 
-| Problema encontrado | Correção |
+## Variáveis na Vercel
+| Variável | Valor |
 | --- | --- |
-| Checkout no servidor começava com `isTestMode = true` fixo: todo "pagamento" era aprovado na hora e a pessoa virava `COMPANY` com plano pago | Bypass removido. Sem `PAYMENTS_ENABLED=true` + `PAGBANK_TOKEN`, o checkout responde 503 e nada é ativado |
-| Preço do plano vinha do navegador (`price` no corpo da requisição) | Preço lido do documento `pricingPlans/{id}` no Firestore |
-| Webhook aceitava qualquer POST sem validar origem | Exige assinatura `x-authenticity-token` (SHA-256 de `token-corpo`) **e** consulta o pedido na API do PagBank para confirmar `PAID` e valor ≥ preço do plano |
-| A URL `/admin-dashboard?status=success&plan_id=X` ativava o plano X no próprio navegador | Removido. Só mostra aviso; quem ativa é o admin ou o webhook validado |
-| Regras do Firestore deixavam o dono da empresa gravar `plan`, `isFeatured`, `subscriptionEndsAt` | Campos protegidos; só admin (ou o servidor) altera |
-| Toggle "Bypass (Pagamento Direto)" no admin | Removido da interface; o campo é ignorado |
-| Reprocessar o mesmo pedido ativava o plano de novo | Idempotência pela coleção `payments/{orderId}` |
+| `PAYMENTS_ENABLED` | `true` só depois do teste completo em sandbox |
+| `ASAAS_API_KEY` | chave da API (sandbox primeiro) |
+| `ASAAS_WEBHOOK_TOKEN` | token de 32 a 255 caracteres, sem espaços, definido ao criar o webhook |
+| `ASAAS_ENV` | `sandbox` (padrão) ou `production` |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da conta de serviço do Firebase (necessário para gravar no banco pelo servidor) |
 
-## Como os planos funcionam hoje
+## Ativação (checklist)
+1. Conta Asaas aprovada; gerar chave de **sandbox**.
+2. Criar webhook no Asaas apontando para `https://SEU_DOMINIO/api/webhook`, eventos de cobrança, com o token escolhido.
+3. Configurar as variáveis acima na Vercel (sandbox) e publicar.
+4. Testar: criar cobrança, pagar no sandbox, conferir plano ativado e `payments/asaas_<id>`.
+5. Repetir com chave de produção e `ASAAS_ENV=production`.
 
-- Participação básica gratuita (parceiros fundadores).
-- O **admin** atribui planos manualmente em *Empresas* (seletor de plano), que define `plan`, `isFeatured` e `subscriptionEndsAt`.
-- "Anuncie conosco" e a página de planos levam ao **WhatsApp comercial** configurado em *Admin → Ecossistema*.
-
-## Contrato do campo `reference_id` (PagBank)
-
-`userId:businessId:planId` — gerado pelo servidor (antes eram 4 partes com o nome do plano;
-o nome não é mais usado porque o servidor relê o plano no Firestore).
-
-## Para ativar no futuro (checklist)
-
-1. Definir a política comercial (o que é pago, quanto, quando) — ainda não decidido.
-2. Testar em `PAGBANK_ENV=sandbox` com `PAGBANK_TOKEN` de sandbox.
-3. Cadastrar a URL de notificação `https://SEU_DOMINIO/api/webhook` no PagBank.
-4. Confirmar o formato atual da assinatura do webhook na documentação do PagBank
-   (implementado: `sha256("<token>-<corpo bruto>")` no cabeçalho `x-authenticity-token`).
-5. Criar no app o botão de checkout que chama `POST /api/create-checkout-session` com
-   `Authorization: Bearer <Firebase ID token>` e corpo `{ planId, businessId }`.
-6. `PAYMENTS_ENABLED=true` em produção só após o teste completo em sandbox.
-7. Pendências não implementadas: renovação/expiração automática, cancelamento, reembolso,
-   comissão e split (dependem de decisão comercial).
+## Pendências que dependem de decisão comercial
+Assinaturas recorrentes automáticas, split/comissões, cancelamento, reembolso e botão de compra na interface.

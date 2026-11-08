@@ -355,10 +355,12 @@ export interface AppGlobalSettings {
 
 export interface PaymentSettings {
   isPaymentActive: boolean;
-  isTestMode: boolean; // PagBank Sandbox
+  isTestMode: boolean; // Asaas sandbox
   /** @deprecated O bypass de pagamento foi removido; o servidor ignora este campo. */
   isDirectPaymentTest?: boolean;
+  /** @deprecated Credenciais ficam só nas variáveis de ambiente do servidor, nunca no banco. */
   pagbankToken?: string;
+  /** @deprecated idem */
   pagbankWebhookSecret?: string;
   salesWhatsapp?: string; // Adicionado aqui também por conveniência se preferir usar PaymentSettings
 }

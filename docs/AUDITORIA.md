@@ -163,3 +163,12 @@ Publicado em https://conecta-lagos-one.vercel.app (Vercel, branch `main`; rollba
 - Categoria criada usa regra própria: categoria do cadastro, subcategoria e/ou palavras inteiras no nome/descrição (escolhidas a partir dos valores reais cadastrados), com contagem ao vivo. Não salva categoria visível sem regra.
 - Gravado em `app_settings/home_discovery` (leitura pública, escrita só admin; regras já existentes). Vale para a Home, a página de lugares e o "Ver todos em…" das matérias.
 - Testes: `tests/homeConfig.test.ts` (6), `tests/e2e/e2e_home_admin.py` (19).
+
+## 13. Conformidade, SEO, push e Asaas (08/nov/2026)
+- **Privacidade/LGPD:** `/privacidade`, `/termos`, `/excluir-conta` (exclusão real: comentários, perfil público, usuário e login); aviso de cookies que só liga o Analytics com consentimento; dados do responsável editáveis no admin (`app_settings/legal`); rodapé legal na Home e no perfil.
+- **SEO:** `/sitemap.xml` e `/robots.txt` dinâmicos (Firestore REST, sem credenciais); robôs e redes sociais recebem o HTML de cada página com título, descrição, imagem, canônico, JSON-LD (Beach/TouristAttraction/LocalBusiness, Article, BlogPosting, WebSite+SearchAction, BreadcrumbList) e texto; canônico do próprio domínio; `og-image.jpg`.
+- **Desempenho:** Leaflet carregado só na tela que usa mapa.
+- **Push:** FCM com temas (cupons, matérias, eventos, Ajuda Colaborativa), cartão no perfil, envio pelo admin (`/api/push-send`), service worker exibe e abre a tela certa; plugin nativo usado quando o app existir.
+- **Asaas:** substitui o PagBank no servidor, desligado por padrão (docs/PAGAMENTOS.md).
+- **Regras novas a publicar:** exclusão da própria conta (`users`), `push_tokens`, `push_campaigns`.
+- Testes: unitários 34; e2e legal 22, push 9, demais suítes sem regressão.
