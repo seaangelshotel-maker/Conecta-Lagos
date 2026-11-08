@@ -6,6 +6,7 @@ import { getAllBusinesses, getCoupons } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
 import { resolveRelated, discoverCategoryFor, couponsForBusinesses } from '../services/discoverLogic';
 import { ArticleCoupons, CollaborationCta } from '../components/RelatedContent';
+import { useHomeConfig } from '../services/homeConfigService';
 import { SEO } from '../components/SEO';
 import { ArticleCard, BusinessMiniCard, GuideContent, gradientFor } from '../components/GuideCards';
 
@@ -15,6 +16,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
   const [articles, setArticles] = useState<BlogPost[]>([]);
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const { categories } = useHomeConfig();
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
@@ -35,7 +37,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
   const article = idx >= 0 ? articles[idx] : null;
   const related = useMemo(() => (article ? resolveRelated(article.related, businesses) : []), [article, businesses]);
   const relatedCoupons = useMemo(() => couponsForBusinesses(coupons, related), [coupons, related]);
-  const exploreCat = useMemo(() => discoverCategoryFor(related), [related]);
+  const exploreCat = useMemo(() => discoverCategoryFor(related, categories), [related, categories]);
   const relatedArticles = useMemo(() => {
     if (!article) return [];
     const bySlug = (article.relatedSlugs || []).map(s => articles.find(a => a.slug === s)).filter(Boolean) as BlogPost[];

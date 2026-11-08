@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store, Loader2, Sparkles, MapPin } from 'lucide-react';
+import { Loader2, Sparkles, MapPin } from 'lucide-react';
+import { CategoryIcon } from '../components/categoryIcons';
+import { useHomeConfig } from '../services/homeConfigService';
 import { BlogPost, BusinessProfile, City, AppAmenity, DEFAULT_AMENITIES } from '../types';
 import { getAllBusinesses, getCities, getAmenities } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
 import { getGuideArticles } from '../services/guideService';
 import {
-  MAIN_CATEGORIES, CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
+  CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
 import { SearchBar, HScroller } from '../components/DiscoverUI';
 
-const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
 
 interface Props { onNavigate: (page: string, params?: any) => void; }
 
@@ -25,6 +26,7 @@ const readUrl = () => {
 export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const init = readUrl();
   const { language, setLanguage } = useLanguage();
+  const { categories } = useHomeConfig();
   const [showFlags, setShowFlags] = useState(false);
   const [amenityDefs, setAmenityDefs] = useState<AppAmenity[]>(DEFAULT_AMENITIES);
   const [am, setAm] = useState<string[]>(init.am);
@@ -76,12 +78,12 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
     }
   };
 
-  const counts = useMemo(() => countByCategory(businesses), [businesses]);
+  const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
   const active = !!(cat || flt || q.trim() || am.length);
   const amCounts = useMemo(() => countByAmenity(businesses, amenityDefs), [businesses, amenityDefs]);
   const amList = useMemo(() => [...amenityDefs].sort((a, b) => (amCounts[b.id] || 0) - (amCounts[a.id] || 0)), [amenityDefs, amCounts]);
   const toggleAm = (id: string) => setAm(cur => (cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]));
-  const results = useMemo(() => filterBusinesses(businesses, { categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs }), [businesses, cat, flt, city, q, where, am, amenityDefs]);
+  const results = useMemo(() => filterBusinesses(businesses, { categories, categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs }), [businesses, categories, cat, flt, city, q, where, am, amenityDefs]);
   const matchedArticles = useMemo(() => (q.trim() ? searchArticles(articles, q) : []), [articles, q]);
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
 
@@ -132,12 +134,12 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
         {/* Categorias */}
         <section aria-label="Categorias" className="pt-5">
           <HScroller label="Categorias">
-            {MAIN_CATEGORIES.map(c => {
-              const Icon = ICONS[c.icon] || Compass; const on = cat === c.id;
+            {categories.map(c => {
+              const on = cat === c.id;
               return (
                 <button key={c.id} onClick={() => setCat(on ? '' : c.id)} aria-pressed={on} data-testid={`cat-${c.id}`}
                   className={`flex flex-col items-center justify-start pt-3 gap-1.5 w-[88px] h-[96px] shrink-0 rounded-2xl border text-center ${on ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-ocean-950 border-slate-100'}`}>
-                  <Icon size={22} />
+                  <CategoryIcon name={c.icon} size={22} />
                   <span className="text-[11px] font-bold leading-tight px-1 min-h-[26px] flex items-center">{c.label}</span>
                   <span className={`text-[10px] font-bold ${on ? 'text-white/80' : 'text-slate-400'}`}>{counts[c.id] ?? 0}</span>
                 </button>

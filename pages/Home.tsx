@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Gem, ArrowRight, Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store } from 'lucide-react';
+import { Sparkles, Gem, ArrowRight } from 'lucide-react';
+import { CategoryIcon } from '../components/categoryIcons';
+import { useHomeConfig } from '../services/homeConfigService';
 import { BlogPost, BusinessProfile, Collection, Coupon, HomeHighlight, User } from '../types';
 import { SEO } from '../components/SEO';
 import { CouponCard } from '../components/CouponCard';
@@ -12,7 +14,7 @@ import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { LeadCard, CompactCard, openContent } from '../components/FeedCards';
 import { getAllBusinesses, getBlogPosts, getCollections, getHomeHighlights, redeemCoupon } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
-import { MAIN_CATEGORIES, countByCategory, filterBusinesses } from '../services/discoverLogic';
+import { countByCategory, filterBusinesses } from '../services/discoverLogic';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
 import { useCoupons } from '../hooks/useFirestore';
@@ -23,9 +25,7 @@ interface HomeProps {
   onNavigate: (page: string, params?: any) => void;
 }
 
-const ICONS: Record<string, any> = { Waves, Utensils, Ship, Compass, BedDouble, Wine, Mountain, Landmark, Briefcase, Store };
 const FLAGS = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
-const HOME_PLACES = 8;
 
 const SectionHead: React.FC<{ title: string; subtitle?: string; action?: string; onAction?: () => void; testId?: string }> = ({ title, subtitle, action, onAction, testId }) => (
   <div className="px-4 mb-3 flex items-end justify-between gap-3">
@@ -55,6 +55,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const { coupons } = useCoupons();
+  const { config, categories } = useHomeConfig();
+  const HOME_PLACES = config.placesPerCategory;
 
   useEffect(() => {
     let alive = true;
@@ -72,13 +74,14 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
     return () => clearInterval(id);
   }, [highlights.length]);
 
-  const counts = useMemo(() => countByCategory(businesses), [businesses]);
+  const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
   // Começa mostrando a primeira categoria que tem lugares cadastrados.
   useEffect(() => {
-    if (!cat && businesses.length) setCat(MAIN_CATEGORIES.find(c => (counts[c.id] || 0) > 0)?.id || '');
-  }, [businesses, counts, cat]);
-  const places = useMemo(() => (cat ? filterBusinesses(businesses, { categoryId: cat, filterId: 'populares' }) : []), [businesses, cat]);
-  const catLabel = MAIN_CATEGORIES.find(c => c.id === cat)?.label || '';
+    if (!businesses.length || !categories.length) return;
+    if (!cat || !categories.some(c => c.id === cat)) setCat(categories.find(c => (counts[c.id] || 0) > 0)?.id || categories[0].id);
+  }, [businesses, categories, counts, cat]);
+  const places = useMemo(() => (cat ? filterBusinesses(businesses, { categories, categoryId: cat, filterId: 'populares' }) : []), [businesses, categories, cat]);
+  const catLabel = categories.find(c => c.id === cat)?.label || '';
 
   const uniqueCoupons = useMemo(() => { const s = new Set<string>(); return (coupons || []).filter(c => c?.id && !s.has(c.id) && s.add(c.id)); }, [coupons]);
   const roteiros = useMemo(() => guides.filter(g => (g.collections || []).includes(C.roteiros)), [guides]);
@@ -132,12 +135,12 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       <div className="max-w-5xl mx-auto space-y-10">
         <section aria-label="Categorias" className="pt-5">
           <HScroller label="Categorias">
-            {MAIN_CATEGORIES.map(c => {
-              const Icon = ICONS[c.icon] || Compass; const on = cat === c.id;
+            {categories.map(c => {
+              const on = cat === c.id;
               return (
                 <button key={c.id} onClick={() => setCat(c.id)} aria-pressed={on} data-testid={`cat-${c.id}`}
                   className={`flex flex-col items-center justify-start pt-3 gap-1.5 w-[88px] h-[96px] shrink-0 rounded-2xl border text-center ${on ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-ocean-950 border-slate-100'}`}>
-                  <Icon size={22} />
+                  <CategoryIcon name={c.icon} size={22} />
                   <span className="text-[11px] font-bold leading-tight px-1 min-h-[26px] flex items-center">{c.label}</span>
                   <span className={`text-[10px] font-bold ${on ? 'text-white/80' : 'text-slate-400'}`}>{counts[c.id] ?? 0}</span>
                 </button>

@@ -39,6 +39,7 @@ import { EcosystemSettings } from '../components/admin/EcosystemSettings';
 import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
+import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -46,7 +47,7 @@ const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
-  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM'>('HOME');
+  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY'>('HOME');
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [dicasCategories, setDicasCategories] = useState<AppCategory[]>([]);
@@ -700,6 +701,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <button onClick={() => setView('PLANS')} className="bg-slate-50 hover:bg-purple-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-purple-600 mb-1">Planos de Assinatura</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Crie planos personalizados para parceiros.</p>
+                              </button>
+                              <button onClick={() => setView('HOME_DISCOVERY')} data-testid="admin-home-discovery" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-ocean-600 mb-1">Home: categorias e lugares</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Quantos lugares por categoria, ordem, nomes, ícones e novas categorias.</p>
                               </button>
                               <button onClick={() => setView('HIGHLIGHTS')} className="bg-slate-50 hover:bg-pink-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-pink-600 mb-1">Destaques da Home</h4>
@@ -2661,6 +2666,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
             </div>
         </div>
       )}
+      {view === 'HOME_DISCOVERY' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <HomeDiscoveryAdmin onBack={() => setView('HOME')} />
+      )}
+
       {view === 'HIGHLIGHTS' && currentUser.role === UserRole.SUPER_ADMIN && (
           <HighlightsManager 
             highlights={highlights} 

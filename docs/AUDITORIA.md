@@ -156,3 +156,10 @@ Publicado em https://conecta-lagos-one.vercel.app (Vercel, branch `main`; rollba
 - **Lugares (`/descubra`):** página completa de lugares (lista todos sem filtro, "Mostrar mais" de 24 em 24), com categorias, filtros, comodidades e cidades. O conteúdo editorial saiu daqui para o Feed.
 - **Matéria (`/guia/:slug`):** pertence ao Feed (aba Feed ativa, botão "Voltar para o Feed").
 - Removidos por ficarem sem uso: `DiscoverTeaser`, `EditorialFeed` e `services/feedService.ts` (substituídos pelo Feed e pela prévia da Home).
+
+## 12. Admin controla a Home (08/nov/2026)
+- Painel → "Home: categorias e lugares" (`components/admin/HomeDiscoveryAdmin.tsx`).
+- Controla: lugares por categoria na Home (1 a 24, padrão 8), ordem, nome, ícone (54 ícones), mostrar/esconder, criar e excluir categorias.
+- Categoria criada usa regra própria: categoria do cadastro, subcategoria e/ou palavras inteiras no nome/descrição (escolhidas a partir dos valores reais cadastrados), com contagem ao vivo. Não salva categoria visível sem regra.
+- Gravado em `app_settings/home_discovery` (leitura pública, escrita só admin; regras já existentes). Vale para a Home, a página de lugares e o "Ver todos em…" das matérias.
+- Testes: `tests/homeConfig.test.ts` (6), `tests/e2e/e2e_home_admin.py` (19).

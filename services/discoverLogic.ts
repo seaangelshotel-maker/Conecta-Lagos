@@ -9,6 +9,11 @@ export const norm = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '
 
 const has = (hay: string | undefined, words: string[]) => { const h = norm(hay); return words.some(w => h.includes(norm(w))); };
 const subIs = (b: BusinessProfile, subs: string[]) => subs.some(s => norm(b.subcategory) === norm(s));
+/** Palavra inteira (sem acento): "açaí" não casa com "Graçainha". */
+const hasWord = (hay: string | undefined, words: string[]) => {
+  const h = norm(hay);
+  return words.some(w => { const k = norm(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); return !!k && new RegExp(`(^|[^a-z0-9])${k}([^a-z0-9]|$)`).test(h); });
+};
 const catIs = (b: BusinessProfile, cats: string[]) => cats.some(c => norm(b.category) === norm(c));
 
 export interface MainCategory { id: string; label: string; icon: string; match: (b: BusinessProfile) => boolean; }
@@ -31,6 +36,73 @@ export const MAIN_CATEGORIES: MainCategory[] = [
   { id: 'servicos', label: 'Serviços turísticos', icon: 'Briefcase', match: b => (catIs(b, ['Serviços']) && !subIs(b, ['Supermercados', 'Farmácias'])) || catIs(b, ['Bem-estar e Beleza']) },
   { id: 'comercio', label: 'Comércio local', icon: 'Store', match: b => catIs(b, ['Compras']) || subIs(b, ['Supermercados', 'Farmácias']) },
 ];
+
+/* ---------- Categorias configuráveis pelo admin ---------- */
+
+/** Regra de uma categoria criada no admin: entra o lugar que bater em QUALQUER um dos itens. */
+export interface CategoryRule { categories?: string[]; subcategories?: string[]; keywords?: string[]; }
+
+export interface CategoryConfig {
+  id: string;
+  label: string;
+  icon: string;
+  order: number;
+  active: boolean;
+  /** true = categoria criada pelo admin (usa `rule`); false/ausente = categoria padrão do sistema. */
+  custom?: boolean;
+  rule?: CategoryRule;
+}
+
+export interface HomeDiscoveryConfig { placesPerCategory: number; categories: CategoryConfig[]; updatedAt?: string; }
+
+export const PLACES_MIN = 1;
+export const PLACES_MAX = 24;
+export const DEFAULT_PLACES_PER_CATEGORY = 8;
+
+export const DEFAULT_HOME_CONFIG: HomeDiscoveryConfig = {
+  placesPerCategory: DEFAULT_PLACES_PER_CATEGORY,
+  categories: MAIN_CATEGORIES.map((c, i) => ({ id: c.id, label: c.label, icon: c.icon, order: i, active: true })),
+};
+
+export const matchRule = (rule: CategoryRule | undefined) => (b: BusinessProfile) => {
+  if (!rule) return false;
+  if (rule.categories?.length && catIs(b, rule.categories)) return true;
+  if (rule.subcategories?.length && subIs(b, rule.subcategories)) return true;
+  if (rule.keywords?.length && hasWord([b.name, b.subcategory, b.description].join(' '), rule.keywords)) return true;
+  return false;
+};
+
+/** Junta o que o admin salvou com as categorias padrão (novas padrão entram no fim; ids desconhecidos sem regra são ignorados). */
+export const normalizeConfig = (raw?: Partial<HomeDiscoveryConfig> | null): HomeDiscoveryConfig => {
+  const n = Number(raw?.placesPerCategory);
+  const placesPerCategory = Number.isFinite(n) ? Math.min(PLACES_MAX, Math.max(PLACES_MIN, Math.round(n))) : DEFAULT_PLACES_PER_CATEGORY;
+  const saved = Array.isArray(raw?.categories) ? raw!.categories! : [];
+  const out: CategoryConfig[] = [];
+  const seen = new Set<string>();
+  for (const c of saved) {
+    if (!c || !c.id || seen.has(c.id)) continue;
+    const builtin = MAIN_CATEGORIES.find(m => m.id === c.id);
+    if (!builtin && !c.custom) continue;
+    seen.add(c.id);
+    out.push({
+      id: c.id, label: (c.label || builtin?.label || '').trim() || builtin?.label || c.id,
+      icon: c.icon || builtin?.icon || 'Compass', order: Number(c.order) || 0, active: c.active !== false,
+      ...(builtin ? {} : { custom: true, rule: { categories: c.rule?.categories || [], subcategories: c.rule?.subcategories || [], keywords: c.rule?.keywords || [] } }),
+    });
+  }
+  MAIN_CATEGORIES.forEach(m => { if (!seen.has(m.id)) out.push({ id: m.id, label: m.label, icon: m.icon, order: 1000 + out.length, active: true }); });
+  out.sort((a, b) => a.order - b.order);
+  return { placesPerCategory, categories: out.map((c, i) => ({ ...c, order: i })), updatedAt: raw?.updatedAt };
+};
+
+/** Categorias prontas para a tela (só as ativas, na ordem do admin). */
+export const buildCategories = (cfg: HomeDiscoveryConfig, includeHidden = false): MainCategory[] =>
+  cfg.categories
+    .filter(c => includeHidden || c.active)
+    .map(c => {
+      const builtin = MAIN_CATEGORIES.find(m => m.id === c.id);
+      return { id: c.id, label: c.label, icon: c.icon, match: builtin && !c.custom ? builtin.match : matchRule(c.rule) };
+    });
 
 export interface ContextFilter { id: string; label: string; hint: string; }
 
@@ -69,7 +141,7 @@ export const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; l
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-export interface DiscoverState { categoryId?: string; filterId?: string; cityId?: string; query?: string; where?: { lat: number; lng: number } | null; amenities?: string[]; amenityDefs?: AppAmenity[]; }
+export interface DiscoverState { categories?: MainCategory[]; categoryId?: string; filterId?: string; cityId?: string; query?: string; where?: { lat: number; lng: number } | null; amenities?: string[]; amenityDefs?: AppAmenity[]; }
 
 /** Comodidade marcada na empresa pode estar salva como id ("wifi") ou como rótulo ("Wi-Fi Grátis"). */
 export const hasAmenity = (b: BusinessProfile, id: string, defs: AppAmenity[] = DEFAULT_AMENITIES): boolean => {
@@ -87,7 +159,7 @@ export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): Bus
   let list = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
   if (st.cityId) list = list.filter(b => b.cityId === st.cityId);
   if (st.categoryId) {
-    const cat = MAIN_CATEGORIES.find(c => c.id === st.categoryId);
+    const cat = (st.categories || MAIN_CATEGORIES).find(c => c.id === st.categoryId);
     if (cat) list = list.filter(cat.match);
   }
   if (st.amenities?.length) list = list.filter(b => st.amenities!.every(a => hasAmenity(b, a, st.amenityDefs)));
@@ -113,8 +185,8 @@ export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): Bus
   }
 };
 
-export const countByCategory = (all: BusinessProfile[]) =>
-  Object.fromEntries(MAIN_CATEGORIES.map(c => [c.id, all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved') && c.match(b)).length]));
+export const countByCategory = (all: BusinessProfile[], cats: MainCategory[] = MAIN_CATEGORIES) =>
+  Object.fromEntries(cats.map(c => [c.id, all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved') && c.match(b)).length]));
 
 export const searchArticles = (articles: BlogPost[], query: string) => {
   const terms = norm(query).split(/\s+/).filter(Boolean);
@@ -144,9 +216,9 @@ export const resolveRelated = (rel: GuideRelated | undefined, all: BusinessProfi
 };
 
 /** Categoria do Descubra que melhor representa um conjunto de lugares (para o botão "Ver mais" das matérias). */
-export const discoverCategoryFor = (list: BusinessProfile[]): MainCategory | null => {
+export const discoverCategoryFor = (list: BusinessProfile[], cats: MainCategory[] = MAIN_CATEGORIES): MainCategory | null => {
   let best: MainCategory | null = null; let n = 0;
-  for (const c of MAIN_CATEGORIES) {
+  for (const c of cats) {
     const k = list.filter(c.match).length;
     if (k > n) { best = c; n = k; }
   }
