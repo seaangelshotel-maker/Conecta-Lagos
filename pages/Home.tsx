@@ -81,11 +81,6 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   }, [highlights.length]);
 
   const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
-  // Começa mostrando a primeira categoria que tem lugares cadastrados.
-  useEffect(() => {
-    if (!businesses.length || !categories.length) return;
-    if (!cat || !categories.some(c => c.id === cat)) setCat(categories.find(c => (counts[c.id] || 0) > 0)?.id || categories[0].id);
-  }, [businesses, categories, counts, cat]);
   const places = useMemo(() => (cat ? filterBusinesses(businesses, { categories, categoryId: cat, filterId: 'populares' }) : []), [businesses, categories, cat]);
   const catLabel = categories.find(c => c.id === cat)?.label || '';
 
@@ -119,9 +114,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       {/* A. Exploração de lugares */}
       <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5"><Sparkles size={13} /> Lagos GO</p>
-            <div className="relative">
+          <div className="flex items-start justify-between gap-3">
+            <RegionChip loc={loc} compact />
+            <div className="relative shrink-0">
               <button onClick={() => setShowFlags(v => !v)} aria-label="Alterar idioma" aria-expanded={showFlags} data-testid="lang-btn" className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-lg flex items-center justify-center">{language}</button>
               {showFlags && (
                 <>
@@ -135,6 +130,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
               )}
             </div>
           </div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5 mt-4"><Sparkles size={13} /> Lagos GO</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Lugares, experiências, ofertas e o que está acontecendo na região.</p>
           <SearchBar className="mt-5" value={q} onChange={setQ} onSubmit={v => onNavigate('discover', v ? { q: v } : undefined)} />
@@ -142,13 +138,12 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       </header>
 
       <div className="max-w-5xl mx-auto space-y-10">
-        <RegionChip loc={loc} className="px-4 pt-4 -mb-6" />
         <section aria-label="Categorias" className="pt-5">
           <HScroller label="Categorias">
             {categories.map(c => {
               const on = cat === c.id;
               return (
-                <button key={c.id} onClick={() => setCat(c.id)} aria-pressed={on} data-testid={`cat-${c.id}`}
+                <button key={c.id} onClick={() => setCat(cur => (cur === c.id ? '' : c.id))} aria-pressed={on} data-testid={`cat-${c.id}`}
                   className={`flex flex-col items-center justify-start pt-3 gap-1.5 w-[88px] h-[96px] shrink-0 rounded-2xl border text-center ${on ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-ocean-950 border-slate-100'}`}>
                   <CategoryIcon name={c.icon} size={22} />
                   <span className="text-[11px] font-bold leading-tight px-1 min-h-[26px] flex items-center">{c.label}</span>
@@ -158,7 +153,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             })}
           </HScroller>
 
-          <div className="px-4 pt-4" data-testid="home-places">
+          {cat && <div className="px-4 pt-4" data-testid="home-places">
             {placesLoading ? (
               <div className="grid gap-3 md:grid-cols-2">{[0, 1, 2, 3].map(i => <div key={i} className="h-[88px] bg-white rounded-2xl border border-slate-100 animate-pulse" />)}</div>
             ) : places.length === 0 ? (
@@ -174,7 +169,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 </button>
               </>
             )}
-          </div>
+          </div>}
         </section>
 
         {/* B. Banner de destaque (restaurado; conteúdo vem do admin) */}

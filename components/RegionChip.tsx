@@ -1,15 +1,49 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { ChevronDown, MapPin } from 'lucide-react';
 import { REGION_MUNICIPALITIES } from '../services/regionGeo';
 import { GENERAL, type RegionLocation } from '../hooks/useRegionLocation';
 
 /**
  * Mostra o que está sendo priorizado e deixa trocar a qualquer momento: onde estou, toda a região
  * ou qualquer cidade. A localização só organiza; ninguém fica preso à cidade onde está.
+ *
+ * `compact`: pílula pequena para o cabeçalho (fundo escuro). Toda a pílula é o seletor.
  */
-export const RegionChip: React.FC<{ loc: RegionLocation; className?: string }> = ({ loc, className = '' }) => {
+export const RegionChip: React.FC<{ loc: RegionLocation; className?: string; compact?: boolean }> = ({ loc, className = '', compact = false }) => {
   const hasGps = !!loc.gps;
   const value = loc.choice ?? (hasGps ? 'auto' : '');
+  const onPick = (v: string) => { if (v === 'gps') loc.request(); else if (v) loc.choose(v); };
+
+  const options = (
+    <>
+      <option value="" disabled>Escolher cidade</option>
+      {hasGps && !loc.outside && <option value="auto">Onde estou agora</option>}
+      {!hasGps && <option value="gps">Usar minha localização</option>}
+      <option value={GENERAL}>Toda a Região dos Lagos</option>
+      {REGION_MUNICIPALITIES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+    </>
+  );
+
+  if (compact) {
+    const short = loc.choice === GENERAL ? 'Toda a região'
+      : loc.municipality ? loc.municipality.name
+      : loc.outside ? 'Fora da região' : 'Toda a região';
+    return (
+      <div className={className} data-testid="region-chip">
+        <div className="relative inline-flex items-center gap-1.5 h-9 pl-2.5 pr-2 rounded-full bg-white/15 border border-white/30 text-white text-xs font-bold max-w-full">
+          <MapPin size={14} className="shrink-0" />
+          <span className="truncate max-w-[10.5rem]">{loc.status === 'asking' ? 'Buscando…' : short}</span>
+          <ChevronDown size={14} className="shrink-0 opacity-80" />
+          <select aria-label="Escolher cidade ou usar minha localização" value={value} onChange={e => onPick(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-ocean-950">
+            {options}
+          </select>
+        </div>
+        {loc.error && <p className="text-[11px] font-bold text-amber-200 mt-1 max-w-[16rem]" role="status">{loc.error}</p>}
+      </div>
+    );
+  }
+
   let label = 'Toda a Região dos Lagos';
   if (loc.choice && loc.choice !== GENERAL && loc.municipality) label = `Vendo ${loc.municipality.name}`;
   else if (loc.choice === GENERAL) label = 'Toda a Região dos Lagos';
@@ -19,14 +53,10 @@ export const RegionChip: React.FC<{ loc: RegionLocation; className?: string }> =
   return (
     <div className={`flex flex-wrap items-center gap-2 text-xs ${className}`} data-testid="region-chip">
       <span className="inline-flex items-center gap-1 font-bold text-ocean-700"><MapPin size={14} />{label}</span>
-      <select aria-label="Escolher o que ver" value={value} onChange={e => e.target.value && loc.choose(e.target.value)}
-        className="h-8 rounded-full border border-slate-200 bg-white px-2 font-semibold text-ocean-950">
-        <option value="" disabled>Escolher cidade</option>
-        {hasGps && !loc.outside && <option value="auto">Onde estou agora</option>}
-        <option value={GENERAL}>Toda a Região dos Lagos</option>
-        {REGION_MUNICIPALITIES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+      <select aria-label="Escolher o que ver" value={value} onChange={e => onPick(e.target.value)}
+        className="min-h-[2.25rem] rounded-full border border-slate-200 bg-white px-3 py-1 text-[13px] leading-5 font-semibold text-ocean-950">
+        {options}
       </select>
-      {!hasGps && <button onClick={loc.request} disabled={loc.status === 'asking'} className="font-bold text-ocean-600 underline disabled:opacity-60">{loc.status === 'asking' ? 'Buscando…' : 'Usar minha localização'}</button>}
       {loc.error && <span className="text-amber-700 font-bold" role="status">{loc.error}</span>}
     </div>
   );
