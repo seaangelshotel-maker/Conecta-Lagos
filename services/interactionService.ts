@@ -9,6 +9,7 @@
  *   indicação se a pessoa estava logada.
  * - Falhas de registro nunca interrompem a navegação.
  */
+import { createThrottle } from './throttle';
 import {
     addDoc, collection, query, where, getDocs, serverTimestamp, orderBy, limit as qLimit
 } from 'firebase/firestore';
@@ -81,6 +82,8 @@ const ENTITY_BY_TYPE: Record<InteractionType, InteractionEvent['entityType']> = 
 
 // Evita registrar a mesma visualização várias vezes na mesma sessão de navegação.
 const _viewedThisSession = new Set<string>();
+// Freio: mesmo clique em menos de 3 s conta uma vez; no máximo 120 eventos por 10 min por aparelho.
+const _throttle = createThrottle({ sameKeyMs: 3000, maxPerWindow: 120, windowMs: 600_000 });
 
 export interface RecordOptions {
     /** Dono da entidade (empresa/oportunidade). Necessário para o dono ver o evento no painel. */
@@ -99,6 +102,7 @@ export const recordInteraction = async (type: InteractionType, entityId: string,
         if (_viewedThisSession.has(key)) return;
         _viewedThisSession.add(key);
     }
+    if (!_throttle.allow(`${type}:${entityId}`)) return;
     const now = new Date();
     const event: Record<string, unknown> = {
         type,

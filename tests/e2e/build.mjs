@@ -6,7 +6,7 @@ const H = path.dirname(new URL(import.meta.url).pathname);
 const M = (f) => path.join(H, 'mocks', f);
 const alias = {
   'firebase/app': M('firebase-app.js'), 'firebase/auth': M('firebase-auth.js'),
-  'firebase/firestore': M('firebase-firestore.js'), 'firebase/analytics': M('firebase-analytics.js'), 'firebase/messaging': M('firebase-messaging.js'),
+  'firebase/firestore': M('firebase-firestore.js'), 'firebase/analytics': M('firebase-analytics.js'), 'firebase/app-check': M('firebase-app-check.js'), 'firebase/messaging': M('firebase-messaging.js'),
   'lucide-react': M('lucide-react.js'), 'recharts': M('recharts.js'), 'react-helmet-async': M('react-helmet-async.js'),
   'swr': M('swr.js'), 'motion/react': M('motion-react.js'), '@google/genai': M('google-genai.js'),
 };

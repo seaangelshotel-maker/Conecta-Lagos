@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { getAnalytics, isSupported, setAnalyticsCollectionEnabled } from 'firebase/analytics';
 import { getConsent, CONSENT_EVENT } from './consent';
 
@@ -20,6 +21,15 @@ export const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// App Check: prova ao Google que o pedido vem do nosso site de verdade (barra scripts e robôs que
+// usam a chave pública para ler/gravar o banco). Só liga com VITE_APPCHECK_SITE_KEY (reCAPTCHA v3);
+// sem a chave, nada muda. Passo a passo em docs/CUSTOS.md.
+const appCheckKey = env.VITE_APPCHECK_SITE_KEY;
+if (appCheckKey && typeof window !== 'undefined') {
+  try { initializeAppCheck(app, { provider: new ReCaptchaV3Provider(appCheckKey), isTokenAutoRefreshEnabled: true }); }
+  catch { /* sem App Check o app segue funcionando */ }
+}
 
 const auth = getAuth(app);
 const db = getFirestore(app);

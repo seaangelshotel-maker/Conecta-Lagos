@@ -31,6 +31,7 @@ import {
     // (login anônimo removido: resgate exige conta)
 } from 'firebase/auth';
 import { auth, db } from './firebase';
+import { cacheGet, cacheSet, cacheClear, TTL } from './readCache';
 import {
     Coupon, User, UserRole, BusinessProfile, BlogPost, SavingsRecord,
     CompanyRequest, AppCategory, Subcategory, DEFAULT_CATEGORIES,
@@ -189,12 +190,15 @@ onAuthStateChanged(auth, async (firebaseUser) => {
                 let userData = { id: userDoc.id, ...data } as User;
                 userData = await ensureCorrectRole(userData);
                 localStorage.setItem(SESSION_KEY, JSON.stringify(userData));
+                // Quem edita dados (empresa, admin, criadores) nunca fica com lista guardada de antes.
+                if (userData.role !== UserRole.CUSTOMER) cacheClear();
             }
         } catch (e) {
             console.error("Auth session sync error:", e);
         }
     } else {
         // Firebase Auth is signed out, ensure local session is cleared
+    cacheClear();
     if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(SESSION_KEY);
     }
@@ -511,12 +515,26 @@ export const downgradeExpiredPlans = async (): Promise<number> => {
     return list.length;
 };
 
+/** Só visitantes e clientes usam cache de leitura; empresa/admin/criadores sempre veem o dado fresco. */
+const canUseReadCache = () => {
+    const u = getCurrentUser();
+    return !u || u.role === UserRole.CUSTOMER;
+};
+
+/** Lê todas as empresas: usa cache de 10 min no aparelho para quem só navega. */
+const loadAllBusinesses = async (source: string) => {
+    const cached = canUseReadCache() ? cacheGet<BusinessProfile[]>('businesses', TTL.businesses) : null;
+    if (cached && cached.length) { _businesses = cached; return; }
+    const snap = await getDocs(collection(db, 'businesses'));
+    trackRead('businesses', snap.size, source);
+    _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+    if (canUseReadCache()) cacheSet('businesses', _businesses);
+};
+
 export const getAllBusinesses = async (includePending = false) => {
     // Fetch all businesses if not already fully loaded
     if (!_allBusinessesLoaded) { 
-        const snap = await getDocs(collection(db, 'businesses'));
-        trackRead('businesses', snap.size, 'getAllBusinesses');
-        _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        await loadAllBusinesses('getAllBusinesses');
         _allBusinessesLoaded = true;
     }
     
@@ -539,9 +557,7 @@ export const getBusinessesPaginated = async (
 ) => {
     // Fetch all businesses if not already loaded
     if (!_allBusinessesLoaded) {
-        const snap = await getDocs(collection(db, 'businesses'));
-        trackRead('businesses', snap.size, 'getBusinessesPaginated_FullLoad');
-        _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        await loadAllBusinesses('getBusinessesPaginated_FullLoad');
         _allBusinessesLoaded = true;
     }
 
@@ -1219,8 +1235,14 @@ let _publicProfilesLoaded = false;
 export const getPublicProfiles = async (forceRefresh = false): Promise<PublicProfile[]> => {
     if (!_publicProfilesLoaded || forceRefresh) {
         try {
-            const snap = await getDocs(collection(db, 'public_profiles'));
-            _publicProfiles = snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicProfile));
+            const cachedP = !forceRefresh && canUseReadCache() ? cacheGet<PublicProfile[]>('profiles', TTL.profiles) : null;
+            if (cachedP) {
+                _publicProfiles = cachedP;
+            } else {
+                const snap = await getDocs(collection(db, 'public_profiles'));
+                _publicProfiles = snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicProfile));
+                if (canUseReadCache()) cacheSet('profiles', _publicProfiles);
+            }
             _publicProfilesLoaded = true;
         } catch (e) {
             console.warn('Não foi possível carregar perfis públicos:', e);
