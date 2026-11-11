@@ -619,10 +619,9 @@ export const getCoupons = async (forceRefresh = false, includeInactive = false) 
     }
     
     return resultCoupons.map(c => {
-        if (!c.companyName || c.companyName === 'Minha Empresa') {
-            const biz = _businesses.find(b => b.id === c.companyId);
-            if (biz) return { ...c, companyName: biz.name };
-        }
+        // O nome vem sempre da empresa (ao renomear a empresa, os cupons acompanham).
+        const biz = _businesses.find(b => b.id === c.companyId);
+        if (biz && biz.name && biz.name !== c.companyName) return { ...c, companyName: biz.name };
         return c;
     });
 };
@@ -2303,9 +2302,9 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     let companyName = c.companyName;
-    if (!companyName || companyName === 'Minha Empresa') {
+    {
         const biz = _businesses.find(b => b.id === c.companyId);
-        if (biz) companyName = biz.name;
+        if (biz && biz.name) companyName = biz.name;
     }
 
     const redemptionId = doc(collection(db, 'redemptions')).id;
