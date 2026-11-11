@@ -162,3 +162,23 @@ export const orderFeedByGeo = <T extends FeedArticleLike>(
     .sort((x, y) => x.tier - y.tier || recencyScore(y.a, now) - recencyScore(x.a, now))
     .map(({ a, tier }) => ({ ...a, tier }));
 };
+
+/** Só atualiza a posição quando a pessoa realmente se moveu, evitando recalcular tudo por ruído do GPS. */
+export const MOVE_THRESHOLD_KM = 1.5;
+
+export const movedEnough = (
+  prev: { lat: number; lng: number } | null,
+  next: { lat: number; lng: number },
+  minKm: number = MOVE_THRESHOLD_KM,
+): boolean => !prev || haversineKm(prev, next) >= minKm;
+
+/** Mudou de município? Útil para avisar "Você chegou em Cabo Frio". */
+export const changedMunicipality = (
+  prev: { lat: number; lng: number } | null,
+  next: { lat: number; lng: number },
+): boolean => {
+  if (!prev) return false;
+  const a = locateMunicipality(prev);
+  const b = locateMunicipality(next);
+  return (a.municipality?.id ?? null) !== (b.municipality?.id ?? null);
+};

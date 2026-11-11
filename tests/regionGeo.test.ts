@@ -103,3 +103,18 @@ test('usuário se desloca: o nível da mesma matéria muda com a cidade', () => 
   assert.equal(orderFeedByGeo([a], 'saquarema')[0].tier, 3);
   assert.equal(orderFeedByGeo([a], null)[0].tier, 3); // sem localização: sem prioridade
 });
+
+test('deslocamento: só atualiza quando andou o suficiente', async () => {
+  const { movedEnough } = await import('../services/regionGeo');
+  const a = { lat: -22.9662, lng: -42.0278 };
+  assert.equal(movedEnough(a, { lat: -22.9663, lng: -42.0279 }), false); // ruído do GPS
+  assert.equal(movedEnough(a, byId('cabo-frio')), true); // ~10 km
+  assert.equal(movedEnough(null, a), true);
+});
+
+test('deslocamento de Arraial para Cabo Frio muda o município', async () => {
+  const { changedMunicipality } = await import('../services/regionGeo');
+  assert.equal(changedMunicipality(byId('arraial-do-cabo'), byId('cabo-frio')), true);
+  assert.equal(changedMunicipality(byId('cabo-frio'), { lat: -22.8800, lng: -42.0200 }), false);
+  assert.equal(changedMunicipality(null, byId('buzios')), false);
+});

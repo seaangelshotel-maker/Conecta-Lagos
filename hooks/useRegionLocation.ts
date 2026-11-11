@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { REGION_MUNICIPALITIES, locateMunicipality, Municipality } from '../services/regionGeo';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { REGION_MUNICIPALITIES, locateMunicipality, movedEnough, Municipality } from '../services/regionGeo';
 
 /**
  * Localização para descoberta. Regras:
@@ -95,6 +95,33 @@ export const useRegionLocation = (): RegionLocation => {
   const reset = useCallback(() => {
     setWhere(null); setManual(null); writeStored(null); writePref(null); setStatus('idle'); setError('');
   }, []);
+
+  // Deslocamento: sem monitorar o GPS o tempo todo. Só confere quando a pessoa volta ao app
+  // (aba visível), apenas se a permissão já foi concedida, e só atualiza se ela andou de verdade.
+  const whereRef = useRef(where);
+  whereRef.current = where;
+  useEffect(() => {
+    if (status !== 'ok') return;
+    let cancelled = false;
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || !navigator.geolocation) return;
+      try {
+        const perm = await navigator.permissions?.query({ name: 'geolocation' as PermissionName });
+        if (perm && perm.state !== 'granted') return; // nunca pede de novo por conta própria
+      } catch { /* sem Permissions API: segue, pois já houve autorização nesta sessão */ }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          if (cancelled) return;
+          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          if (movedEnough(whereRef.current, p)) { setWhere(p); writeStored(p); }
+        },
+        () => { /* falha silenciosa: mantém a última posição */ },
+        { timeout: 8000, maximumAge: 5 * 60 * 1000, enableHighAccuracy: false },
+      );
+    };
+    document.addEventListener('visibilitychange', refresh);
+    return () => { cancelled = true; document.removeEventListener('visibilitychange', refresh); };
+  }, [status]);
 
   const municipality = manual ?? (where ? (() => {
     const l = locateMunicipality(where);
