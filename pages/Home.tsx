@@ -11,6 +11,7 @@ import { WhatYouCanDo } from '../components/WhatYouCanDo';
 import { InstallAppPrompt } from '../components/InstallAppPrompt';
 import { SpecialistReferral } from '../components/SpecialistReferral';
 import { SearchBar, HScroller } from '../components/DiscoverUI';
+import { FilterSheet, EMPTY_FILTERS, countFilters, type HomeFilters } from '../components/FilterSheet';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { LeadCard, CompactCard, openContent } from '../components/FeedCards';
 import { getAllBusinesses, getBlogPosts, getCollections, getHomeHighlights, redeemCoupon } from '../services/dataService';
@@ -56,6 +57,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [slide, setSlide] = useState(0);
   const [collections, setCollections] = useState<Collection[]>([]);
   const loc = useRegionLocation();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<HomeFilters>(EMPTY_FILTERS);
   const currentMuni = loc.municipality?.id ?? null;
   const [guides, setGuides] = useState<BlogPost[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -133,9 +136,13 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 flex items-center gap-1.5 mt-4"><Sparkles size={13} /> Lagos GO</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Região dos Lagos para explorar</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Lugares, experiências, ofertas e o que está acontecendo na região.</p>
-          <SearchBar className="mt-5" value={q} onChange={setQ} onSubmit={v => onNavigate('discover', v ? { q: v } : undefined)} />
+          <SearchBar className="mt-5" value={q} onChange={setQ} onSubmit={v => onNavigate('discover', { q: v, ...filters })}
+            onFilters={() => setFiltersOpen(true)} filterCount={countFilters(filters)} />
         </div>
       </header>
+
+      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} categories={categories}
+        value={filters} onChange={setFilters} onApply={() => { setFiltersOpen(false); onNavigate('discover', { q, ...filters }); }} />
 
       <div className="max-w-5xl mx-auto space-y-10">
         <section aria-label="Categorias" className="pt-5">
