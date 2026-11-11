@@ -46,6 +46,7 @@ import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
+import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -2715,6 +2716,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                     </div>
                 </div>
             </div>
+
+            <ExpiredPlansCard onDone={refreshData} />
 
             <div className="pt-8 border-t border-slate-100">
                 <ClientLimitsAdmin users={users} plans={plans} coupons={coupons} onChanged={refreshData} />

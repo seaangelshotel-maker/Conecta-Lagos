@@ -38,6 +38,7 @@ import {
     PublicProfile, InteractionType, AppGlobalSettings, BlogAd
 } from '../types';
 import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
+import { needsDowngrade, downgradeFields, FREE_PLAN_ID } from './planRules';
 import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
 export type { AppGlobalSettings };
@@ -486,6 +487,27 @@ export const getBusinesses = async (forceRefresh = false) => {
     void ensureAutoSeed();
 
     return _businesses.filter(b => !b.status || b.status === 'approved');
+};
+
+/** Empresas com plano vencido que ainda mantêm plano pago ou destaque. */
+export const getExpiredPlanBusinesses = async (): Promise<BusinessProfile[]> =>
+    (await getAllBusinesses(true)).filter(b => needsDowngrade(b));
+
+/** Admin: rebaixa para "sem plano" as empresas vencidas (tira destaque e benefícios). Devolve quantas mudaram. */
+export const downgradeExpiredPlans = async (): Promise<number> => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
+    const list = await getExpiredPlanBusinesses();
+    const nowIso = new Date().toISOString();
+    for (const b of list) {
+        await updateDoc(doc(db, 'businesses', b.id), downgradeFields(b, nowIso));
+        const ownerId = (b as any).ownerId || b.id;
+        const u = await getDoc(doc(db, 'users', ownerId));
+        if (u.exists()) await updateDoc(u.ref, { plan: FREE_PLAN_ID, paymentSubscriptionStatus: 'expired' });
+        const cached = _businesses.find(x => x.id === b.id);
+        if (cached) { cached.plan = FREE_PLAN_ID; cached.isFeatured = false; }
+    }
+    if (list.length) notifyListeners();
+    return list.length;
 };
 
 export const getAllBusinesses = async (includePending = false) => {

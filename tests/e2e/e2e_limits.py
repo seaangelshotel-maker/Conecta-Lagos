@@ -96,6 +96,19 @@ async def main():
         g = await doc(page, 'app_settings/global')
         ok('limpar o padrão remove o limite (sem limite de novo)', 'defaultMaxCoupons' not in g and g.get('defaultMaxEvents') == 3, str(g))
 
+        # ---- 7. plano vencido: lista e rebaixa (tira destaque e plano pago) ----
+        await patch_store(page, "Object.assign(s.docs['businesses/ana'], { plan: 'pro', isFeatured: true, subscriptionEndsAt: '2026-01-01T00:00:00.000Z' }); s.docs['users/ana'].plan = 'pro';")
+        await open_plans(page)
+        ok('painel mostra 1 empresa com plano vencido', '1 empresa' in await page.locator('[data-testid=expired-count]').inner_text())
+        await page.locator('[data-testid=expired-run]').click(); await page.wait_for_timeout(1000)
+        biz = await doc(page, 'businesses/ana')
+        ok('empresa vencida perde destaque e volta para "sem plano"', biz['plan'] == 'free' and biz['isFeatured'] is False and biz['previousPlan'] == 'pro' and biz['paymentSubscriptionStatus'] == 'expired', str(biz))
+        ok('o usuário dono também volta para "sem plano" (cotas passam a seguir o padrão)', (await doc(page, 'users/ana'))['plan'] == 'free')
+        ok('painel passa a mostrar 0 vencidas', '0 empresa' in await page.locator('[data-testid=expired-count]').inner_text())
+        await patch_store(page, "Object.assign(s.docs['businesses/ana'], { plan: 'pro', isFeatured: true }); delete s.docs['businesses/ana'].subscriptionEndsAt;")
+        await open_plans(page)
+        ok('plano sem data de vencimento (manual) não é mexido', '0 empresa' in await page.locator('[data-testid=expired-count]').inner_text())
+
         ok('nenhum erro de JavaScript', not [e for e in errors if 'Failed to load resource' not in e], '; '.join(errors)[:300])
         await b.close()
     bad = [r for r in results if not r[1]]
