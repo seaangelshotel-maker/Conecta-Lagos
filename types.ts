@@ -359,6 +359,9 @@ export interface AppGlobalSettings {
   salesWhatsapp: string;
   supportWhatsapp?: string;
   emailContact?: string;
+  /** Limites de quem ainda não tem plano (o admin define). Vazio = cupons sem limite / eventos 0. */
+  defaultMaxCoupons?: number | null;
+  defaultMaxEvents?: number | null;
   /** Atendimento especializado (Guida Trips ou outra operação configurada). */
   specialistReferral?: SpecialistReferralSettings;
 }

@@ -152,3 +152,18 @@ test('campo ausente e null contam como iguais (não gera revisão à toa)', () =
   assert.deepEqual(changedCouponKeys({ ...base }, { ...base, subcategory: undefined, gallery: null as any }), []);
   assert.equal(couponNeedsReapproval({ ...base, rules: undefined }, { ...base, rules: null as any }), false);
 });
+
+import { eventQuota } from '../services/eventRules';
+
+test('limite padrão do admin vale só para quem não tem cota própria nem plano', () => {
+  const plans = [{ id: 'basic', name: 'Basic', maxCoupons: 3, maxEvents: 1 }] as any[];
+  assert.equal(couponQuota({ plan: undefined } as any, plans, 2), 2);            // sem plano: padrão
+  assert.equal(couponQuota({ plan: undefined } as any, plans), null);            // sem plano e sem padrão: sem limite
+  assert.equal(couponQuota({ plan: 'basic' } as any, plans, 2), 3);              // plano vence o padrão
+  assert.equal(couponQuota({ plan: 'basic', maxCoupons: 9 } as any, plans, 2), 9); // cota do cliente vence tudo
+  assert.equal(couponQuota({ plan: undefined, maxCoupons: 0 } as any, plans, 2), 0); // 0 é um limite válido
+  assert.equal(eventQuota({} as any, undefined, 4), 4);
+  assert.equal(eventQuota({} as any, undefined), 0);
+  assert.equal(eventQuota({} as any, { maxEvents: 2 }, 4), 2);
+  assert.equal(eventQuota({ maxEvents: 7 } as any, { maxEvents: 2 }, 4), 7);
+});

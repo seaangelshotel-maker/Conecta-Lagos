@@ -144,7 +144,9 @@ const asCount = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && 
 export const couponQuota = (
   user: Pick<User, 'maxCoupons' | 'plan'> | null | undefined,
   plans: PricingPlan[],
-): number | null => asCount(user?.maxCoupons) ?? asCount(resolvePlan(plans, user?.plan)?.maxCoupons) ?? null;
+  /** Limite padrão de quem não tem plano nem cota própria (definido pelo admin). Vazio = sem limite. */
+  fallback?: number | null,
+): number | null => asCount(user?.maxCoupons) ?? asCount(resolvePlan(plans, user?.plan)?.maxCoupons) ?? asCount(fallback) ?? null;
 
 /** Ocupa vaga: cupom ativo, não recusado e ainda dentro da validade. */
 export const countsAgainstCouponQuota = (c: Pick<Coupon, 'active' | 'status' | 'expiryDate'>, now: number = Date.now()): boolean =>

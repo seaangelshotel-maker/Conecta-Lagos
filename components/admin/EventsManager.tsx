@@ -5,7 +5,7 @@ import {
   adminDeleteEvent, adminSaveEvent, cancelMyEvent, deleteMyEvent, getAllEventsAdmin, getMyEventQuota, getMyEvents,
   importOfficialCalendar, saveMerchantEvent, setEventFeatured, setEventStatus, setUserEventQuota,
 } from '../../services/eventService';
-import { getAllUsers, getPricingPlans } from '../../services/dataService';
+import { getAllUsers, getPricingPlans, getGlobalSettings } from '../../services/dataService';
 import {
   EVENT_CATEGORIES, EventErrors, EventInput, activeEventCount, categoryLabel, cityLabel, eventPhase, eventQuota, formatEventDates,
   quotaState, resolvePlan, sortByDate, validateEvent, todayISO,
@@ -248,6 +248,7 @@ const AdminEvents: React.FC<{ user: User }> = ({ user }) => {
   const { notify, confirm } = useNotification();
   const [events, setEvents] = useState<AppEvent[] | null>(null);
   const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [defaultEvents, setDefaultEvents] = useState<number | null>(null);
   const [companies, setCompanies] = useState<User[]>([]);
   const [tab, setTab] = useState<AdminTab>('pending');
   const [form, setForm] = useState<{ open: boolean; event?: AppEvent }>({ open: false });
@@ -259,8 +260,8 @@ const AdminEvents: React.FC<{ user: User }> = ({ user }) => {
 
   const load = useCallback(async () => {
     try {
-      const [list, p, users] = await Promise.all([getAllEventsAdmin(), getPricingPlans().catch(() => []), getAllUsers().catch(() => [])]);
-      setEvents(list); setPlans(p); setCompanies(users.filter(u => u.role === UserRole.COMPANY));
+      const [list, p, users, gs] = await Promise.all([getAllEventsAdmin(), getPricingPlans().catch(() => []), getAllUsers().catch(() => []), getGlobalSettings().catch(() => null)]);
+      setEvents(list); setPlans(p); setDefaultEvents(gs?.defaultMaxEvents ?? null); setCompanies(users.filter(u => u.role === UserRole.COMPANY));
       if (!list.some(e => e.status === 'pending')) setTab(t => (t === 'pending' ? 'live' : t));
     } catch (e: any) { setEvents([]); notify('error', e?.message || 'Não foi possível carregar os eventos.'); }
   }, []);
@@ -340,8 +341,8 @@ const AdminEvents: React.FC<{ user: User }> = ({ user }) => {
           {companies.length === 0 && <EmptyState title="Nenhum comerciante cadastrado ainda" />}
           {companies.map(u => {
             const plan = resolvePlan(plans, u.plan);
-            const planQuota = eventQuota(null, plan);
-            const effective = eventQuota(u, plan);
+            const planQuota = eventQuota(null, plan, defaultEvents);
+            const effective = eventQuota(u, plan, defaultEvents);
             const used = activeEventCount(events.filter(e => e.ownerId === u.id), today);
             return (
               <div key={u.id} className="bg-white rounded-3xl border border-slate-100 p-4 md:p-5 flex flex-wrap items-center gap-4" data-testid="quota-row">

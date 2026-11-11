@@ -45,10 +45,28 @@ import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
 import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
+import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
 const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+
+const PLAN_BLANK: Partial<PricingPlan> = {
+  name: '',
+  price: 0,
+  period: 'monthly',
+  maxCoupons: 5,
+  maxEvents: 0,
+  maxBusinesses: 1,
+  isFeatured: false,
+  showGallery: true,
+  showMenu: true,
+  showSocialMedia: true,
+  showReviews: true,
+  hasFreeTrial: false,
+  trialDays: 30,
+  active: true
+};
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
@@ -125,22 +143,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     plan: ''
   });
 
-  const [newPlan, setNewPlan] = useState<Partial<PricingPlan>>({
-    name: '',
-    price: 0,
-    period: 'monthly',
-    maxCoupons: 5,
-    maxEvents: 0,
-    maxBusinesses: 1,
-    isFeatured: false,
-    showGallery: true,
-    showMenu: true,
-    showSocialMedia: true,
-    showReviews: true,
-    hasFreeTrial: false,
-    trialDays: 30,
-    active: true
-  });
+  const [newPlan, setNewPlan] = useState<Partial<PricingPlan>>({ ...PLAN_BLANK });
 
   const refreshData = async () => {
     const allCoupons = await getCoupons(true, true);
@@ -426,26 +429,17 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
   const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault();
+    const ints = [newPlan.maxCoupons, newPlan.maxEvents ?? 0, newPlan.maxBusinesses];
+    if (!(Number(newPlan.price) >= 0) || ints.some(n => !Number.isFinite(Number(n)) || Number(n) < 0)) {
+        notify('warning', 'Preço e limites precisam ser números iguais ou maiores que zero.');
+        return;
+    }
     setIsSaving(true);
     try {
+        const wasEdit = !!newPlan.id;
         await savePricingPlan(newPlan);
-        notify('success', "Plano salvo com sucesso!");
-        setNewPlan({
-            name: '',
-            price: 0,
-            period: 'monthly',
-            maxCoupons: 5,
-            maxEvents: 0,
-            maxBusinesses: 1,
-            isFeatured: false,
-            showGallery: true,
-            showMenu: true,
-            showSocialMedia: true,
-            showReviews: true,
-            hasFreeTrial: false,
-            trialDays: 30,
-            active: true
-        });
+        notify('success', wasEdit ? "Plano atualizado!" : "Plano salvo com sucesso!");
+        setNewPlan({ ...PLAN_BLANK });
         refreshData();
     } catch (err) {
         notify('error', "Erro ao salvar plano.");
@@ -2513,7 +2507,12 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 h-fit">
-                    <h3 className="text-xl font-black text-ocean-950 mb-6">Criar Novo Plano</h3>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-black text-ocean-950" data-testid="plan-form-title">{newPlan.id ? 'Editar Plano' : 'Criar Novo Plano'}</h3>
+                        {newPlan.id && (
+                            <button type="button" onClick={() => setNewPlan({ ...PLAN_BLANK })} className="text-[10px] font-black uppercase text-slate-400 hover:text-ocean-600">Cancelar</button>
+                        )}
+                    </div>
                     <form onSubmit={handleSavePlan} className="space-y-6">
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nome do Plano</label>
@@ -2672,6 +2671,14 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                             <h4 className="text-xl font-black text-ocean-950">{plan.name}</h4>
                                             <p className="text-ocean-600 font-bold">R$ {plan.price} <span className="text-[10px] text-slate-400">/{plan.period === 'monthly' ? 'mês' : 'ano'}</span></p>
                                         </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setNewPlan({ ...plan }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                            data-testid={`plan-edit-${plan.id}`}
+                                            className="mr-2 px-3 h-10 bg-white text-ocean-600 rounded-xl text-[10px] font-black uppercase shadow-sm hover:bg-ocean-50"
+                                        >
+                                            Editar
+                                        </button>
                                         <button 
                                             onClick={() => handleDeletePlan(plan.id)}
                                             className="w-10 h-10 bg-white text-red-500 rounded-xl flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50"
@@ -2707,6 +2714,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="pt-8 border-t border-slate-100">
+                <ClientLimitsAdmin users={users} plans={plans} coupons={coupons} onChanged={refreshData} />
             </div>
         </div>
       )}

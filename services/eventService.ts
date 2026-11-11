@@ -9,8 +9,8 @@
 import { useEffect, useState } from 'react';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
-import { getCurrentUser, getPricingPlans } from './dataService';
-import { AppEvent, EventStatus, PricingPlan, User, UserRole } from '../types';
+import { getCurrentUser, getPricingPlans, getGlobalSettings } from './dataService';
+import { AppEvent, AppGlobalSettings, EventStatus, PricingPlan, User, UserRole } from '../types';
 import { EventInput, activeEventCount, eventQuota, needsReapproval, resolvePlan, todayISO, validateEvent } from './eventRules';
 import { OFFICIAL_EVENTS_2026 } from '../data/officialEvents2026';
 
@@ -90,9 +90,12 @@ export const getAllEventsAdmin = async (): Promise<AppEvent[]> => {
 
 /** Cota do comerciante logado: cota própria (definida pelo admin) ou a do plano. */
 export const getMyEventQuota = async (user: User, businessPlan?: string): Promise<{ quota: number; plan?: PricingPlan }> => {
-  const plans = await getPricingPlans().catch(() => [] as PricingPlan[]);
+  const [plans, settings] = await Promise.all([
+    getPricingPlans().catch(() => [] as PricingPlan[]),
+    getGlobalSettings().catch(() => ({ salesWhatsapp: '' } as AppGlobalSettings)),
+  ]);
   const plan = resolvePlan(plans, user.plan, businessPlan);
-  return { quota: eventQuota(user, plan), plan };
+  return { quota: eventQuota(user, plan, settings.defaultMaxEvents), plan };
 };
 
 export interface SaveEventExtra { businessId?: string; businessName?: string; coverImage?: string; isFree?: boolean; }

@@ -10,6 +10,7 @@ import {
     query, 
     where, 
     increment,
+    deleteField,
     onSnapshot,
     arrayUnion,
     arrayRemove,
@@ -1727,8 +1728,8 @@ export const saveCoupon = async (c: Coupon): Promise<{ sentToReview: boolean } |
         // Plano: quantos cupons ativos o comerciante pode ter (cota do admin sobre ele, senão a do plano).
         const me = getCurrentUser();
         if (me) {
-            const [plans, mine] = await Promise.all([getPricingPlans(), getCoupons(true, true)]);
-            const state = couponQuotaState(mine.filter(x => x.companyId === couponToSave.companyId), couponQuota(me, plans));
+            const [plans, mine, settings] = await Promise.all([getPricingPlans(), getCoupons(true, true), getGlobalSettings()]);
+            const state = couponQuotaState(mine.filter(x => x.companyId === couponToSave.companyId), couponQuota(me, plans, settings.defaultMaxCoupons));
             if (!state.canCreate) {
                 throw new Error(`Seu plano permite ${state.quota} cupom(ns) ativo(s) e você já tem ${state.used}. Desative um cupom ou fale com a gente para ampliar o plano.`);
             }
@@ -2700,6 +2701,13 @@ export const savePricingPlan = async (plan: Partial<PricingPlan>) => {
     return newPlan;
 };
 
+/** Admin: cota de cupons própria de um cliente (null = volta a seguir o plano). */
+export const setUserCouponQuota = async (userId: string, maxCoupons: number | null) => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
+    if (maxCoupons !== null && (!Number.isFinite(maxCoupons) || maxCoupons < 0)) throw new Error('Informe um número igual ou maior que zero.');
+    await updateDoc(doc(db, 'users', userId), { maxCoupons: maxCoupons === null ? deleteField() : Math.floor(maxCoupons) });
+};
+
 export const deletePricingPlan = async (id: string) => {
     await deleteDoc(doc(db, 'pricingPlans', id));
 };
@@ -2741,6 +2749,15 @@ export const getGlobalSettings = async (forceRefresh = false): Promise<AppGlobal
 
 export const saveGlobalSettings = async (settings: AppGlobalSettings) => {
     await setDoc(doc(db, 'app_settings', 'global'), cleanObject(settings), { merge: true });
+    _globalSettings = null;
+    notifyListeners();
+};
+
+/** Admin: limites de quem não tem plano. null = sem padrão (cupons sem limite, eventos 0). */
+export const saveDefaultLimits = async (defaultMaxCoupons: number | null, defaultMaxEvents: number | null) => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
+    const clean = (n: number | null) => n === null ? deleteField() : Math.max(0, Math.floor(n));
+    await setDoc(doc(db, 'app_settings', 'global'), { defaultMaxCoupons: clean(defaultMaxCoupons), defaultMaxEvents: clean(defaultMaxEvents) }, { merge: true });
     _globalSettings = null;
     notifyListeners();
 };

@@ -201,8 +201,8 @@ export const resolvePlan = (plans: PricingPlan[], ...refs: (string | undefined)[
 const asCount = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined);
 
 /** Quantos eventos ativos o comerciante pode ter: a cota do admin sobre ele, senão a do plano, senão 0. */
-export const eventQuota = (user: Pick<User, 'maxEvents'> | null | undefined, plan: Pick<PricingPlan, 'maxEvents'> | undefined | null): number =>
-  asCount(user?.maxEvents) ?? asCount(plan?.maxEvents) ?? 0;
+export const eventQuota = (user: Pick<User, 'maxEvents'> | null | undefined, plan: Pick<PricingPlan, 'maxEvents'> | undefined | null, fallback?: number | null): number =>
+  asCount(user?.maxEvents) ?? asCount(plan?.maxEvents) ?? asCount(fallback) ?? 0;
 
 /** Eventos que ocupam a cota: pendentes ou publicados que ainda não terminaram. Cancelados e encerrados liberam vaga. */
 export const countsAgainstQuota = (e: Pick<AppEvent, 'status' | 'startDate' | 'endDate'>, today = todayISO()) =>
