@@ -13,6 +13,8 @@ export interface PricingPlan {
   price: number;
   period: 'monthly' | 'yearly';
   maxCoupons: number;
+  /** Quantos eventos ativos (pendentes ou publicados, ainda não encerrados) o plano permite ao comerciante. Ausente = 0. */
+  maxEvents?: number;
   maxBusinesses: number;
   isFeatured: boolean;
   showGallery: boolean;
@@ -45,6 +47,8 @@ export interface User {
   category?: string;
   phone?: string;
   maxCoupons?: number;
+  /** Cota de eventos definida pelo administrador para este comerciante; sobrepõe a do plano. */
+  maxEvents?: number;
   plan?: string;
   permissions?: UserPermissions;
   isBlocked?: boolean;
@@ -659,3 +663,55 @@ export interface BlogAd {
   order: number;
 }
 
+
+
+// ---------------------------------------------------------------------------
+// Agenda de eventos
+// ---------------------------------------------------------------------------
+
+export type EventCategory = 'musica' | 'gastronomia' | 'esporte' | 'cultura' | 'feira' | 'festa' | 'religioso' | 'turismo' | 'outros';
+/** pending = aguardando aprovação do admin · published = público · rejected/cancelled = fora do ar */
+export type EventStatus = 'pending' | 'published' | 'rejected' | 'cancelled';
+/** official = calendário oficial da prefeitura (importado pelo admin) · admin = criado pelo admin · merchant = comerciante */
+export type EventSource = 'official' | 'admin' | 'merchant';
+
+export interface AppEvent {
+  id: string;
+  title: string;
+  description?: string;
+  category: EventCategory;
+  /** Datas no formato AAAA-MM-DD (sem fuso: é o dia no calendário local). */
+  startDate: string;
+  endDate?: string;
+  /** HH:MM, opcional. */
+  startTime?: string;
+  endTime?: string;
+  /** Texto livre quando o evento tem recorrência, ex.: "sextas e sábados". */
+  scheduleNote?: string;
+  /** id do município em REGION_MUNICIPALITIES (ex.: 'arraial-do-cabo'). */
+  cityId: string;
+  locationName?: string;
+  address?: string;
+  coverImage?: string;
+  isFree?: boolean;
+  /** Texto livre de preço/ingresso, ex.: "Pratos a R$ 40". */
+  priceText?: string;
+  infoUrl?: string;
+  ticketUrl?: string;
+  /** Local e/ou horário ainda não divulgados pela organização. */
+  detailsTentative?: boolean;
+  source: EventSource;
+  /** De onde veio a informação (exibido ao público). */
+  sourceLabel?: string;
+  sourceUrl?: string;
+  ownerId?: string;
+  businessId?: string;
+  businessName?: string;
+  status: EventStatus;
+  isFeatured?: boolean;
+  rejectionReason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  approvedAt?: string;
+  approvedBy?: string;
+}

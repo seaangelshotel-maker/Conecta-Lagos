@@ -6,6 +6,7 @@ export const serverTimestamp = () => ({ [SENT]: 'ts' });
 export const increment = (n) => ({ [SENT]: 'inc', n });
 export const arrayUnion = (...v) => ({ [SENT]: 'union', v });
 export const arrayRemove = (...v) => ({ [SENT]: 'remove', v });
+export const deleteField = () => ({ [SENT]: 'delete' });
 
 const newId = () => (Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -34,11 +35,13 @@ const resolve = (prev, value) => {
     if (value[SENT] === 'ts') return new Date().toISOString();
     if (value[SENT] === 'inc') return (Number(prev) || 0) + value.n;
     if (value[SENT] === 'union') { const base = Array.isArray(prev) ? prev : []; return [...base, ...value.v.filter(x => !base.includes(x))]; }
+    if (value[SENT] === 'delete') return DELETE;
     if (value[SENT] === 'remove') return (Array.isArray(prev) ? prev : []).filter(x => !value.v.includes(x));
   }
   return value;
 };
 
+const DELETE = Symbol('delete');
 const applyPatch = (target, patch) => {
   Object.entries(patch).forEach(([k, v]) => {
     if (v === undefined) throw Object.assign(new Error(`Function setDoc() called with invalid data. Unsupported field value: undefined (found in field ${k})`), { code: 'invalid-argument' });
@@ -47,9 +50,11 @@ const applyPatch = (target, patch) => {
       let cur = target;
       parts.slice(0, -1).forEach(p => { cur[p] = cur[p] || {}; cur = cur[p]; });
       const last = parts[parts.length - 1];
-      cur[last] = resolve(cur[last], v);
+      const r = resolve(cur[last], v);
+      if (r === DELETE) delete cur[last]; else cur[last] = r;
     } else {
-      target[k] = resolve(target[k], v);
+      const r = resolve(target[k], v);
+      if (r === DELETE) delete target[k]; else target[k] = r;
     }
   });
   return target;

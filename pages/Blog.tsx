@@ -30,6 +30,7 @@ import {
 import { getGuideArticles } from "../services/guideService";
 import { COLLECTION_ORDER } from "../data/guideArticles";
 import { ArticleCard } from "../components/GuideCards";
+import { EventsShelf } from "../components/EventCards";
 import { HScroller } from "../components/DiscoverUI";
 import { LeadCard, CompactCard, StreamCard, contentType, openContent, ContentType, TYPE_META } from "../components/FeedCards";
 
@@ -230,6 +231,11 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
       <div className="max-w-6xl mx-auto pt-6 space-y-10">
         {loading && <div className="flex justify-center py-16" role="status" aria-label="Carregando"><div className="w-8 h-8 border-4 border-ocean-600 border-t-transparent rounded-full animate-spin" /></div>}
 
+        {/* Filtro "Eventos": a agenda vem primeiro, antes dos posts de eventos */}
+        {!loading && filtering && typeFilter === "evento" && !searchQuery.trim() && (
+          <EventsShelf muniId={currentMuni} muniName={loc.municipality?.name} onNavigate={nav} />
+        )}
+
         {!loading && !filtering && (
           <>
             {/* Destaques: matéria principal + secundárias */}
@@ -242,6 +248,9 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
                 </div>
               </section>
             )}
+
+            {/* Agenda de eventos: a cidade da pessoa primeiro, sem esconder o resto da região */}
+            <EventsShelf muniId={currentMuni} muniName={loc.municipality?.name} onNavigate={nav} />
 
             {/* Publicidade / campanhas do Feed (mantido) */}
             {adsSlides.length > 0 && (

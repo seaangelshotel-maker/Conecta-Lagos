@@ -35,6 +35,8 @@ const MapPage = lazy(() => import('./pages/MapPage').then(m => ({ default: m.Map
 const CreateBusiness = lazy(() => import('./pages/CreateBusiness').then(m => ({ default: m.CreateBusiness })));
 const PricingPlans = lazy(() => import('./pages/PricingPlans').then(m => ({ default: m.PricingPlans })));
 const OpportunitiesPage = lazy(() => import('./pages/Opportunities').then(m => ({ default: m.OpportunitiesPage })));
+const Events = lazy(() => import('./pages/Events').then(m => ({ default: m.Events })));
+const EventDetail = lazy(() => import('./pages/EventDetail').then(m => ({ default: m.EventDetail })));
 const OpportunityDetail = lazy(() => import('./pages/OpportunityDetail').then(m => ({ default: m.OpportunityDetail })));
 const OpportunityForm = lazy(() => import('./pages/OpportunityForm').then(m => ({ default: m.OpportunityForm })));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities').then(m => ({ default: m.MyOpportunities })));
@@ -59,6 +61,11 @@ const parseUrl = (): Route => {
 
   const colMatch = path.match(/^\/collection\/([^/]+)/);
   if (colMatch) return { page: 'collection-detail', params: { collectionId: decodeURIComponent(colMatch[1]) } };
+
+  // Agenda de eventos
+  if (path === '/eventos') return { page: 'events', params: null };
+  const eventMatch = path.match(/^\/eventos\/([^/]+)/);
+  if (eventMatch) return { page: 'event-detail', params: { eventId: decodeURIComponent(eventMatch[1]) } };
 
   // Ajuda Colaborativa
   if (path === '/ajuda') return { page: 'opportunities', params: null };
@@ -116,7 +123,9 @@ const buildUrl = (page: string, params?: any): string => {
     case 'map': return '/map';
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
-    case 'admin-dashboard': return '/admin-dashboard';
+    case 'admin-dashboard': return '/admin-dashboard' + (params?.view ? `?view=${encodeURIComponent(params.view)}` : '');
+    case 'events': return '/eventos';
+    case 'event-detail': return `/eventos/${id(params?.eventId)}`;
     case 'journalist-dashboard': return '/journalist-dashboard';
     case 'create-business': return '/create-business';
     case 'pricing-plans': return '/pricing-plans';
@@ -140,7 +149,7 @@ const AUTH_PAGES = new Set([
 ]);
 
 /** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
-const FULLSCREEN_PAGES = new Set(['business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
+const FULLSCREEN_PAGES = new Set(['event-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -311,6 +320,10 @@ function AppContent() {
          return <MapPage />;
       case 'opportunities':
         return <OpportunitiesPage currentUser={user} onNavigate={handleNavigate} />;
+      case 'events':
+        return <Events currentUser={user} onNavigate={handleNavigate} />;
+      case 'event-detail':
+        return <EventDetail eventId={pageParams?.eventId} currentUser={user} onNavigate={handleNavigate} />;
       case 'opportunity-detail':
         return <OpportunityDetail opportunityId={pageParams?.opportunityId} currentUser={user} onNavigate={handleNavigate} />;
       case 'opportunity-form':

@@ -41,6 +41,7 @@ import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinesses
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
+import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
 import { PaymentSettings } from '../types';
@@ -50,7 +51,9 @@ const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
-  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL'>('HOME');
+  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS'>(() => {
+    try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
+  });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [dicasCategories, setDicasCategories] = useState<AppCategory[]>([]);
@@ -126,6 +129,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     price: 0,
     period: 'monthly',
     maxCoupons: 5,
+    maxEvents: 0,
     maxBusinesses: 1,
     isFeatured: false,
     showGallery: true,
@@ -430,6 +434,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
             price: 0,
             period: 'monthly',
             maxCoupons: 5,
+            maxEvents: 0,
             maxBusinesses: 1,
             isFeatured: false,
             showGallery: true,
@@ -712,6 +717,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <button onClick={() => setView('HOME_EDITORIAL')} data-testid="admin-home-editorial" className="bg-slate-50 hover:bg-amber-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-amber-600 mb-1">Home: destaque das matérias</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Escolha a matéria grande da Home e os subdestaques ao lado.</p>
+                              </button>
+                              <button onClick={() => setView('EVENTS')} data-testid="admin-events-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-ocean-600 mb-1">Agenda de eventos</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Aprove eventos dos comerciantes, publique os seus e defina as cotas.</p>
                               </button>
                               <button onClick={() => setView('HIGHLIGHTS')} className="bg-slate-50 hover:bg-pink-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-pink-600 mb-1">Destaques da Home</h4>
@@ -2540,6 +2549,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                 />
                             </div>
 
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-slate-600">Max. Eventos ativos <span className="text-slate-400 font-medium">(0 = não inclui)</span></span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    data-testid="plan-max-events"
+                                    className="w-16 bg-slate-50 p-2 rounded-lg border border-slate-100 font-bold text-xs text-center"
+                                    value={newPlan.maxEvents ?? 0}
+                                    onChange={e => setNewPlan({...newPlan, maxEvents: Math.max(0, Number(e.target.value) || 0)})}
+                                />
+                            </div>
+
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <input 
                                     type="checkbox" 
@@ -2650,6 +2671,9 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
                                             <Check size={12} className="text-green-500" /> Max. {plan.maxCoupons} cupons
                                         </div>
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                            <Check size={12} className="text-green-500" /> {plan.maxEvents ? `Até ${plan.maxEvents} eventos ativos` : 'Sem eventos na agenda'}
+                                        </div>
                                         {plan.isFeatured && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Destaque nas buscas</div>}
                                         {plan.showGallery && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Galeria de fotos</div>}
                                         {plan.showMenu && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Cardápio digital</div>}
@@ -2675,6 +2699,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
       )}
       {view === 'HOME_DISCOVERY' && currentUser.role === UserRole.SUPER_ADMIN && (
           <HomeDiscoveryAdmin onBack={() => setView('HOME')} />
+      )}
+
+      {view === 'EVENTS' && (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) && (
+          <EventsManager currentUser={currentUser} myBusiness={myBusiness} onNavigate={onNavigate} />
       )}
 
       {view === 'HOME_EDITORIAL' && currentUser.role === UserRole.SUPER_ADMIN && (

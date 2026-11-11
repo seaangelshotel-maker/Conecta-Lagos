@@ -169,3 +169,10 @@ export const RotateCcw = mk('RotateCcw');
 export const LayoutGrid = mk('LayoutGrid');
 export const Scale = mk('Scale');
 export const BellOff = mk('BellOff');
+
+export const CalendarPlus = mk('CalendarPlus');
+export const ShoppingBasket = mk('ShoppingBasket');
+export const Gauge = mk('Gauge');
+export const Megaphone = mk('Megaphone');
+export const Ban = mk('Ban');
+export const Link2 = mk('Link2');

@@ -20,6 +20,7 @@ import { orderFeedByGeo } from '../services/regionGeo';
 import { pickEditorial } from '../services/editorialPick';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 import { RegionChip } from '../components/RegionChip';
+import { EventsShelf } from '../components/EventCards';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
@@ -208,6 +209,9 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             )}
           </div>
         </section>
+
+        {/* B2. Agenda: o que está acontecendo (cidade da pessoa primeiro; a região toda segue à vista) */}
+        <EventsShelf muniId={currentMuni} muniName={loc.municipality?.name} onNavigate={onNavigate} />
 
         <div className="px-4 space-y-4">
           <WhatYouCanDo onNavigate={onNavigate} isLoggedIn={!!currentUser} />

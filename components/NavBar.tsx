@@ -88,7 +88,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         <span className="text-[10px] font-bold">{t('Cupons')}</span>
       </button>
 
-      <button onClick={() => onNavigate('blog')} className={tabClass(['blog', 'blog-detail', 'journalist-profile', 'guide-article'])} aria-current={isActive(['blog']) ? 'page' : undefined}>
+      <button onClick={() => onNavigate('blog')} className={tabClass(['blog', 'blog-detail', 'journalist-profile', 'guide-article', 'events', 'event-detail'])} aria-current={isActive(['blog']) ? 'page' : undefined}>
         <Sparkles size={22} />
         <span className="text-[10px] font-bold">{t('Feed')}</span>
       </button>

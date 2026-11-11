@@ -109,7 +109,7 @@ service cloud.firestore {
           (request.resource.data.role == 'SUPER_ADMIN' && isAllowlistedAdminEmail())
         )
         && !request.resource.data.keys().hasAny(['permissions', 'isBlocked', 'plan', 'maxCoupons',
-              'isPrime', 'manualPassword', 'paymentCustomerId', 'paymentSubscriptionStatus',
+              'isPrime', 'manualPassword', 'maxEvents', 'paymentCustomerId', 'paymentSubscriptionStatus',
               'paymentSubscriptionId'])
         && request.resource.data.get('savedAmount', 0) == 0
       );
@@ -595,6 +595,91 @@ service cloud.firestore {
     // "Minhas candidaturas" (consulta em grupo de coleções).
     match /{path=**}/applications/{applicantId} {
       allow read: if isAuthenticated() && (resource.data.applicantId == uid() || isAdmin());
+    }
+
+    // ===============================================================
+    // Agenda de eventos
+    // ---------------------------------------------------------------
+    // - Público lê só o que está publicado; dono e admin leem o resto.
+    // - Comerciante (papel COMPANY) cria sempre como "pending"; só o admin publica,
+    //   destaca ou recusa. A cota por plano é conferida no app; o que chega aqui
+    //   passa por moderação antes de ir ao ar.
+    // - O dono pode ajustar detalhes sem sair do ar (capa, links, preço, horário, local).
+    //   Mudou título, descrição, data, cidade ou categoria: volta para "pending".
+    // ===============================================================
+
+    function validEventDate(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validOptionalUrl(v) {
+      return v is string && (v == '' || v.matches('^https?://.*')) && v.size() <= 500;
+    }
+
+    function validEventData(d) {
+      return d.title is string && d.title.size() >= 3 && d.title.size() <= 100
+        && d.get('description', '') is string && d.get('description', '').size() <= 2000
+        && d.category in ['musica', 'gastronomia', 'esporte', 'cultura', 'feira', 'festa', 'religioso', 'turismo', 'outros']
+        && d.cityId in ['arraial-do-cabo', 'cabo-frio', 'buzios', 'sao-pedro-da-aldeia', 'iguaba-grande', 'araruama', 'saquarema']
+        && validEventDate(d.startDate)
+        && (d.get('endDate', '') == '' || (validEventDate(d.get('endDate', '')) && d.get('endDate', '') >= d.startDate))
+        && validOptionalUrl(d.get('infoUrl', ''))
+        && validOptionalUrl(d.get('ticketUrl', ''))
+        && d.get('priceText', '') is string && d.get('priceText', '').size() <= 80
+        && d.get('locationName', '') is string && d.get('locationName', '').size() <= 120
+        && d.get('address', '') is string && d.get('address', '').size() <= 200
+        && d.get('coverImage', '') is string && d.get('coverImage', '').size() <= 600000;
+    }
+
+    function eventOwnerKeys() {
+      return ['id', 'ownerId', 'source', 'sourceLabel', 'sourceUrl', 'isFeatured', 'createdAt',
+              'approvedAt', 'approvedBy', 'detailsTentative'];
+    }
+
+    // Campos que o dono pode mudar sem voltar para análise (espelha MINOR_EVENT_KEYS no app).
+    function eventMinorKeys() {
+      return ['coverImage', 'infoUrl', 'ticketUrl', 'priceText', 'isFree', 'locationName', 'address',
+              'startTime', 'endTime', 'updatedAt'];
+    }
+
+    match /events/{eventId} {
+      allow get: if resource.data.get('status', '') == 'published'
+        || (isAuthenticated() && (resource.data.get('ownerId', '') == uid() || isAdmin()));
+      allow list: if resource.data.get('status', '') == 'published'
+        || (isAuthenticated() && (resource.data.get('ownerId', '') == uid() || isAdmin()));
+
+      allow create: if isAdmin() || (
+        isAuthenticated() && isNotBlocked() && myRole() == 'COMPANY'
+        && request.resource.data.id == eventId
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.source == 'merchant'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.get('isFeatured', false) == false
+        && !request.resource.data.keys().hasAny(['approvedAt', 'approvedBy', 'rejectionReason', 'detailsTentative',
+              'sourceLabel', 'sourceUrl'])
+        && (request.resource.data.get('businessId', '') == '' || isBusinessOwner(request.resource.data.businessId))
+        && validEventData(request.resource.data)
+      );
+
+      allow update: if isAdmin() || (
+        isAuthenticated() && isNotBlocked()
+        && resource.data.get('ownerId', '') == uid()
+        && request.resource.data.ownerId == uid()
+        && !changedKeys().hasAny(eventOwnerKeys())
+        && !changedKeys().hasAny(['approvedAt', 'approvedBy'])
+        && validEventData(request.resource.data)
+        && (
+          // mudança pequena, status intacto
+          (request.resource.data.status == resource.data.status && changedKeys().hasOnly(eventMinorKeys()))
+          // qualquer outra mudança: vai (ou volta) para análise, ou o dono cancela
+          || request.resource.data.status in ['pending', 'cancelled']
+        )
+      );
+
+      allow delete: if isAdmin() || (
+        isAuthenticated() && resource.data.get('ownerId', '') == uid()
+        && resource.data.get('status', '') in ['pending', 'rejected', 'cancelled']
+      );
     }
 
     // Antispam: horário da última publicação de cada usuário.
