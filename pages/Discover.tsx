@@ -12,6 +12,7 @@ import {
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
 import { SearchBar, HScroller } from '../components/DiscoverUI';
+import { locateMunicipality, nearbyAdaptive } from '../services/regionGeo';
 
 
 interface Props { onNavigate: (page: string, params?: any) => void; }
@@ -204,11 +205,23 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
                 <button onClick={clearAll} className="mt-4 text-xs font-black text-white bg-ocean-600 rounded-full px-5 py-2.5">Ver tudo</button>
               </div>
             ) : (
+              <div>
+              {flt === 'perto' && where && (() => {
+                const loc = locateMunicipality(where);
+                const near = nearbyAdaptive(results, where);
+                const where2 = loc.inRegion && loc.municipality ? loc.municipality.name : 'fora da Região dos Lagos';
+                return (
+                  <p className="text-xs font-bold text-ocean-700 mb-3 flex items-center gap-1" data-testid="nearby-summary">
+                    <MapPin size={14} /> Você está em {where2} · lugares em até {near.radiusKm} km{near.exhausted ? ' (poucos por aqui)' : ''}
+                  </p>
+                );
+              })()}
               <div className="grid gap-3 md:grid-cols-2">
                 {results.slice(0, shown).map(b => (
                   <BusinessMiniCard key={b.id} business={b} onOpen={openBusiness}
                     distanceKm={flt === 'perto' && where && typeof b.lat === 'number' ? haversineKm(where, { lat: b.lat!, lng: b.lng! }) : undefined} />
                 ))}
+              </div>
               </div>
             )}
             {results.length > shown && <button onClick={() => setShown(n => n + 24)} data-testid="places-more" className="w-full h-12 rounded-2xl bg-white border border-slate-200 text-sm font-black text-ocean-600">Mostrar mais ({results.length - shown} restantes)</button>}
