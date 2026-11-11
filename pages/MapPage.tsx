@@ -17,7 +17,7 @@ export const MapPage: React.FC = () => {
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const loc = useRegionLocation();
   // Só mostra o pino quando a posição veio do GPS autorizado (não de cidade escolhida à mão).
-  const userLocation = loc.status === 'ok' ? loc.where : null;
+  const userLocation = loc.gps;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

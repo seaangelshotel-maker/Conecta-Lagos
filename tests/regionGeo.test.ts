@@ -118,3 +118,36 @@ test('deslocamento de Arraial para Cabo Frio muda o município', async () => {
   assert.equal(changedMunicipality(byId('cabo-frio'), { lat: -22.8800, lng: -42.0200 }), false);
   assert.equal(changedMunicipality(null, byId('buzios')), false);
 });
+
+test('fora da região (Rio, São Paulo, Minas) não recebe município e o feed fica geral', () => {
+  const places = [
+    { lat: -22.9068, lng: -43.1729 }, // Rio de Janeiro
+    { lat: -23.5505, lng: -46.6333 }, // São Paulo
+    { lat: -19.9167, lng: -43.9345 }, // Belo Horizonte
+    { lat: -22.8859, lng: -43.1153 }, // Niterói
+  ];
+  for (const p of places) {
+    const r = locateMunicipality(p);
+    assert.equal(r.inRegion, false);
+    assert.equal(r.municipality, null);
+  }
+  // Sem município, nenhuma matéria ganha prioridade geográfica: vale só a atualidade.
+  const now = Date.parse('2026-11-11T00:00:00Z');
+  const out = orderFeedByGeo([
+    { title: 'Arraial velha', publishedAt: '2026-09-01T00:00:00Z' },
+    { title: 'Saquarema nova', publishedAt: '2026-11-10T00:00:00Z' },
+  ], null, now);
+  assert.equal(out[0].title, 'Saquarema nova');
+  assert.ok(out.every(a => a.tier === 3));
+});
+
+test('quem está em Arraial vê Cabo Frio ou Araruama sem perder nada', () => {
+  const arts = [{ title: 'Araruama: obra' }, { title: 'Cabo Frio: festa' }, { title: 'Arraial: praia' }];
+  // Escolheu Araruama (embora esteja em Arraial): Araruama sobe, nada some.
+  const a = orderFeedByGeo(arts, 'araruama');
+  assert.equal(a.length, 3);
+  assert.equal(a[0].title, 'Araruama: obra');
+  const c = orderFeedByGeo(arts, 'cabo-frio');
+  assert.equal(c[0].title, 'Cabo Frio: festa');
+  assert.equal(c.length, 3);
+});

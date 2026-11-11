@@ -497,11 +497,17 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
       setAwaitingGps(false);
       setNearby(true);
       setCurrentLocationName(loc.municipality?.name || identifyNeighborhood(loc.where.lat, loc.where.lng));
+    } else if (loc.outside) {
+      setAwaitingGps(false);
+      notify("info", "Você está fora da Região dos Lagos. Escolha uma cidade para ver o que há por lá.");
+    } else if (loc.outside) {
+      setAwaitingGps(false);
+      notify("info", "Você está fora da Região dos Lagos. Escolha uma cidade para ver o que há por lá.");
     } else if (loc.status === "denied" || loc.status === "unavailable") {
       setAwaitingGps(false);
       notify("warning", loc.error || "Não conseguimos sua localização. Escolha sua cidade.");
     }
-  }, [awaitingGps, loc.where, loc.status]);
+  }, [awaitingGps, loc.where, loc.status, loc.outside]);
 
   if (isLoadingDB) return <GuideSplash />;
 

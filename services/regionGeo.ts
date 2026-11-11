@@ -62,7 +62,7 @@ export const locateMunicipality = (
   if (!best) return { municipality: null, distanceKm: Infinity, inRegion: false };
   const inRegion = bestKm <= REGION_MAX_KM;
   return {
-    municipality: inRegion && bestKm <= MUNICIPALITY_MAX_KM ? best : (inRegion ? best : null),
+    municipality: inRegion ? best : null,
     distanceKm: bestKm,
     inRegion,
   };

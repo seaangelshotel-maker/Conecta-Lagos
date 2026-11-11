@@ -187,18 +187,23 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
                 <div className="flex items-start gap-3">
                   <MapPin className="text-ocean-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-black text-ocean-950">Ver o que está perto de você</p>
-                    <p className="text-sm text-slate-500 mt-1">Usamos sua localização só para mostrar lugares e matérias próximos. Ela fica apenas neste aparelho, durante a visita, e não guardamos seu trajeto.</p>
+                    <p className="font-black text-ocean-950">{loc.outside ? 'Você está fora da Região dos Lagos' : 'Ver o que está perto de você'}</p>
+                    <p className="text-sm text-slate-500 mt-1">{loc.outside
+                      ? 'Por isso mostramos os destaques gerais da região. Escolha uma cidade para ver o que há por lá ou veja tudo.'
+                      : 'Usamos sua localização só para mostrar lugares e matérias próximos. Ela fica apenas neste aparelho, durante a visita, e não guardamos seu trajeto.'}</p>
                   </div>
                 </div>
-                <button onClick={loc.request} disabled={loc.status === 'asking'} data-testid="use-location" className="w-full h-12 rounded-2xl bg-ocean-600 text-white text-sm font-black disabled:opacity-60">
-                  {loc.status === 'asking' ? 'Buscando sua localização…' : 'Usar minha localização'}
-                </button>
+                {loc.outside
+                  ? <button onClick={() => setFlt('')} data-testid="see-all" className="w-full h-12 rounded-2xl bg-ocean-600 text-white text-sm font-black">Ver toda a região</button>
+                  : <button onClick={loc.request} disabled={loc.status === 'asking'} data-testid="use-location" className="w-full h-12 rounded-2xl bg-ocean-600 text-white text-sm font-black disabled:opacity-60">
+                      {loc.status === 'asking' ? 'Buscando sua localização…' : 'Usar minha localização'}
+                    </button>}
                 {loc.error && <p className="text-xs text-amber-700 font-bold" role="status">{loc.error}</p>}
                 <div>
                   <label htmlFor="manual-city" className="block text-xs font-bold text-slate-500 mb-1">Ou escolha sua cidade</label>
-                  <select id="manual-city" defaultValue="" onChange={e => e.target.value && loc.chooseManual(e.target.value)} className="w-full h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-ocean-950">
+                  <select id="manual-city" defaultValue="" onChange={e => e.target.value && loc.choose(e.target.value)} className="w-full h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-ocean-950">
                     <option value="" disabled>Selecione…</option>
+                    <option value="geral">Toda a Região dos Lagos</option>
                     {REGION_MUNICIPALITIES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                 </div>
