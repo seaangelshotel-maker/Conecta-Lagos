@@ -513,7 +513,6 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
     <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
       {/* 1. HEADER SECTION (Typography & GPS Polish matching user screenshot) */}
       <div className="px-4 mb-5 max-w-7xl mx-auto w-full">
-        <button type="button" className="mb-3 px-4 py-2 rounded-xl bg-green-500 text-white text-sm font-bold shadow-sm hover:bg-green-600">teste</button>
         <div className="flex justify-between items-start gap-3 pb-3 border-b border-slate-100">
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">
