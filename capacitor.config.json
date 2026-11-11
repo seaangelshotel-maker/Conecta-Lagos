@@ -6,7 +6,7 @@
   "server": {
     "androidScheme": "https",
     "iosScheme": "https",
-    "allowNavigation": ["conecta-lagos-one.vercel.app", "lagosgo.org", "*.firebaseapp.com", "*.googleapis.com"]
+    "allowNavigation": ["conecta-lagos-one.vercel.app", "lagosgo.com.br", "www.lagosgo.com.br", "*.firebaseapp.com", "*.googleapis.com"]
   },
   "ios": { "contentInset": "always", "limitsNavigationsToAppBoundDomains": true },
   "android": { "allowMixedContent": false },

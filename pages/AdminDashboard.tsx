@@ -1062,7 +1062,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                             <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase w-fit ${u.role === UserRole.SUPER_ADMIN ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-500'}`}>
                                               {u.role === UserRole.SUPER_ADMIN ? '🛡️ SUPER ADMIN' : u.role}
                                             </span>
-                                            {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@lagosgo.org' || u.email === 'admin@conectario.com') && (
+                                            {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@conectario.com') && (
                                               <span className="text-[8px] font-black text-red-400 uppercase tracking-tighter ml-1">Conta Mestra (Imutável)</span>
                                             )}
                                           </div>
@@ -1183,7 +1183,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                           <span className={`inline-block text-[8px] font-black px-2 py-0.5 rounded-full uppercase ${u.role === UserRole.SUPER_ADMIN ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-500'}`}>
                                               {u.role === UserRole.SUPER_ADMIN ? '🛡️ SUPER ADMIN' : u.role}
                                           </span>
-                                          {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@lagosgo.org' || u.email === 'admin@conectario.com') && (
+                                          {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@conectario.com') && (
                                               <span className="text-[7px] font-black text-red-500 uppercase">Mestre</span>
                                           )}
                                       </div>
@@ -1802,10 +1802,12 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                       status: status
                   } as Coupon;
                   try {
-                      await saveCoupon(couponData); 
+                      const saved = await saveCoupon(couponData); 
                       setView(isEdit ? 'COUPONS' : 'HOME'); 
                       refreshData(); 
-                      notify('success', isEdit ? 'Cupom atualizado com sucesso!' : 'Cupom enviado para aprovação do administrador!');
+                      notify('success', !isEdit ? 'Cupom enviado para aprovação do administrador!'
+                          : saved && saved.sentToReview ? 'Alterações enviadas para aprovação. O cupom sai do ar até o administrador aprovar de novo.'
+                          : 'Cupom atualizado com sucesso!');
                   } catch (err: any) {
                       notify('error', err?.message || 'Não foi possível salvar o cupom. Tente novamente.');
                   } finally {
@@ -3762,7 +3764,15 @@ const CollectionsManager: React.FC<{ collections: any[]; businesses: BusinessPro
     );
 };
 
-const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings: (s: PaymentSettings) => void; onSave: () => void; isSaving: boolean; onBack: () => void }> = ({ settings, setSettings, onSave, isSaving, onBack }) => {
+const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings: (s: PaymentSettings) => void; onSave: () => void; isSaving: boolean; onBack: () => void }> = ({ onBack }) => {
+    // Quem liga a cobrança é o servidor (variáveis da Vercel), não um botão: mostramos o estado real.
+    const [health, setHealth] = useState<{ paymentsEnabled?: boolean; paymentsEnv?: string } | null | 'error'>(null);
+    useEffect(() => {
+        let alive = true;
+        fetch('/api/health').then(r => r.json()).then(j => alive && setHealth(j)).catch(() => alive && setHealth('error'));
+        return () => { alive = false; };
+    }, []);
+    const on = typeof health === 'object' && health?.paymentsEnabled;
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="flex items-center gap-4 mb-8">
@@ -3778,25 +3788,22 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100" data-testid="payment-status">
                             <div>
-                                <h3 className="font-black text-ocean-950">Asaas</h3>
-                                <p className="text-xs text-slate-500 font-bold">Ativar ou desativar cobranças no sistema</p>
+                                <h3 className="font-black text-ocean-950">Cobrança online (Asaas)</h3>
+                                <p className="text-xs text-slate-500 font-bold">Estado real no servidor</p>
                             </div>
-                            <button 
-                                onClick={() => setSettings({...settings, isPaymentActive: !settings.isPaymentActive})}
-                                className={`w-14 h-8 rounded-full transition-all relative ${settings.isPaymentActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                            >
-                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${settings.isPaymentActive ? 'left-7' : 'left-1'}`} />
-                            </button>
+                            <span className={`text-xs font-black px-4 py-2 rounded-full ${on ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                {health === null ? 'Verificando…' : health === 'error' ? 'Sem resposta' : on ? `Ativa (${health.paymentsEnv === 'production' ? 'produção' : 'teste'})` : 'Desligada'}
+                            </span>
                         </div>
 
                         <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
-                            <h3 className="font-black text-amber-950">Cobrança automática desativada nesta etapa</h3>
+                            <h3 className="font-black text-amber-950">Como ligar a cobrança</h3>
                             <p className="text-xs text-amber-800 font-bold mt-1 leading-relaxed">
-                                Não existe "pagamento direto" (bypass). Planos são atribuídos manualmente pelo administrador
-                                na lista de empresas. A cobrança pelo Asaas só funciona no servidor, com
+                                Não existe botão aqui de propósito: a cobrança só liga no servidor, com
                                 PAYMENTS_ENABLED=true, ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN na Vercel (veja docs/PAGAMENTOS.md).
+                                Enquanto estiver desligada, os planos são atribuídos manualmente pelo administrador na lista de empresas.
                                 Webhook do Asaas: https://SEU_DOMINIO/api/webhook.
                             </p>
                         </div>
@@ -3824,15 +3831,6 @@ const PaymentSettingsManager: React.FC<{ settings: PaymentSettings; setSettings:
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-slate-100">
-                    <button 
-                        onClick={onSave}
-                        disabled={isSaving}
-                        className="bg-ocean-600 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-ocean-600/20 hover:bg-ocean-700 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} SALVAR CONFIGURAÇÕES
-                    </button>
-                </div>
             </div>
         </div>
     );

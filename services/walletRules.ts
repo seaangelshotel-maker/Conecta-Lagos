@@ -154,3 +154,16 @@ export const couponQuotaState = (coupons: Pick<Coupon, 'active' | 'status' | 'ex
   const used = coupons.filter(c => countsAgainstCouponQuota(c, now)).length;
   return { used, quota, canCreate: quota === null || used < quota };
 };
+
+/** Campos que o comerciante pode mudar sem passar por nova aprovação (não alteram a oferta). Espelha firestore.rules. */
+export const COUPON_FREE_EDIT_KEYS = ['active', 'maxRedemptions'] as const;
+
+const sameValue = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/** Campos que realmente mudaram entre o cupom salvo e a edição (ausente e null contam como iguais). */
+export const changedCouponKeys = (prev: Partial<Coupon>, next: Partial<Coupon>): string[] =>
+  Object.keys(next).filter(k => !sameValue((prev as any)[k], (next as any)[k]));
+
+/** Mudou algo da oferta (título, preço, imagem, validade...)? Então o cupom volta para aprovação. */
+export const couponNeedsReapproval = (prev: Partial<Coupon>, next: Partial<Coupon>): boolean =>
+  changedCouponKeys(prev, next).some(k => !(COUPON_FREE_EDIT_KEYS as readonly string[]).includes(k));

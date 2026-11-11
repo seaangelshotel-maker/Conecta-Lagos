@@ -44,7 +44,7 @@ service cloud.firestore {
     function isAllowlistedAdminEmail() {
       return isAuthenticated()
         && request.auth.token.email_verified == true
-        && request.auth.token.email in ['sea.angelshotel@gmail.com', 'admin@lagosgo.org'];
+        && request.auth.token.email in ['sea.angelshotel@gmail.com'];
     }
 
     function isAdmin() {
@@ -200,10 +200,16 @@ service cloud.firestore {
       );
 
       allow update: if isAdmin()
-        // Empresa edita o próprio cupom, sem se autoaprovar nem mexer no contador.
+        // Empresa edita o próprio cupom, sem mexer no dono nem no contador. Ativar/desativar e
+        // ajustar o limite de resgates não mudam a oferta; qualquer outra mudança (título, preço,
+        // imagem...) devolve o cupom para "pendente" até o admin aprovar de novo.
         || (
           isBusinessOwner(resource.data.companyId) && isNotBlocked()
-          && !changedKeys().hasAny(['status', 'companyId', 'currentRedemptions'])
+          && !changedKeys().hasAny(['companyId', 'currentRedemptions'])
+          && (
+            changedKeys().hasOnly(['active', 'maxRedemptions']) ||
+            request.resource.data.get('status', 'pending') == 'pending'
+          )
         )
         // Qualquer usuário logado incrementa o contador em exatamente 1 ao resgatar.
         || (

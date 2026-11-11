@@ -4,7 +4,7 @@ import { toAppPath } from '../services/native';
 
 test('link https do domínio vira caminho interno', () => {
   assert.equal(toAppPath('https://conecta-lagos-one.vercel.app/guia/praia-do-forno?x=1'), '/guia/praia-do-forno?x=1');
-  assert.equal(toAppPath('https://lagosgo.org/'), '/');
+  assert.equal(toAppPath('https://lagosgo.com.br/'), '/');
 });
 test('esquema próprio lagosgo:// vira caminho', () => {
   assert.equal(toAppPath('lagosgo://guia/praia-do-forno'), '/guia/praia-do-forno');

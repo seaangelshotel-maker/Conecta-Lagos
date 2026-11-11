@@ -7,8 +7,8 @@ import type { AppEvent, Coupon } from '../types';
 import { cityLabel, filterEvents, formatEventDates, formatEventTime, isPublic, sortByDate, periodRange } from './eventRules';
 import { couponSaving, formatBRL, isExpired, percentOff } from './walletRules';
 import { todayISO } from './opportunityRules';
+import { APP_URL } from './appConfig';
 
-export const APP_URL = 'https://conecta-lagos-one.vercel.app';
 
 export interface DigestInput {
   events: AppEvent[];

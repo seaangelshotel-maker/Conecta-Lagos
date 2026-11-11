@@ -131,3 +131,24 @@ test('cupom ocupa vaga se está ativo, não foi recusado e não venceu', () => {
   assert.deepEqual(st, { used: 2, quota: 2, canCreate: false });
   assert.equal(couponQuotaState([], null, NOW).canCreate, true);
 });
+
+import { couponNeedsReapproval, changedCouponKeys } from '../services/walletRules';
+const base = { id: 'c1', title: '10% no passeio', description: 'd', originalPrice: 100, discountedPrice: 90, imageUrl: 'x.jpg', active: true, maxRedemptions: 10, expiryDate: '2026-12-31' } as any;
+
+test('cupom aprovado: ligar/desligar e mudar limite NÃO voltam para aprovação', () => {
+  assert.equal(couponNeedsReapproval(base, { ...base, active: false }), false);
+  assert.equal(couponNeedsReapproval(base, { ...base, maxRedemptions: 50 }), false);
+  assert.equal(couponNeedsReapproval(base, { ...base }), false);
+});
+
+test('cupom aprovado: mudar título, preço, imagem ou validade volta para aprovação', () => {
+  assert.equal(couponNeedsReapproval(base, { ...base, title: 'Outro' }), true);
+  assert.equal(couponNeedsReapproval(base, { ...base, discountedPrice: 10 }), true);
+  assert.equal(couponNeedsReapproval(base, { ...base, imageUrl: 'y.jpg' }), true);
+  assert.equal(couponNeedsReapproval(base, { ...base, expiryDate: '2027-01-31' }), true);
+});
+
+test('campo ausente e null contam como iguais (não gera revisão à toa)', () => {
+  assert.deepEqual(changedCouponKeys({ ...base }, { ...base, subcategory: undefined, gallery: null as any }), []);
+  assert.equal(couponNeedsReapproval({ ...base, rules: undefined }, { ...base, rules: null as any }), false);
+});

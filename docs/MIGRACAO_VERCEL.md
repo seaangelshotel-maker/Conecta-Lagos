@@ -73,7 +73,7 @@ Variáveis **antigas que não devem ser recriadas**: `API_KEY`, `GEMINI_API_KEY_
    precisa usar **"Esqueci minha senha"** na tela de login. O painel admin agora envia o e-mail
    oficial de redefinição (botão "SENHA" na lista de empresas).
 4. Administradores: contas com `role: SUPER_ADMIN` no Firestore, ou os e-mails
-   `sea.angelshotel@gmail.com` / `admin@lagosgo.org` **com e-mail verificado** (login Google conta como verificado).
+   `sea.angelshotel@gmail.com` **com e-mail verificado** (login Google conta como verificado).
 
 ## 5. Serviços externos
 

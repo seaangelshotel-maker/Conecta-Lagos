@@ -37,7 +37,7 @@ export const getAdminApp = (): App => {
 export const adminDb = (): Firestore => getFirestore(getAdminApp());
 export const adminAuth = (): Auth => getAuth(getAdminApp());
 
-const ADMIN_EMAILS = ['sea.angelshotel@gmail.com', 'admin@lagosgo.org'];
+const ADMIN_EMAILS = ['sea.angelshotel@gmail.com'];
 
 /** Lê "Authorization: Bearer <idToken>" e valida no Firebase Auth. */
 export const verifyRequestUser = async (authorizationHeader?: string | string[]): Promise<DecodedIdToken | null> => {

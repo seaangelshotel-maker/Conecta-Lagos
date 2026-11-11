@@ -37,7 +37,7 @@ import {
     PublicProfile, InteractionType, AppGlobalSettings, BlogAd
 } from '../types';
 import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
-import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState } from './walletRules';
+import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
 export type { AppGlobalSettings };
 
@@ -393,7 +393,7 @@ export const login = async (email: string, pass: string): Promise<User | null> =
     }
 };
 
-const ADMIN_BOOTSTRAP_EMAILS = ['sea.angelshotel@gmail.com', 'admin@lagosgo.org'];
+const ADMIN_BOOTSTRAP_EMAILS = ['sea.angelshotel@gmail.com'];
 
 /** Cria o documento de perfil de um novo usuário com o papel padrão (CUSTOMER). */
 const createBaseProfile = async (uid: string, name: string, email: string, avatarUrl?: string, emailVerified = false): Promise<User> => {
@@ -1694,7 +1694,7 @@ export const deleteDicasSubcategory = async (categoryId: string, subcategoryId: 
     }
 };
 
-export const saveCoupon = async (c: Coupon) => {
+export const saveCoupon = async (c: Coupon): Promise<{ sentToReview: boolean } | void> => {
     const couponToSave = { ...c };
     
     // Default status to pending if not set
@@ -1718,9 +1718,11 @@ export const saveCoupon = async (c: Coupon) => {
     }
     const existing = await getDoc(ref);
     if (existing.exists()) {
-        // Empresa edita o próprio cupom sem alterar aprovação, dono ou contador de resgates.
+        // Empresa edita o próprio cupom, sem mudar dono ou contador. Mudou a oferta? Volta para aprovação.
         const { status, companyId, currentRedemptions, ...editable } = couponToSave as any;
-        await setDoc(ref, cleanObject(editable), { merge: true });
+        const changed = couponNeedsReapproval(existing.data() as Coupon, editable);
+        await setDoc(ref, cleanObject(changed ? { ...editable, status: 'pending' } : editable), { merge: true });
+        return { sentToReview: changed && (existing.data() as Coupon).status !== 'pending' };
     } else {
         // Plano: quantos cupons ativos o comerciante pode ter (cota do admin sobre ele, senão a do plano).
         const me = getCurrentUser();

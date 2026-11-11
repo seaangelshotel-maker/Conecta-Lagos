@@ -15,7 +15,7 @@ export const platform = (): 'android' | 'ios' | 'web' => {
 };
 
 /** Hosts que podem abrir telas do app por link (o domínio próprio entra aqui quando existir). */
-export const APP_HOSTS = ['lagosgo.org', 'www.lagosgo.org', 'conecta-lagos-one.vercel.app'];
+export const APP_HOSTS = ['lagosgo.com.br', 'www.lagosgo.com.br', 'conecta-lagos-one.vercel.app'];
 export const APP_SCHEME = 'lagosgo:';
 
 /** Converte um link recebido (https ou lagosgo://) no caminho interno do app; null se não for nosso. */

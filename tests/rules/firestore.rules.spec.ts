@@ -62,7 +62,7 @@ test('cadastro nasce como CUSTOMER', async () => {
     await assertSucceeds(setDoc(doc(as('novo'), 'users/novo'), { id: 'novo', role: 'CUSTOMER', savedAmount: 0 }));
 });
 test('e-mail admin NÃO verificado não vira admin', async () => {
-    await assertFails(getDoc(doc(as('x', { email: 'admin@lagosgo.org', email_verified: false }), 'settings/payment')));
+    await assertFails(getDoc(doc(as('x', { email: 'sea.angelshotel@gmail.com', email_verified: false }), 'settings/payment')));
 });
 test('admin lê configurações de pagamento', async () => {
     await assertSucceeds(getDoc(doc(as('adm'), 'settings/payment')));

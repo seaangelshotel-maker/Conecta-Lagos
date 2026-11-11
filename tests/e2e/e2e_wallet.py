@@ -164,6 +164,27 @@ async def main():
         created = [c for c in await mock_docs(page, 'coupons/') if c.get('title') == 'Segundo cupom']
         ok('com cota liberada pelo admin, o cupom é criado como pendente', len(created) == 1 and created[0]['status'] == 'pending' and created[0]['currentRedemptions'] == 0)
 
+        # ---- 10. editar cupom aprovado: oferta mudou -> volta para aprovação ----
+        await patch_store(page, "s.docs['coupons/c1'].status = 'approved'; s.docs['users/ana'].maxCoupons = 9;")
+        await page.goto(BASE + '/admin-dashboard'); await page.wait_for_timeout(1200)
+        await page.locator('button', has_text='MEUS CUPONS').first.click(); await page.wait_for_timeout(800)
+        await page.locator('button', has_text='EDITAR').first.click(); await page.wait_for_timeout(600)
+        title = page.get_by_placeholder('Título da Oferta (Ex: 50% de Desconto no Rodízio)')
+        await title.fill('Passeio com 90% de desconto (golpe)')
+        await page.get_by_role('button', name='Link', exact=True).click()
+        await page.get_by_placeholder('Cole os links das imagens (um por linha)...').fill('https://example.com/a.jpg')
+        await page.locator('form button[type=submit]').last.click(); await page.wait_for_timeout(1000)
+        c1 = [c for c in await mock_docs(page, 'coupons/') if c['path'] == 'coupons/c1'][0]
+        ok('cupom aprovado editado volta para pendente', c1['status'] == 'pending' and c1['title'].startswith('Passeio com 90%'), str(c1.get('status')))
+        ok('comerciante é avisado que o cupom sai do ar até nova aprovação', await page.get_by_text('sai do ar até o administrador aprovar').count() >= 1)
+        
+        # ---- 11. tela de pagamento do admin mostra o estado real, sem botão que não faz nada ----
+        await logout(page); await login(page, 'admin@teste.com')
+        await page.goto(BASE + '/admin-dashboard'); await page.wait_for_timeout(1300)
+        await page.locator('button', has_text=re.compile('PAGAMENTO', re.I)).first.click(); await page.wait_for_timeout(900)
+        ok('pagamento: mostra estado da cobrança (vindo do servidor)', await page.locator('[data-testid=payment-status]').count() == 1)
+        ok('pagamento: não há mais botão "salvar" nem liga/desliga fantasma', await page.get_by_text('SALVAR CONFIGURAÇÕES').count() == 0)
+
         fails = [r for r in results if not r[1]]
         print(f'\n{len(results) - len(fails)}/{len(results)} verificações OK')
         real = [e for e in errors if 'Failed to load resource' not in e]

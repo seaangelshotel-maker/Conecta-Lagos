@@ -57,7 +57,7 @@ test('texto do aviso traz agenda, cupons com a economia em reais e o link', () =
   assert.match(d.text, /grátis/);
   assert.match(d.text, /Ana Tur: Passeio de barco/);
   assert.match(d.text, /R\$\s30,00/);
-  assert.match(d.text, /conecta-lagos-one\.vercel\.app\/eventos/);
+  assert.match(d.text, /https:\/\/\S+\/eventos/);
   assert.equal(d.push.link, '/eventos');
   assert.ok(d.push.title.length <= 80 && d.push.body.length <= 240);
   assert.match(d.push.title, /1 evento/);
