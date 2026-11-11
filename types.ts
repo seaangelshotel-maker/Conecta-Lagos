@@ -10,8 +10,10 @@ export enum UserRole {
 export interface PricingPlan {
   id: string;
   name: string;
+  /** Valor POR MÊS, em reais. O cliente paga price × meses do período, de uma vez. */
   price: number;
-  period: 'monthly' | 'yearly';
+  /** Prazo contratado: 6 meses ou 1 ano ('monthly' só existe em planos antigos). */
+  period: 'semiannual' | 'yearly' | 'monthly';
   maxCoupons: number;
   /** Quantos eventos ativos (pendentes ou publicados, ainda não encerrados) o plano permite ao comerciante. Ausente = 0. */
   maxEvents?: number;

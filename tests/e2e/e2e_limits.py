@@ -42,6 +42,15 @@ async def main():
         plans = await mock_docs(page, 'pricingPlans/')
         basic = next(d for d in plans if d['path'] == 'pricingPlans/basic')
         ok('editar atualiza o MESMO plano (sem duplicar)', len(plans) == n_plans and basic['maxCoupons'] == 1 and basic['name'] == 'Básico', str(basic))
+        # ---- 1b. prazo 6 meses / 1 ano, empresas por plano e total cobrado ----
+        await page.locator('[data-testid=plan-edit-basic]').click(); await page.wait_for_timeout(300)
+        opts = await page.locator("xpath=//select[option[@value='semiannual']]/option").all_inner_texts()
+        ok('prazo oferece 6 meses e 1 ano (sem mensal)', '6 meses' in opts and '1 ano' in opts and not any('Mensal' in o for o in opts), str(opts))
+        await page.locator("xpath=//select[option[@value='semiannual']]").select_option('semiannual')
+        await page.locator('[data-testid=plan-max-businesses]').fill('2')
+        await page.get_by_role('button', name=re.compile('SALVAR PLANO', re.I)).click(); await page.wait_for_timeout(900)
+        basic = next(d for d in await mock_docs(page, 'pricingPlans/') if d['path'] == 'pricingPlans/basic')
+        ok('plano salvo com 6 meses e 2 empresas', basic['period'] == 'semiannual' and basic['maxBusinesses'] == 2, str(basic))
         ok('formulário volta para "Criar Novo Plano"', 'Criar' in await page.locator('[data-testid=plan-form-title]').inner_text())
 
         # ---- 2. painel de limites mostra o limite efetivo do cliente ----
@@ -109,6 +118,9 @@ async def main():
         await open_plans(page)
         ok('plano sem data de vencimento (manual) não é mexido', '0 empresa' in await page.locator('[data-testid=expired-count]').inner_text())
 
+        await page.goto(BASE + '/pricing-plans'); await page.wait_for_timeout(1200)
+        tot = (await page.locator('[data-testid=plan-total]').first.inner_text()).lower()
+        ok('página de planos mostra prazo e total (49,90 x 6 = 299,40)', '6 meses' in tot and '299,40' in tot, tot)
         ok('nenhum erro de JavaScript', not [e for e in errors if 'Failed to load resource' not in e], '; '.join(errors)[:300])
         await b.close()
     bad = [r for r in results if not r[1]]

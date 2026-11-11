@@ -14,7 +14,7 @@ import { adminDb, verifyRequestUser } from './firebaseAdmin.js';
 import { Req, Res, sendJson, readJsonBody, readRawBody, methodNotAllowed } from './http.js';
 import {
     asaasBaseUrl, asaasConfigured, buildReference, parseReference, isValidWebhookToken,
-    PAID_STATUSES, PAID_EVENTS, REVERSAL_EVENTS, cleanCpfCnpj, toCents, dueDate, planEndsAt,
+    PAID_STATUSES, PAID_EVENTS, REVERSAL_EVENTS, cleanCpfCnpj, toCents, dueDate, planEndsAt, planTotalValue, planMonths,
 } from './asaasCore.js';
 
 export { buildReference, parseReference };
@@ -60,7 +60,7 @@ export const handleCreateCheckout = async (req: Req, res: Res) => {
         if (!isOwner) return sendJson(res, 403, { error: 'Você não é responsável por esta empresa.' });
 
         const plan = planSnap.data() || {};
-        const price = Number(plan.price);
+        const price = planTotalValue(plan);
         if (!(price > 0)) return sendJson(res, 400, { error: 'Plano sem preço configurado.' });
 
         // Cliente no Asaas (um por empresa), criado na primeira cobrança.
@@ -88,7 +88,7 @@ export const handleCreateCheckout = async (req: Req, res: Res) => {
                 billingType: 'UNDEFINED', // a pessoa escolhe PIX, boleto ou cartão na fatura
                 value: price,
                 dueDate: dueDate(3),
-                description: `Lagos GO — Plano ${plan.name} (${plan.period === 'yearly' ? 'anual' : 'mensal'}) — ${biz.name || businessId}`,
+                description: `Lagos GO — Plano ${plan.name} (${planMonths(plan.period) === 12 ? '1 ano' : planMonths(plan.period) === 6 ? '6 meses' : '1 mês'}) — ${biz.name || businessId}`,
                 externalReference: buildReference(token.uid, businessId, planId),
             }),
         });
@@ -146,7 +146,7 @@ export const handleWebhook = async (req: Req, res: Res) => {
         if (!planSnap.exists) return sendJson(res, 200, { received: true, processed: false, reason: 'unknown_plan' });
         const plan = planSnap.data() || {};
         const paidCents = toCents(p.data.value);
-        if (paidCents < toCents(plan.price)) {
+        if (paidCents < toCents(planTotalValue(plan))) {
             console.warn('[webhook] valor pago menor que o plano', { paidCents, paymentId });
             return sendJson(res, 200, { received: true, processed: false, reason: 'amount_mismatch' });
         }

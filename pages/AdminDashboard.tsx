@@ -49,6 +49,7 @@ import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
 import { ClaimReleaseCard } from '../components/admin/ClaimReleaseCard';
 import { hasOwner, waLink } from '../services/claimRules';
+import { brl, periodLabel, planTotal } from '../services/planRules';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -57,7 +58,7 @@ const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 const PLAN_BLANK: Partial<PricingPlan> = {
   name: '',
   price: 0,
-  period: 'monthly',
+  period: 'semiannual',
   maxCoupons: 5,
   maxEvents: 0,
   maxBusinesses: 1,
@@ -2554,7 +2555,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Preço (R$)</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Preço por mês (R$)</label>
                                 <input 
                                     type="number"
                                     required 
@@ -2570,8 +2571,9 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                     value={newPlan.period}
                                     onChange={e => setNewPlan({...newPlan, period: e.target.value as any})}
                                 >
-                                    <option value="monthly">Mensal</option>
-                                    <option value="yearly">Anual</option>
+                                    <option value="semiannual">6 meses</option>
+                                    <option value="yearly">1 ano</option>
+                                    {newPlan.period === 'monthly' && <option value="monthly">1 mês (antigo)</option>}
                                 </select>
                             </div>
                         </div>
@@ -2598,6 +2600,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                     className="w-16 bg-slate-50 p-2 rounded-lg border border-slate-100 font-bold text-xs text-center"
                                     value={newPlan.maxEvents ?? 0}
                                     onChange={e => setNewPlan({...newPlan, maxEvents: Math.max(0, Number(e.target.value) || 0)})}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-slate-600">Max. Empresas</span>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    data-testid="plan-max-businesses"
+                                    className="w-16 bg-slate-50 p-2 rounded-lg border border-slate-100 font-bold text-xs text-center"
+                                    value={newPlan.maxBusinesses ?? 1}
+                                    onChange={e => setNewPlan({...newPlan, maxBusinesses: Math.max(1, Number(e.target.value) || 1)})}
                                 />
                             </div>
 
@@ -2697,7 +2711,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <h4 className="text-xl font-black text-ocean-950">{plan.name}</h4>
-                                            <p className="text-ocean-600 font-bold">R$ {plan.price} <span className="text-[10px] text-slate-400">/{plan.period === 'monthly' ? 'mês' : 'ano'}</span></p>
+                                            <p className="text-ocean-600 font-bold">R$ {plan.price} <span className="text-[10px] text-slate-400">/mês · {periodLabel(plan.period)} = {brl(planTotal(plan))}</span></p>
                                         </div>
                                         <button
                                             type="button"
@@ -3205,7 +3219,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       <div>
                                           <p className="font-black text-sm text-ocean-950 uppercase">{p.name}</p>
                                           <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">
-                                              R$ {p.price.toFixed(2)} / {p.period === 'monthly' ? 'Mês' : 'Ano'}
+                                              R$ {p.price.toFixed(2)}/mês · {periodLabel(p.period)}
                                           </p>
                                       </div>
                                       {selectedPlanForUser === p.id && (

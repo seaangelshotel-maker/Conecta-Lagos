@@ -44,9 +44,14 @@ export const dueDate = (days = 3, now = new Date()) => {
   return br.toISOString().slice(0, 10);
 };
 
+/** Meses do prazo (6 meses, 1 ano; 'monthly' só em planos antigos). */
+export const planMonths = (period?: string) => (period === 'yearly' ? 12 : period === 'semiannual' ? 6 : 1);
+/** Total cobrado: price é o valor por mês. */
+export const planTotalValue = (plan: { price?: unknown; period?: string }) => Math.round(Number(plan.price) * planMonths(plan.period) * 100) / 100;
+
 /** Fim do período do plano a partir do pagamento (mensal ou anual). Se ainda houver prazo, soma a partir dele. */
 export const planEndsAt = (period: string | undefined, currentEnd?: string, now = new Date()) => {
   const start = currentEnd && new Date(currentEnd) > now ? new Date(currentEnd) : new Date(now);
-  if (period === 'yearly') start.setUTCFullYear(start.getUTCFullYear() + 1); else start.setUTCMonth(start.getUTCMonth() + 1);
+  start.setUTCMonth(start.getUTCMonth() + planMonths(period));
   return start.toISOString();
 };

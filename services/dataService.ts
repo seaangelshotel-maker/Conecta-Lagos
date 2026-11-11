@@ -39,7 +39,7 @@ import {
 } from '../types';
 import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
 import { claimApprovalCheck, siblingClaims, pendingClaimFor, validateClaim, releasableForClaim, canClaim, ClaimForm } from './claimRules';
-import { needsDowngrade, downgradeFields, FREE_PLAN_ID } from './planRules';
+import { needsDowngrade, downgradeFields, FREE_PLAN_ID, addPlanPeriod } from './planRules';
 import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
 export type { AppGlobalSettings };
@@ -262,7 +262,7 @@ export const initFirebaseData = () => {
                         id: 'basic', 
                         name: 'Básico', 
                         price: 49.90, 
-                        period: 'monthly', 
+                        period: 'semiannual', 
                         maxCoupons: 3, 
                         maxBusinesses: 1, 
                         active: true,
@@ -272,7 +272,7 @@ export const initFirebaseData = () => {
                         id: 'pro', 
                         name: 'Pro', 
                         price: 99.90, 
-                        period: 'monthly', 
+                        period: 'semiannual', 
                         maxCoupons: 10, 
                         maxBusinesses: 1, 
                         isFeatured: true, 
@@ -287,7 +287,7 @@ export const initFirebaseData = () => {
                         id: 'premium', 
                         name: 'Premium', 
                         price: 199.90, 
-                        period: 'monthly', 
+                        period: 'semiannual', 
                         maxCoupons: 50, 
                         maxBusinesses: 3, 
                         active: true,
@@ -2423,12 +2423,10 @@ export const updateBusinessPlan = async (businessId: string, planId: string) => 
         const now = new Date();
         if (plan.hasFreeTrial && plan.trialDays) {
             now.setDate(now.getDate() + plan.trialDays);
-        } else if (plan.period === 'yearly') {
-            now.setFullYear(now.getFullYear() + 1);
+            subscriptionEndsAt = now.toISOString();
         } else {
-            now.setMonth(now.getMonth() + 1);
+            subscriptionEndsAt = addPlanPeriod(plan.period, now).toISOString();
         }
-        subscriptionEndsAt = now.toISOString();
     }
 
     const updates: any = { 
@@ -2753,7 +2751,7 @@ export const savePricingPlan = async (plan: Partial<PricingPlan>) => {
         id,
         name: plan.name || 'Novo Plano',
         price: plan.price || 0,
-        period: plan.period || 'monthly',
+        period: plan.period || 'semiannual',
         maxCoupons: plan.maxCoupons || 5,
         maxBusinesses: plan.maxBusinesses || 1,
         isFeatured: plan.isFeatured || false,
@@ -2767,6 +2765,8 @@ export const savePricingPlan = async (plan: Partial<PricingPlan>) => {
         ...plan
     } as PricingPlan;
     await setDoc(doc(db, 'pricingPlans', id), newPlan);
+    // Mantém o cache em dia: sem isso, a próxima edição partiria dos valores antigos e desfaria esta.
+    _plans = [..._plans.filter(p => p.id !== id), newPlan];
     return newPlan;
 };
 
@@ -2776,9 +2776,9 @@ export const setUserCouponQuota = async (userId: string, maxCoupons: number | nu
     if (maxCoupons !== null && (!Number.isFinite(maxCoupons) || maxCoupons < 0)) throw new Error('Informe um número igual ou maior que zero.');
     await updateDoc(doc(db, 'users', userId), { maxCoupons: maxCoupons === null ? deleteField() : Math.floor(maxCoupons) });
 };
-
 export const deletePricingPlan = async (id: string) => {
     await deleteDoc(doc(db, 'pricingPlans', id));
+    _plans = _plans.filter(p => p.id !== id);
 };
 
 export const getPaymentSettings = async (): Promise<PaymentSettings> => {

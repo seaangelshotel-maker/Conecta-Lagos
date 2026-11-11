@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { asaasBaseUrl, asaasConfigured, buildReference, parseReference, isValidWebhookToken, cleanCpfCnpj, toCents, dueDate, planEndsAt } from '../server/asaasCore';
+import { asaasBaseUrl, asaasConfigured, buildReference, parseReference, isValidWebhookToken, cleanCpfCnpj, toCents, dueDate, planEndsAt, planTotalValue } from '../server/asaasCore';
 
 test('sandbox por padrão; produção só com ASAAS_ENV=production', () => {
   assert.equal(asaasBaseUrl(undefined), 'https://api-sandbox.asaas.com/v3');
@@ -40,6 +40,13 @@ test('fim do plano soma ao prazo vigente', () => {
   const now = new Date('2026-11-08T00:00:00Z');
   assert.equal(planEndsAt('monthly', undefined, now).slice(0, 10), '2026-12-08');
   assert.equal(planEndsAt('yearly', undefined, now).slice(0, 10), '2027-11-08');
+  assert.equal(planEndsAt('semiannual', undefined, now).slice(0, 10), '2027-05-08');
   assert.equal(planEndsAt('monthly', '2026-12-01T00:00:00Z', now).slice(0, 10), '2027-01-01');
   assert.equal(planEndsAt('monthly', '2026-10-01T00:00:00Z', now).slice(0, 10), '2026-12-08');
+});
+
+test('total cobrado = preço por mês × meses do prazo', () => {
+  assert.equal(planTotalValue({ price: 49.9, period: 'semiannual' }), 299.4);
+  assert.equal(planTotalValue({ price: 99.9, period: 'yearly' }), 1198.8);
+  assert.equal(planTotalValue({ price: 199.9, period: 'monthly' }), 199.9);
 });

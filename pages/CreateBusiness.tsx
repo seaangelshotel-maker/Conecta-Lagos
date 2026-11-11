@@ -1,4 +1,5 @@
 
+import { addPlanPeriod, brl, periodLabel, planTotal } from '../services/planRules';
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, BusinessProfile, PricingPlan } from '../types';
 import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans } from '../services/dataService';
@@ -82,12 +83,10 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 const now = new Date();
                 if (selectedPlan.hasFreeTrial && selectedPlan.trialDays) {
                     now.setDate(now.getDate() + selectedPlan.trialDays);
-                } else if (selectedPlan.period === 'yearly') {
-                    now.setFullYear(now.getFullYear() + 1);
+                    subscriptionEndsAt = now.toISOString();
                 } else {
-                    now.setMonth(now.getMonth() + 1);
+                    subscriptionEndsAt = addPlanPeriod(selectedPlan.period, now).toISOString();
                 }
-                subscriptionEndsAt = now.toISOString();
             }
 
             const selectedNeighborhood = neighborhoods.find(n => n.id === formData.neighborhoodId);
@@ -414,7 +413,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                 <div className="p-4 bg-ocean-50 rounded-2xl border border-ocean-100">
                                     <p className="text-[10px] font-black text-ocean-600 uppercase tracking-widest mb-1">Plano Selecionado</p>
                                     <p className="text-2xl font-black text-ocean-950">{selectedPlan.name}</p>
-                                    <p className="text-sm font-bold text-ocean-800">R$ {selectedPlan.price}/{selectedPlan.period === 'monthly' ? 'mês' : 'ano'}</p>
+                                    <p className="text-sm font-bold text-ocean-800">{brl(selectedPlan.price)}/mês · {periodLabel(selectedPlan.period)} ({brl(planTotal(selectedPlan))})</p>
                                 </div>
 
                                 <div className="space-y-4">

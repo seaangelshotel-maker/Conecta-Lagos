@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
 import { getPricingPlans, getGlobalSettings } from '../services/dataService';
 import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass } from 'lucide-react';
+import { brl, periodLabel, planTotal } from '../services/planRules';
 import { useNotification } from '../components/NotificationSystem';
 
 interface PricingPlansProps {
@@ -122,9 +123,10 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                     )}
                                 </div>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-5xl font-black text-ocean-950">R$ {plan.price}</span>
-                                    <span className="text-slate-400 font-bold text-sm">/{plan.period === 'monthly' ? 'mês' : 'ano'}</span>
+                                    <span className="text-5xl font-black text-ocean-950">{brl(plan.price)}</span>
+                                    <span className="text-slate-400 font-bold text-sm">/mês</span>
                                 </div>
+                                <p className="text-ocean-700 text-xs font-black uppercase tracking-wider" data-testid="plan-total">Plano de {periodLabel(plan.period)} · {brl(planTotal(plan))}</p>
                                 <p className="text-slate-400 text-sm font-medium">Ideal para {plan.name === 'Bronze' ? 'pequenos negócios' : plan.name === 'Prata' ? 'negócios em expansão' : 'grandes operações'}.</p>
                             </div>
 

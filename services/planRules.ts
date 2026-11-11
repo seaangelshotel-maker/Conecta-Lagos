@@ -31,3 +31,16 @@ export const downgradeFields = (b: PlanBiz, nowIso: string) => ({
   previousPlan: b.plan || null,
   planExpiredAt: nowIso,
 });
+
+/** Meses de cada prazo. Planos antigos 'monthly' continuam valendo 1 mês. */
+export const periodMonths = (period?: string): number => (period === 'yearly' ? 12 : period === 'semiannual' ? 6 : 1);
+export const periodLabel = (period?: string): string => (period === 'yearly' ? '1 ano' : period === 'semiannual' ? '6 meses' : '1 mês');
+/** Total cobrado de uma vez (price é por mês). */
+export const planTotal = (p: { price: number; period?: string }): number => Math.round(p.price * periodMonths(p.period) * 100) / 100;
+/** Data de vencimento a partir de `from`, somando o prazo do plano. */
+export const addPlanPeriod = (period: string | undefined, from: Date = new Date()): Date => {
+  const d = new Date(from);
+  d.setMonth(d.getMonth() + periodMonths(period));
+  return d;
+};
+export const brl = (n: number): string => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
