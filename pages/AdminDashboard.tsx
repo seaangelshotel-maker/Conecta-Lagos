@@ -1069,14 +1069,14 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                             <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase w-fit ${u.role === UserRole.SUPER_ADMIN ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-500'}`}>
                                               {u.role === UserRole.SUPER_ADMIN ? '🛡️ SUPER ADMIN' : u.role}
                                             </span>
-                                            {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@conectario.com') && (
+                                            {u.email === 'sea.angelshotel@gmail.com' && (
                                               <span className="text-[8px] font-black text-red-400 uppercase tracking-tighter ml-1">Conta Mestra (Imutável)</span>
                                             )}
                                           </div>
                                       </td>
                                       <td className="px-6 py-5">
                                           <div className="flex justify-center items-center gap-2">
-                                              {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
+                                              {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && (
                                                   <div className="flex gap-1.5 justify-center">
                                                       {u.role !== UserRole.JOURNALIST && u.role !== UserRole.COMPANY && (
                                                           <>
@@ -1190,14 +1190,14 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                           <span className={`inline-block text-[8px] font-black px-2 py-0.5 rounded-full uppercase ${u.role === UserRole.SUPER_ADMIN ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-500'}`}>
                                               {u.role === UserRole.SUPER_ADMIN ? '🛡️ SUPER ADMIN' : u.role}
                                           </span>
-                                          {(u.email === 'sea.angelshotel@gmail.com' || u.email === 'admin@conectario.com') && (
+                                          {u.email === 'sea.angelshotel@gmail.com' && (
                                               <span className="text-[7px] font-black text-red-500 uppercase">Mestre</span>
                                           )}
                                       </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                  {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && u.email !== 'admin@conectario.com' && (
+                                  {u.role !== UserRole.SUPER_ADMIN && u.email !== 'sea.angelshotel@gmail.com' && (
                                       <div className="grid grid-cols-2 gap-2">
                                           {u.role !== UserRole.JOURNALIST && u.role !== UserRole.COMPANY && (
                                               <>
