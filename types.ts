@@ -25,6 +25,8 @@ export interface PricingPlan {
   showReviews: boolean;
   hasFreeTrial?: boolean;
   trialDays?: number;
+  /** Itens extras mostrados na página de planos, um por linha (ex.: pacote de redes sociais). */
+  extra?: string;
   active: boolean;
 }
 

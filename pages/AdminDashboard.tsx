@@ -2615,6 +2615,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                 />
                             </div>
 
+                            <div>
+                                <span className="text-xs font-bold text-slate-600">Itens extras na página de planos <span className="text-slate-400 font-medium">(um por linha)</span></span>
+                                <textarea
+                                    data-testid="plan-extra"
+                                    rows={3}
+                                    className="mt-2 w-full bg-slate-50 p-3 rounded-lg border border-slate-100 font-bold text-xs"
+                                    placeholder="Ex: 1 vídeo por mês nas redes da Lagos GO"
+                                    value={newPlan.extra ?? ''}
+                                    onChange={e => setNewPlan({...newPlan, extra: e.target.value})}
+                                />
+                            </div>
+
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <input 
                                     type="checkbox" 

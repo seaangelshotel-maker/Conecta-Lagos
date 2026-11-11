@@ -17,6 +17,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
     const [loading, setLoading] = useState(true);
     const [isTrialSelection, setIsTrialSelection] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [period, setPeriod] = useState<'semiannual' | 'yearly'>('yearly');
 
     useEffect(() => {
         const loadPlans = async () => {
@@ -81,6 +82,11 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         setLoading(false);
     };
 
+    const hasNew = plans.some(p => p.period === 'semiannual' || p.period === 'yearly');
+    const periodsAvailable = (['semiannual', 'yearly'] as const).filter(pe => plans.some(p => p.period === pe));
+    const activePeriod = periodsAvailable.includes(period) ? period : (periodsAvailable[0] || period);
+    const visiblePlans = (hasNew ? plans.filter(p => p.period === activePeriod) : plans).slice().sort((a, b) => a.price - b.price);
+
     if (loading && plans.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -101,8 +107,21 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                     <p className="text-slate-500 font-medium text-xl leading-relaxed">Impulsione sua visibilidade no Lagos GO e alcance milhares de novos clientes todos os dias com ferramentas profissionais.</p>
                 </div>
 
+                {periodsAvailable.length > 1 && (
+                    <div className="flex justify-center" data-testid="period-toggle">
+                        <div className="inline-flex bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
+                            {periodsAvailable.map(pe => (
+                                <button key={pe} data-testid={`period-${pe}`} onClick={() => setPeriod(pe)}
+                                    className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activePeriod === pe ? 'bg-ocean-600 text-white shadow' : 'text-slate-500 hover:text-ocean-700'}`}>
+                                    {periodLabel(pe)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-                    {plans.map((plan) => (
+                    {visiblePlans.map((plan) => (
                         <div 
                             key={plan.id} 
                             className={`bg-white rounded-[3.5rem] p-12 border-2 transition-all flex flex-col relative ${plan.isFeatured ? 'border-ocean-500 shadow-2xl shadow-ocean-500/10 md:scale-105 z-10' : 'border-slate-100 shadow-xl hover:border-ocean-200'}`}
@@ -127,7 +146,6 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                     <span className="text-slate-400 font-bold text-sm">/mês</span>
                                 </div>
                                 <p className="text-ocean-700 text-xs font-black uppercase tracking-wider" data-testid="plan-total">Plano de {periodLabel(plan.period)} · {brl(planTotal(plan))}</p>
-                                <p className="text-slate-400 text-sm font-medium">Ideal para {plan.name === 'Bronze' ? 'pequenos negócios' : plan.name === 'Prata' ? 'negócios em expansão' : 'grandes operações'}.</p>
                             </div>
 
                             <div className="flex-1 space-y-5 mb-12">
@@ -137,14 +155,32 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                         <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
                                             <Check size={14} className="text-ocean-600" />
                                         </div>
-                                        <span className="text-sm font-bold">Até {plan.maxCoupons} cupons ativos</span>
+                                        <span className="text-sm font-bold">Ficha da empresa com fotos, telefone e endereço</span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-slate-600">
-                                        <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
-                                            <Check size={14} className="text-ocean-600" />
+                                    {plan.maxCoupons > 0 && (
+                                        <div className="flex items-center gap-4 text-slate-600">
+                                            <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-ocean-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">Até {plan.maxCoupons} cupons ativos</span>
                                         </div>
-                                        <span className="text-sm font-bold">Destaque nas pesquisas</span>
-                                    </div>
+                                    )}
+                                    {(plan.maxEvents ?? 0) > 0 && (
+                                        <div className="flex items-center gap-4 text-slate-600">
+                                            <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-ocean-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">Até {plan.maxEvents} {plan.maxEvents === 1 ? 'evento' : 'eventos'} na agenda</span>
+                                        </div>
+                                    )}
+                                    {plan.isFeatured && (
+                                        <div className="flex items-center gap-4 text-slate-600">
+                                            <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-ocean-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">Destaque nas pesquisas</span>
+                                        </div>
+                                    )}
                                     {plan.showGallery && (
                                         <div className="flex items-center gap-4 text-slate-600">
                                             <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
@@ -161,6 +197,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                             <span className="text-sm font-bold">Cardápio digital interativo</span>
                                         </div>
                                     )}
+                                    {(plan.extra || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => (
+                                        <div key={x} className="flex items-center gap-4 text-slate-600" data-testid="plan-extra">
+                                            <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-emerald-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">{x}</span>
+                                        </div>
+                                    ))}
                                     {plan.showSocialMedia && (
                                         <div className="flex items-center gap-4 text-slate-600">
                                             <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
@@ -209,24 +253,6 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                     </button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-slate-200">
-                    <div className="text-center space-y-2">
-                        <div className="text-2xl font-black text-ocean-950">50k+</div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuários Ativos</div>
-                    </div>
-                    <div className="text-center space-y-2">
-                        <div className="text-2xl font-black text-ocean-950">1.2k+</div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresas Parceiras</div>
-                    </div>
-                    <div className="text-center space-y-2">
-                        <div className="text-2xl font-black text-ocean-950">15k+</div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cupons Resgatados</div>
-                    </div>
-                    <div className="text-center space-y-2">
-                        <div className="text-2xl font-black text-ocean-950">4.9/5</div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avaliação Média</div>
-                    </div>
-                </div>
             </div>
         </div>
     );
