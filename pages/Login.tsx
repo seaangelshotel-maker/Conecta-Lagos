@@ -358,7 +358,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                     <ChevronLeft size={20} /> Voltar para Login
                 </button>
                 <h2 className="text-2xl font-black text-ocean-950 mb-2">Venda mais na Região</h2>
-                <p className="text-slate-500 text-xs mb-8 leading-relaxed font-medium">Cadastre seu negócio e comece a oferecer cupons exclusivos para milhares de turistas e moradores.</p>
+                <p className="text-slate-500 text-xs mb-8 leading-relaxed font-medium">Cadastre seu negócio e comece a oferecer cupons exclusivos para turistas e moradores da Região dos Lagos.</p>
                 <form onSubmit={handleCompanyRegisterSubmit} className="space-y-4">
                     <div className="space-y-3">
                         <input placeholder="Nome da Empresa" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-sm outline-none" value={regForm.companyName} onChange={e => setRegForm({...regForm, companyName: e.target.value})} />

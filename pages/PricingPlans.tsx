@@ -108,7 +108,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                         Planos de Crescimento
                     </div>
                     <h1 className="text-6xl font-black text-ocean-950 tracking-tight leading-[0.9]">Escolha o plano ideal para o seu negócio</h1>
-                    <p className="text-slate-500 font-medium text-xl leading-relaxed">Impulsione sua visibilidade no Lagos GO e alcance milhares de novos clientes todos os dias com ferramentas profissionais.</p>
+                    <p className="text-slate-500 font-medium text-xl leading-relaxed">Coloque sua empresa na frente de quem visita e de quem mora na Região dos Lagos, com ficha completa, cupons e eventos.</p>
                 </div>
 
                 {periodsAvailable.length > 1 && (
