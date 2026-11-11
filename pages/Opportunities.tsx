@@ -7,6 +7,7 @@ import { filterOpportunities, OPPORTUNITY_CATEGORIES, OpportunityFilters, todayI
 import { OpportunityCard } from '../components/OpportunityCard';
 import { EmptyState, ErrorState, SkeletonCards, inputClass, primaryButton } from '../components/ui/States';
 
+import { SEO } from '../components/SEO';
 interface Props {
     currentUser: User | null;
     onNavigate: (page: string, params?: any) => void;
@@ -65,6 +66,7 @@ export const OpportunitiesPage: React.FC<Props> = ({ currentUser, onNavigate }) 
 
     return (
         <div className="min-h-screen bg-slate-50 pb-28">
+          <SEO title="Ajuda Colaborativa" description="Trabalhos pontuais, vagas e colaborações entre pessoas e empresas da Região dos Lagos." url="/ajuda" />
             {/* Topo */}
             <div className="bg-gradient-to-br from-ocean-700 to-ocean-900 text-white px-4 md:px-6 pt-8 pb-16 rounded-b-[2.5rem]">
                 <div className="max-w-5xl mx-auto">

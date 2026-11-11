@@ -5,6 +5,7 @@ import { login, registerUser, createCompanyRequest, getCategories, getAppConfig,
 import { Building2, User, ChevronLeft, CheckCircle2, Loader2, Instagram, Globe, Phone, Mail, Lock, UserPlus, LogIn, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 
+import { SEO } from '../components/SEO';
 interface LoginProps {
   onLogin: () => void;
   onNavigate?: (page: string, params?: any) => void;
@@ -166,6 +167,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 md:py-20">
+      <SEO title="Entrar" noindex />
       <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
         
         <div className="text-center mb-8">

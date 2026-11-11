@@ -7,6 +7,7 @@ import { useNotification } from '../components/NotificationSystem';
 import { CouponCard } from '../components/CouponCard';
 import { CouponModal } from '../components/CouponModal';
 
+import { SEO } from '../components/SEO';
 interface SearchPageProps {
   initialCategory?: string;
   initialQuery?: string;
@@ -149,6 +150,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
+      <SEO title="Buscar" noindex />
       <div className="sticky top-0 md:top-16 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all duration-300">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center gap-4 mb-4">

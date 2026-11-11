@@ -15,19 +15,24 @@ import { SearchBar, HScroller } from '../components/DiscoverUI';
 import { FilterSheet, countFilters, type HomeFilters } from '../components/FilterSheet';
 import { nearbyAdaptive, REGION_MUNICIPALITIES } from '../services/regionGeo';
 import { useRegionLocation } from '../hooks/useRegionLocation';
+import { SEO } from '../components/SEO';
+import { cityLandingBySlug, cityLandingByCityId } from '../services/seoRoutes';
 
 
-interface Props { onNavigate: (page: string, params?: any) => void; }
+interface Props { onNavigate: (page: string, params?: any) => void; initialCity?: string; }
 
 const FLAGS = ['🇧🇷', '🇵🇹', '🇪🇸', '🇺🇸', '🇫🇷'];
 
-const readUrl = () => {
+/** Cidade da página aberta: /cabo-frio já chega filtrada. */
+const pathCity = () => cityLandingBySlug((typeof window !== 'undefined' ? window.location.pathname : '').replace(/^\/+|\/+$/g, ''));
+
+const readUrl = (initialCity?: string) => {
   const p = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || '', am: (p.get('am') || '').split(',').filter(Boolean) };
+  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || pathCity()?.cityId || initialCity || '', am: (p.get('am') || '').split(',').filter(Boolean) };
 };
 
-export const Discover: React.FC<Props> = ({ onNavigate }) => {
-  const init = readUrl();
+export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
+  const init = readUrl(initialCity);
   const { language, setLanguage } = useLanguage();
   const { categories } = useHomeConfig();
   const [showFlags, setShowFlags] = useState(false);
@@ -68,8 +73,13 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   useEffect(() => {
     const p = new URLSearchParams();
     if (cat) p.set('cat', cat); if (flt) p.set('f', flt); if (q) p.set('q', q); if (city) p.set('city', city); if (am.length) p.set('am', am.join(','));
+    // Só a cidade escolhida → endereço da cidade (/cabo-frio); qualquer outro filtro → /descubra?…
+    const landing = city ? cityLandingByCityId(city) : undefined;
+    const onlyCity = !!landing && !cat && !flt && !q && !am.length;
+    if (onlyCity) p.delete('city');
     const qs = p.toString();
-    try { window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : '')); } catch { /* ignora */ }
+    const base = onlyCity ? `/${landing!.slug}` : (pathCity() ? '/descubra' : window.location.pathname);
+    try { window.history.replaceState({}, '', base + (qs ? `?${qs}` : '')); } catch { /* ignora */ }
   }, [cat, flt, q, city, am]);
 
   const pickFilter = (id: string) => {
@@ -85,6 +95,8 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const results = useMemo(() => filterBusinesses(businesses, { categories, categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs }), [businesses, categories, cat, flt, city, q, where, am, amenityDefs]);
   const matchedArticles = useMemo(() => (q.trim() ? searchArticles(articles, q) : []), [articles, q]);
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
+  // Página da cidade (só quando a cidade é o único filtro): título e texto próprios.
+  const landingInfo = city && !cat && !flt && !q.trim() && !am.length ? cityLandingByCityId(city) : undefined;
 
   const openArticle = (a: BlogPost) => onNavigate('guide-article', { slug: a.slug || a.id });
   const openBusiness = (b: BusinessProfile) => onNavigate('business-detail', { businessId: b.id });
@@ -95,6 +107,9 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
 
   return (
     <div className="bg-slate-50 min-h-screen pb-28 font-sans">
+      {landingInfo
+        ? <SEO title={landingInfo.title} description={landingInfo.description} url={`/${landingInfo.slug}`} />
+        : <SEO title="Lugares na Região dos Lagos" description="Praias, restaurantes, passeios, hospedagens e serviços em Arraial do Cabo, Cabo Frio e Búzios, com filtros e comodidades." url="/descubra" />}
       {/* Cabeçalho + busca */}
       <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
         <div className="max-w-5xl mx-auto px-4">
@@ -114,8 +129,8 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
               )}
             </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Todos os lugares da região</h1>
-          <p className="text-sm text-white/80 mt-1 max-w-xl">Praias, restaurantes, passeios, hospedagens e serviços, com filtros e comodidades.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">{landingInfo ? landingInfo.title : 'Todos os lugares da região'}</h1>
+          <p className="text-sm text-white/80 mt-1 max-w-xl">{landingInfo ? landingInfo.intro : 'Praias, restaurantes, passeios, hospedagens e serviços, com filtros e comodidades.'}</p>
           <SearchBar className="mt-5" value={q} onChange={setQ} onFilters={openFilters} filterCount={countFilters({ cat, f: flt, city })} />
           {cities.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar" role="group" aria-label="Cidade">

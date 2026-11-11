@@ -175,4 +175,4 @@ export const ShoppingBasket = mk('ShoppingBasket');
 export const Gauge = mk('Gauge');
 export const Megaphone = mk('Megaphone');
 export const Ban = mk('Ban');
-export const Link2 = mk('Link2');
+export const Link2 = mk('Link2');export const Globe2 = mk('Globe2');

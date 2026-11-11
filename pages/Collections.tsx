@@ -3,6 +3,7 @@ import { Collection } from '../types';
 import { getCollections } from '../services/dataService';
 import { Layers, ArrowLeft } from 'lucide-react';
 
+import { SEO } from '../components/SEO';
 interface CollectionsProps {
   onNavigate: (page: string, params?: any) => void;
 }
@@ -23,6 +24,7 @@ export const Collections: React.FC<CollectionsProps> = ({ onNavigate }) => {
 
   return (
     <div className="pb-24 pt-4 min-h-screen bg-slate-50">
+      <SEO title="Coleções" description="Coleções temáticas de lugares e experiências na Região dos Lagos." url="/collections" />
         
         <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
             <h1 className="text-2xl font-bold text-ocean-950 mb-1">Coleções & Listas</h1>

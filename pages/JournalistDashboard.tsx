@@ -5,6 +5,7 @@ import { Pencil, Trash2, Plus, Image as ImageIcon, Tag, Globe, Settings, FileTex
 import { ImageUpload } from '../components/ImageUpload';
 import { useNotification } from '../components/NotificationSystem';
 
+import { SEO } from '../components/SEO';
 interface JournalistDashboardProps {
   currentUser: User;
   onNavigate: (page: string, params?: any) => void;
@@ -276,6 +277,7 @@ export function JournalistDashboard({ currentUser, onNavigate, onLogout }: Journ
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      <SEO title="Painel do jornalista" noindex />
       {/* Mobile Header */}
       <div className="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center sticky top-0 z-50">
           <h2 className="text-lg font-black text-ocean-950 uppercase tracking-tight">Painel Jornalista</h2>

@@ -7,6 +7,7 @@ import { brl, periodLabel, planTotal } from '../services/planRules';
 import { waLink } from '../services/claimRules';
 import { useNotification } from '../components/NotificationSystem';
 
+import { SEO } from '../components/SEO';
 interface PricingPlansProps {
     currentUser: User | null;
     onNavigate: (page: string) => void;
@@ -101,6 +102,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
 
     return (
         <div className="min-h-screen bg-slate-50 pb-24 pt-24 px-6">
+          <SEO title="Planos para empresas" description="Coloque sua empresa na frente de quem visita e de quem mora na Região dos Lagos, com ficha completa, cupons e eventos." url="/pricing-plans" />
             <div className="max-w-7xl mx-auto space-y-20">
                 <div className="text-center space-y-6 max-w-3xl mx-auto">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-ocean-100 text-ocean-700 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">

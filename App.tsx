@@ -19,6 +19,7 @@ const UserDashboard = lazy(() => import('./pages/UserDashboard').then(m => ({ de
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const JournalistDashboard = lazy(() => import('./pages/JournalistDashboard').then(m => ({ default: m.JournalistDashboard })));
 const JournalistPublicPage = lazy(() => import('./pages/JournalistPublicPage').then(m => ({ default: m.JournalistPublicPage })));
+const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.SearchPage })));
 const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
 const PrivacyPolicy = lazy(() => import('./pages/Legal').then(m => ({ default: m.PrivacyPolicy })));
@@ -41,6 +42,8 @@ const OpportunityDetail = lazy(() => import('./pages/OpportunityDetail').then(m 
 const OpportunityForm = lazy(() => import('./pages/OpportunityForm').then(m => ({ default: m.OpportunityForm })));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities').then(m => ({ default: m.MyOpportunities })));
 const OpportunityManage = lazy(() => import('./pages/OpportunityManage').then(m => ({ default: m.OpportunityManage })));
+
+import { cityLandingBySlug, cityLandingByCityId } from './services/seoRoutes';
 
 type Route = { page: string; params: any };
 
@@ -98,7 +101,13 @@ const parseUrl = (): Route => {
     case '/journalist-dashboard': return { page: 'journalist-dashboard', params: null };
     case '/create-business': return { page: 'create-business', params: null };
     case '/pricing-plans': return { page: 'pricing-plans', params: null };
-    default: return { page: 'home', params: null };
+    case '/': return { page: 'home', params: null };
+    default: {
+      // Páginas por cidade (/arraial-do-cabo, /cabo-frio, /buzios) abrem os lugares já filtrados.
+      const city = cityLandingBySlug(path.slice(1));
+      if (city) return { page: 'discover', params: { city: city.cityId, citySlug: city.slug } };
+      return { page: 'not-found', params: null };
+    }
   }
 };
 
@@ -110,6 +119,9 @@ const buildUrl = (page: string, params?: any): string => {
     case 'search': return '/search';
     case 'blog': return '/blog' + (params?.tipo ? `?tipo=${encodeURIComponent(params.tipo)}` : '');
     case 'discover': {
+      // Só a cidade escolhida: usa o endereço da página da cidade (melhor para o Google e para compartilhar).
+      const landing = params?.citySlug ? { slug: params.citySlug } : (params?.city ? cityLandingByCityId(params.city) : undefined);
+      if (landing && !['q', 'cat', 'f', 'am'].some(k => params?.[k])) return `/${landing.slug}`;
       const qs = new URLSearchParams();
       ['q', 'cat', 'f', 'city'].forEach(k => { if (params?.[k]) qs.set(k, params[k]); });
       const str = qs.toString();
@@ -281,7 +293,9 @@ function AppContent() {
       case 'delete-account':
         return <DeleteAccountPage onNavigate={handleNavigate} currentUser={user} />;
       case 'discover':
-        return <Discover onNavigate={handleNavigate} />;
+        return <Discover onNavigate={handleNavigate} initialCity={pageParams?.city} />;
+      case 'not-found':
+        return <NotFound onNavigate={handleNavigate} />;
       case 'guide-article':
         return <GuideArticle slug={pageParams?.slug} onNavigate={handleNavigate} />;
       case 'blog':

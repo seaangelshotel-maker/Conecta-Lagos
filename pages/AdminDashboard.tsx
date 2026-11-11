@@ -37,6 +37,7 @@ import { BlogAdsManager } from '../components/admin/BlogAdsManager';
 import { BlogPostsManager } from '../components/admin/BlogPostsManager';
 import { ModerationPanel } from '../components/admin/ModerationPanel';
 import { EcosystemSettings } from '../components/admin/EcosystemSettings';
+import { SeoDashboard } from '../components/admin/SeoDashboard';
 import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
@@ -53,6 +54,7 @@ import { brl, periodLabel, planTotal } from '../services/planRules';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
+import { SEO } from '../components/SEO';
 const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const PLAN_BLANK: Partial<PricingPlan> = {
@@ -74,7 +76,7 @@ const PLAN_BLANK: Partial<PricingPlan> = {
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
-  const [view, setView] = useState<'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS'>(() => {
+  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS'>(() => {
     try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
   });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
@@ -507,6 +509,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
   return (
     <div className="pb-32 pt-10 px-4 max-w-7xl mx-auto space-y-8 animate-in fade-in">
+      <SEO title="Painel administrativo" noindex />
       
       {isExpired && view !== 'MY_PLAN' && (
           <div className="bg-red-50 border border-red-200 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in">
@@ -3036,6 +3039,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </button>
               </div>
               <ModerationPanel onNavigate={onNavigate} />
+          </div>
+      )}
+
+      {view === 'SEO' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-6">
+              <button onClick={() => setView('HOME')} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
+                  <ChevronLeft size={16} /> Voltar
+              </button>
+              <SeoDashboard onNavigate={onNavigate} />
           </div>
       )}
 

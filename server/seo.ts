@@ -8,6 +8,7 @@
  *   título, descrição, imagem, canônico, JSON-LD e um resumo em texto de cada página.
  */
 import type { Req, Res } from './http.js';
+import { OFFICIAL_SITE_URL, CITY_LANDINGS, cityLandingBySlug, isKnownPath, PRIVATE_PATH_RE } from '../services/seoRoutes.js';
 
 const PROJECT = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'conectario-dd04b';
 const API_KEY = process.env.VITE_FIREBASE_API_KEY || 'AIzaSyCLyaiF_RVOd4BXNE9sZ4sGNsjlqu6ihdQ';
@@ -17,12 +18,15 @@ const DEFAULT_DESC = 'Guia da Região dos Lagos (RJ): praias, restaurantes, pass
 
 /* ---------- utilidades ---------- */
 
-/** Domínio público: SITE_URL (quando o domínio próprio estiver ligado) ou o host da requisição. */
+/**
+ * Domínio público. Sempre o oficial (lagosgo.com.br), mesmo quando a página é aberta pelo endereço
+ * técnico da Vercel: assim o Google nunca indexa a cópia. SITE_URL pode trocar o oficial; só em
+ * desenvolvimento (localhost) usa o host da requisição.
+ */
 export const siteUrl = (req?: Req) => {
-  const env = (process.env.SITE_URL || '').replace(/\/+$/, '');
-  if (env) return env;
-  const host = (req?.headers['x-forwarded-host'] as string) || req?.headers.host || 'conecta-lagos-one.vercel.app';
-  return `https://${String(host).split(',')[0].trim()}`;
+  const host = String((req?.headers['x-forwarded-host'] as string) || req?.headers.host || '').split(',')[0].trim();
+  if (/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(host)) return `http://${host}`;
+  return (process.env.SITE_URL || OFFICIAL_SITE_URL).replace(/\/+$/, '');
 };
 
 export const esc = (s: unknown) => String(s ?? '')
@@ -78,6 +82,17 @@ const fsFindBySlug = async (slug: string): Promise<any | null> => {
   return d ? docToObj(d) : null;
 };
 
+/** Consulta simples por igualdade (a regra de eventos só libera leitura filtrada por status). */
+const fsQueryEq = async (collection: string, field: string, value: string, limit = 500): Promise<any[]> => {
+  const r = await fetch(`${FS}:runQuery?key=${API_KEY}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: collection }], where: { fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: { stringValue: value } } }, limit } }),
+  });
+  if (!r.ok) return [];
+  const rows: any[] = await r.json();
+  return rows.filter(x => x.document).map(x => docToObj(x.document));
+};
+
 const isLive = (b: any) => !b.isBlocked && (!b.status || b.status === 'approved');
 const isPublished = (p: any) => p.status !== 'draft' && !!p.title;
 const isoDate = (s?: string) => { const m = String(s || '').match(/^\d{4}-\d{2}-\d{2}/); return m ? m[0] : ''; };
@@ -86,21 +101,28 @@ const isoDate = (s?: string) => { const m = String(s || '').match(/^\d{4}-\d{2}-
 
 const STATIC_PAGES: { path: string; priority: string; freq: string }[] = [
   { path: '/', priority: '1.0', freq: 'daily' },
+  ...CITY_LANDINGS.map(c => ({ path: `/${c.slug}`, priority: '0.9', freq: 'daily' })),
   { path: '/descubra', priority: '0.9', freq: 'daily' },
   { path: '/blog', priority: '0.9', freq: 'daily' },
+  { path: '/eventos', priority: '0.8', freq: 'daily' },
   { path: '/guide', priority: '0.8', freq: 'weekly' },
+  { path: '/map', priority: '0.6', freq: 'weekly' },
   { path: '/collections', priority: '0.6', freq: 'weekly' },
   { path: '/ajuda', priority: '0.6', freq: 'daily' },
+  { path: '/pricing-plans', priority: '0.5', freq: 'monthly' },
   { path: '/privacidade', priority: '0.2', freq: 'yearly' },
   { path: '/termos', priority: '0.2', freq: 'yearly' },
   { path: '/excluir-conta', priority: '0.2', freq: 'yearly' },
 ];
 
+const todayBR = () => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10);
+
 export const sitemapEntries = async () => {
-  const [biz, posts, cols] = await Promise.all([
+  const [biz, posts, cols, events] = await Promise.all([
     fsList('businesses', ['status', 'isBlocked', 'name']).catch(() => []),
     fsList('blog_posts', ['status', 'title', 'kind', 'slug', 'date']).catch(() => []),
     fsList('collections', ['active', 'title']).catch(() => []),
+    fsQueryEq('events', 'status', 'published').catch(() => []),
   ]);
   const entries: { path: string; lastmod?: string; priority: string; freq: string }[] = [...STATIC_PAGES];
   biz.filter(isLive).forEach(b => entries.push({ path: `/business/${encodeURIComponent(b.id)}`, priority: '0.7', freq: 'weekly' }));
@@ -109,6 +131,10 @@ export const sitemapEntries = async () => {
     lastmod: isoDate(p.date), priority: p.kind === 'guia' ? '0.8' : '0.6', freq: 'monthly',
   }));
   cols.filter(c => c.active !== false && c.title).forEach(c => entries.push({ path: `/collection/${encodeURIComponent(c.id)}`, priority: '0.5', freq: 'weekly' }));
+  // Eventos publicados que ainda não acabaram (os encerrados saem do mapa do site).
+  const today = todayBR();
+  events.filter(e => e.title && (e.endDate || e.startDate || '') >= today)
+    .forEach(e => entries.push({ path: `/eventos/${encodeURIComponent(e.id)}`, lastmod: isoDate(e.startDate) <= today ? today : '', priority: '0.7', freq: 'daily' }));
   return entries;
 };
 
@@ -124,6 +150,11 @@ export const buildRobots = (base: string) => [
   'Disallow: /admin-dashboard',
   'Disallow: /journalist-dashboard',
   'Disallow: /user-dashboard',
+  'Disallow: /super-admin-dashboard',
+  'Disallow: /login',
+  'Disallow: /create-business',
+  'Disallow: /search',
+  'Disallow: /subscribe',
   'Disallow: /ajuda/gerenciar/',
   'Disallow: /ajuda/editar/',
   'Disallow: /api/',
@@ -136,7 +167,7 @@ export const buildRobots = (base: string) => [
 
 export interface PageMeta {
   title: string; description: string; image?: string; type: 'website' | 'article';
-  canonical: string; jsonLd: any[]; body: string; noindex?: boolean;
+  canonical: string; jsonLd: any[]; body: string; noindex?: boolean; notFound?: boolean;
 }
 
 const breadcrumbs = (base: string, items: [string, string][]) => ({
@@ -144,7 +175,16 @@ const breadcrumbs = (base: string, items: [string, string][]) => ({
   itemListElement: items.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name, item: base + path })),
 });
 
-const CITY: Record<string, string> = { city_arraial_do_cabo: 'Arraial do Cabo', city_cabo_frio: 'Cabo Frio', city_buzios: 'Armação dos Búzios', arraial: 'Arraial do Cabo' };
+const CITY: Record<string, string> = {
+  city_arraial_do_cabo: 'Arraial do Cabo', city_cabo_frio: 'Cabo Frio', city_buzios: 'Armação dos Búzios', arraial: 'Arraial do Cabo',
+  'arraial-do-cabo': 'Arraial do Cabo', 'cabo-frio': 'Cabo Frio', buzios: 'Armação dos Búzios', 'sao-pedro-da-aldeia': 'São Pedro da Aldeia',
+  'iguaba-grande': 'Iguaba Grande', araruama: 'Araruama', saquarema: 'Saquarema',
+};
+const longDate = (iso?: string) => {
+  const d = isoDate(iso); if (!d) return '';
+  try { return new Date(`${d}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' }); } catch { return d; }
+};
+const NOT_FOUND = (def: PageMeta, title: string): PageMeta => ({ ...def, title: `${title} | ${BRAND}`, noindex: true, notFound: true, body: `<h1>${esc(title)}</h1><p>Esta página não existe ou foi retirada. Volte ao <a href="/">início do ${BRAND}</a>.</p>` });
 const TOURIST_SUBS = ['praias', 'trilhas', 'natureza', 'mirantes', 'pontos históricos', 'cultura'];
 
 const businessType = (b: any) => {
@@ -173,7 +213,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
   let m: RegExpMatchArray | null;
   if ((m = clean.match(/^\/business\/([^/]+)$/))) {
     const b = await fsGet(`businesses/${decodeURIComponent(m[1])}`).catch(() => null);
-    if (!b || !isLive(b)) return { ...def, title: `Lugar não encontrado | ${BRAND}`, noindex: true };
+    if (!b || !isLive(b)) return NOT_FOUND(def, 'Lugar não encontrado');
     const city = CITY[b.cityId] || '';
     const desc = clip(b.description || `${b.subcategory || b.category || 'Lugar'} em ${city || 'Região dos Lagos'}.`, 160);
     const rating = realRating(b);
@@ -195,7 +235,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
   if ((m = clean.match(/^\/guia\/([^/]+)$/))) {
     const slug = decodeURIComponent(m[1]);
     const a = (await fsGet(`blog_posts/guia_${slug}`).catch(() => null)) || (await fsFindBySlug(slug).catch(() => null));
-    if (!a || !isPublished(a)) return { ...def, title: `Matéria não encontrada | ${BRAND}`, noindex: true };
+    if (!a || !isPublished(a)) return NOT_FOUND(def, 'Matéria não encontrada');
     const ld = {
       '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.excerpt, inLanguage: 'pt-BR',
       datePublished: isoDate(a.date) || undefined, dateModified: isoDate(a.date) || undefined, image: a.imageUrl || undefined,
@@ -211,7 +251,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
 
   if ((m = clean.match(/^\/blog\/([^/]+)$/))) {
     const p = await fsGet(`blog_posts/${decodeURIComponent(m[1])}`).catch(() => null);
-    if (!p || !isPublished(p)) return { ...def, title: `Publicação não encontrada | ${BRAND}`, noindex: true };
+    if (!p || !isPublished(p)) return NOT_FOUND(def, 'Publicação não encontrada');
     if (p.kind === 'guia') return { ...def, canonical: `${base}/guia/${encodeURIComponent(p.slug || p.id)}` };
     const ld = {
       '@context': 'https://schema.org', '@type': 'BlogPosting', headline: p.title, description: p.excerpt, inLanguage: 'pt-BR',
@@ -225,9 +265,33 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     };
   }
 
+  if ((m = clean.match(/^\/eventos\/([^/]+)$/))) {
+    const e = await fsGet(`events/${decodeURIComponent(m[1])}`).catch(() => null);
+    if (!e || e.status !== 'published' || !e.title) return NOT_FOUND(def, 'Evento não encontrado');
+    const city = CITY[e.cityId] || '';
+    const when = e.endDate && e.endDate !== e.startDate ? `de ${longDate(e.startDate)} a ${longDate(e.endDate)}` : `em ${longDate(e.startDate)}`;
+    const place = [e.locationName, city].filter(Boolean).join(', ');
+    const desc = clip(e.description || `${e.title} ${when}${place ? `, ${place}` : ''}. Veja horário, local e como chegar no ${BRAND}.`, 160);
+    const end = e.endDate && e.endDate >= e.startDate ? e.endDate : e.startDate;
+    const ld = {
+      '@context': 'https://schema.org', '@type': 'Event', name: e.title, description: clip(e.description || '', 500) || undefined,
+      startDate: e.startTime ? `${e.startDate}T${e.startTime}:00-03:00` : e.startDate,
+      endDate: e.endTime ? `${end}T${e.endTime}:00-03:00` : end,
+      eventStatus: 'https://schema.org/EventScheduled', eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      location: { '@type': 'Place', name: e.locationName || city || 'Região dos Lagos', address: { '@type': 'PostalAddress', streetAddress: e.address || undefined, addressLocality: city || undefined, addressRegion: 'RJ', addressCountry: 'BR' } },
+      image: e.coverImage && /^https?:\/\//.test(e.coverImage) ? e.coverImage : undefined,
+      isAccessibleForFree: e.isFree ? true : undefined, url: canonical,
+    };
+    return {
+      title: `${e.title}${city ? ` em ${city}` : ''} | ${BRAND}`, description: desc, image: e.coverImage, type: 'website', canonical,
+      jsonLd: [ld, breadcrumbs(base, [['Início', '/'], ['Eventos', '/eventos'], [e.title, clean]])],
+      body: `<article><h1>${esc(e.title)}</h1><p>${esc(when)}${place ? ` — ${esc(place)}` : ''}</p>${e.address ? `<p>${esc(e.address)}</p>` : ''}<p>${esc(e.description || '')}</p></article>`,
+    };
+  }
+
   if ((m = clean.match(/^\/collection\/([^/]+)$/))) {
     const c = await fsGet(`collections/${decodeURIComponent(m[1])}`).catch(() => null);
-    if (!c || c.active === false) return { ...def, noindex: true };
+    if (!c || c.active === false) return NOT_FOUND(def, 'Coleção não encontrada');
     return { ...def, title: `${c.title} | ${BRAND}`, description: clip(c.description || `Coleção ${c.title} no ${BRAND}.`, 160), image: c.coverImage, body: `<h1>${esc(c.title)}</h1><p>${esc(c.description || '')}</p>` };
   }
 
@@ -236,6 +300,9 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     '/descubra': [`Lugares na Região dos Lagos | ${BRAND}`, 'Praias, restaurantes, passeios, hospedagens e serviços em Arraial do Cabo, Cabo Frio e Búzios, com filtros e comodidades.'],
     '/blog': [`Feed: notícias, matérias e dicas | ${BRAND}`, 'Notícias, matérias, eventos e dicas da Região dos Lagos para moradores e visitantes.'],
     '/guide': [`Guia de empresas | ${BRAND}`, 'Empresas e serviços da Região dos Lagos.'],
+    '/eventos': [`Agenda de eventos da Região dos Lagos | ${BRAND}`, 'Shows, festivais, feiras, esportes e eventos em Arraial do Cabo, Cabo Frio, Búzios e toda a Região dos Lagos.'],
+    '/map': [`Mapa da Região dos Lagos | ${BRAND}`, 'Mapa com praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios.'],
+    '/pricing-plans': [`Planos para empresas | ${BRAND}`, 'Coloque sua empresa na frente de quem visita e de quem mora na Região dos Lagos, com ficha completa, cupons e eventos.'],
     '/collections': [`Coleções | ${BRAND}`, 'Coleções temáticas de lugares e experiências na Região dos Lagos.'],
     '/ajuda': [`Ajuda Colaborativa | ${BRAND}`, 'Trabalhos pontuais, vagas e colaborações entre pessoas e empresas da Região dos Lagos.'],
     '/privacidade': [`Política de Privacidade | ${BRAND}`, 'Como o Lagos GO trata seus dados pessoais, conforme a LGPD.'],
@@ -251,8 +318,22 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     ] : [];
     return { ...def, title, description, jsonLd, body: `<h1>${esc(title)}</h1><p>${esc(description)}</p>` };
   }
-  const privateArea = /^\/(admin-dashboard|user-dashboard|journalist-dashboard|login|ajuda\/(editar|gerenciar|minhas|interesses|publicar))/.test(clean);
-  return { ...def, noindex: privateArea };
+  const cityPage = cityLandingBySlug(clean.slice(1));
+  if (cityPage) {
+    const biz = await fsList('businesses', ['status', 'isBlocked', 'name', 'cityId', 'category', 'subcategory']).catch(() => []);
+    const here = biz.filter(isLive).filter(b => b.cityId === cityPage.cityId).slice(0, 30);
+    const ld = [
+      { '@context': 'https://schema.org', '@type': 'CollectionPage', name: cityPage.title, description: cityPage.description, url: canonical, inLanguage: 'pt-BR',
+        about: { '@type': 'City', name: cityPage.name, containedInPlace: { '@type': 'AdministrativeArea', name: 'Região dos Lagos, RJ' } } },
+      ...(here.length ? [{ '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: here.map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b.name, url: `${base}/business/${encodeURIComponent(b.id)}` })) }] : []),
+      breadcrumbs(base, [['Início', '/'], [cityPage.name, clean]]),
+    ];
+    return { ...def, title: `${cityPage.title} | ${BRAND}`, description: cityPage.description, jsonLd: ld,
+      body: `<h1>${esc(cityPage.title)}</h1><p>${esc(cityPage.intro)}</p><ul>${here.map(b => `<li><a href="/business/${encodeURIComponent(b.id)}">${esc(b.name)}</a></li>`).join('')}</ul>` };
+  }
+  if (PRIVATE_PATH_RE.test(clean)) return { ...def, noindex: true };
+  if (!isKnownPath(clean)) return NOT_FOUND(def, 'Página não encontrada');
+  return def;
 };
 
 /** Injeta os metadados no index.html do app (o app React continua igual para quem abre). */
@@ -308,7 +389,7 @@ export const handleRender = async (req: Req, res: Res) => {
   try {
     const [htmlRes, meta] = await Promise.all([fetch(`${base}/index.html`, { headers: { 'x-seo-render': '1' } }), pageMeta(path, base)]);
     const html = await htmlRes.text();
-    send(res, meta.noindex && meta.title.includes('não encontrad') ? 404 : 200, 'text/html; charset=utf-8', injectMeta(html, meta, base), 's-maxage=600, stale-while-revalidate=86400');
+    send(res, meta.notFound ? 404 : 200, 'text/html; charset=utf-8', injectMeta(html, meta, base), 's-maxage=600, stale-while-revalidate=86400');
   } catch {
     res.statusCode = 302; res.setHeader('Location', '/index.html'); res.end();
   }

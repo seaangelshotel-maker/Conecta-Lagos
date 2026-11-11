@@ -5,6 +5,7 @@ import { Coupon } from '../types';
 import { getCoupons, calculateDistance } from '../services/dataService';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 
+import { SEO } from '../components/SEO';
 // Bounds of Rio de Janeiro (Greater Rio) for mapping logic
 // Expanded to cover Sepetiba (West) to Niterói (East) and North Zone
 // Top-Left (North-West): Near Seropédica/Itaguaí
@@ -49,6 +50,7 @@ export const MapPage: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#eef6f8] overflow-hidden">
+      <SEO title="Mapa da Região dos Lagos" description="Mapa com praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios." url="/map" />
         
         {/* Background - Simplified Rio Geometry Abstract */}
         <div className="absolute inset-0 opacity-40 pointer-events-none">

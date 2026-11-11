@@ -34,6 +34,7 @@ import { EventsShelf } from "../components/EventCards";
 import { HScroller } from "../components/DiscoverUI";
 import { LeadCard, CompactCard, StreamCard, contentType, openContent, ContentType, TYPE_META } from "../components/FeedCards";
 
+import { SEO } from '../components/SEO';
 interface BlogProps {
   onNavigate?: (page: string, params?: any) => void;
 }
@@ -195,6 +196,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
 
   return (
     <div className="pb-28 min-h-screen bg-slate-50 font-sans">
+      <SEO title="Feed: notícias, matérias e dicas" description="Notícias, matérias, eventos e dicas da Região dos Lagos para moradores e visitantes." url="/blog" />
       {/* Cabeçalho do portal */}
       <header className="bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">

@@ -55,7 +55,7 @@ async def main():
         txt = await page.locator('[data-testid=digest-text]').input_value()
         ok('texto traz o evento do fim de semana', 'Festival do Peixe' in txt and 'Praia dos Anjos' in txt, txt[:200])
         ok('texto traz cupom com economia em reais', 'economize R$' in txt, txt[:300])
-        ok('texto traz o link do app', 'conecta-lagos-one.vercel.app/eventos' in txt)
+        ok('texto traz o link do app', 'lagosgo.com.br/eventos' in txt)
         ok('contagem mostra 1 evento', '1 evento' in await page.locator('[data-testid=digest-counts]').inner_text())
         await page.locator('[data-testid=digest-text]').fill(txt + '\nRecado extra do admin')
         await page.locator('[data-testid=digest-copy]').click(); await page.wait_for_timeout(500)

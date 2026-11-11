@@ -17,6 +17,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { useNotification } from '../components/NotificationSystem';
 import { X, AlertTriangle } from 'lucide-react';
 
+import { SEO } from '../components/SEO';
 interface CouponReceiptModalProps {
     record: RedemptionView;
     onClose: () => void;
@@ -190,6 +191,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
   return (
     <div className="pb-24 pt-8 md:pt-20 bg-slate-50 min-h-screen px-4 max-w-5xl mx-auto">
+      <SEO title="Minha conta" noindex />
       
       {/* Header Profile */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
