@@ -14,6 +14,7 @@ import {
   X,
   ChevronDown,
   ListFilter,
+  SlidersHorizontal,
   ShoppingBag,
   Ticket,
   Store,
@@ -56,6 +57,7 @@ import { useNotification } from "../components/NotificationSystem";
 import { nearbyAdaptive } from "../services/regionGeo";
 import { useRegionLocation } from "../hooks/useRegionLocation";
 import { RegionChip } from "../components/RegionChip";
+import { CategoryIcon, guessCategoryIcon } from "../components/categoryIcons";
 import { useLanguage, Translate } from "../hooks/useLanguage";
 
 interface BusinessGuideProps {
@@ -518,307 +520,152 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
 
   return (
     <div className="pb-24 pt-4 min-h-screen bg-slate-50/50">
-      {/* 1. HEADER SECTION (Typography & GPS Polish matching user screenshot) */}
-      <div className="px-4 mb-5 max-w-7xl mx-auto w-full">
-        <div className="flex justify-between items-start gap-3 pb-3 border-b border-slate-100">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">
-              Guia Comercial
-            </h1>
-            <p className="text-xs text-slate-400 font-semibold leading-none mt-1">
-              Os melhores lugares da{" "}
-              <strong className="text-slate-600">Região dos Lagos</strong> na
-              palma da sua mão.
+      {/* 1. TOPO: título + cidade (um só controle de localização) */}
+      <div className="px-4 max-w-7xl mx-auto w-full">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[26px] sm:text-3xl font-black text-ocean-950 tracking-tight leading-tight">Guia Comercial</h1>
+            <p className="text-sm text-slate-500 mt-0.5 leading-snug">
+              {nearby && currentLocationName && currentLocationName !== "Todas as Regiões"
+                ? `Perto de você · ${currentLocationName}`
+                : "Lugares e serviços da Região dos Lagos"}
             </p>
-            <RegionChip loc={loc} className="pt-2" />
           </div>
+          <RegionChip loc={loc} compact tone="light" className="shrink-0" />
+        </div>
+      </div>
 
-          {/* Dynamic GPS indicator shown as a pill matching user design */}
-          <button
-            onClick={handleNearbyClick}
-            className="flex items-center gap-1.5 bg-sky-50/70 border border-sky-100 px-3 py-1.5 rounded-full text-xs font-semibold text-sky-700 hover:bg-sky-100/60 transition-all cursor-pointer active:scale-95 shrink-0 select-none shadow-2xs"
-          >
-            <MapPin
-              size={13}
-              className={
-                nearby
-                  ? "fill-current animate-pulse text-sky-600"
-                  : "text-sky-500"
-              }
+      {/* 2. BUSCA + FILTROS */}
+      <div className="px-4 mt-4 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-2">
+          <label className="flex-1 min-w-0 flex items-center gap-2.5 bg-white border border-slate-200 rounded-2xl h-12 pl-4 pr-2 shadow-sm focus-within:border-ocean-300 focus-within:ring-4 focus-within:ring-ocean-500/10 transition-all">
+            <Search className="text-slate-400 shrink-0" size={18} aria-hidden />
+            <input
+              type="text"
+              placeholder="Buscar lugares e serviços"
+              aria-label="Buscar lugares e serviços"
+              enterKeyHint="search"
+              className="flex-1 min-w-0 bg-transparent border-0 shadow-none outline-none ring-0 focus:ring-0 p-0 text-[15px] text-slate-800 placeholder:text-slate-400"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
-            <span>
-              {currentLocationName === "Todas as Regiões"
-                ? "Todas as Regiões"
-                : currentLocationName}
-            </span>
-            {nearby && (
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />
+            {query && (
+              <button type="button" onClick={() => setQuery("")} aria-label="Limpar busca" className="w-8 h-8 flex items-center justify-center text-slate-400 shrink-0">
+                <X size={16} />
+              </button>
+            )}
+          </label>
+          <button
+            type="button"
+            onClick={() => setActiveModal("filters")}
+            aria-label={selectedAmenities.length ? `Filtros (${selectedAmenities.length} ativos)` : "Filtros"}
+            data-testid="guide-open-filters"
+            className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition-all ${selectedAmenities.length > 0 ? "bg-ocean-600 border-ocean-600 text-white" : "bg-white border-slate-200 text-ocean-700"}`}
+          >
+            <SlidersHorizontal size={20} strokeWidth={2.3} />
+            {selectedAmenities.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">{selectedAmenities.length}</span>
             )}
           </button>
         </div>
       </div>
 
-      {/* 2. MAIN SEARCH & FILTERS PANEL */}
-      <div className="px-4 mb-6 max-w-7xl mx-auto w-full">
-        <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200/60">
-          {/* 2a. Real-time Search Field */}
-          <div className="relative flex items-center mb-4">
-            <Search
-              className="absolute left-4 text-slate-400/85 pointer-events-none"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="O que você procura?"
-              className="w-full bg-slate-50/50 border border-slate-100/90 rounded-2xl py-3.5 pl-11 pr-11 outline-none text-sm font-semibold text-slate-700 placeholder-slate-400/80 focus:ring-4 focus:ring-ocean-500/5 focus:border-ocean-200 transition-all shadow-2xs"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query && (
+      {/* 3. CATEGORIAS (carrossel de borda a borda) */}
+      <div className="mt-4 max-w-7xl mx-auto w-full">
+        <div role="group" aria-label="Categorias" className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-1 snap-x snap-proximity scroll-px-4">
+          {[{ id: "__all", name: "Todos", icon: "Compass" }, ...categories.map((c) => ({ id: c.id, name: c.name, icon: guessCategoryIcon(c.name) }))].map((cat) => {
+            const isAll = cat.id === "__all";
+            const isActive = isAll ? selectedCategory === "Todos" : selectedCategory.toLowerCase() === cat.name.toLowerCase();
+            return (
               <button
-                onClick={() => setQuery("")}
-                className="absolute right-4 text-slate-400 hover:text-slate-600 transition-colors"
+                key={cat.id}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => { setSelectedCategory(isAll ? "Todos" : cat.name); setSelectedSubCategory("Todos"); }}
+                className="flex flex-col items-center gap-1.5 w-[74px] shrink-0 snap-start group"
               >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-
-          {/* 2c. Horizontal Scrollable Category Slider */}
-          <div className="pt-0 overflow-x-auto hide-scrollbar pb-1 px-0.5 mt-2">
-            <div className="flex gap-4.5">
-              {/* TODOS bubble card */}
-              <div
-                onClick={() => {
-                  setSelectedCategory("Todos");
-                  setSelectedSubCategory("Todos");
-                }}
-                className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
-              >
-                <div
-                  className={`w-[60px] h-[60px] rounded-2xl flex items-center justify-center transition-all ${selectedCategory === "Todos" ? "bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white shadow-md shadow-ocean-500/20 scale-103" : "bg-white border border-slate-100 text-slate-400 group-hover:bg-slate-100/50 shadow-2xs"}`}
-                >
-                  <Compass
-                    size={22}
-                    className={
-                      selectedCategory === "Todos"
-                        ? "animate-[spin_4s_linear_infinite]"
-                        : ""
-                    }
-                  />
-                </div>
-                <span
-                  className={`text-[10px] sm:text-xs font-black uppercase tracking-wider text-center leading-tight ${selectedCategory === "Todos" ? "text-ocean-600" : "text-slate-500 group-hover:text-slate-800"}`}
-                >
-                  Todos
+                <span className={`w-[58px] h-[58px] rounded-2xl flex items-center justify-center border transition-all ${isActive ? "bg-ocean-600 border-ocean-600 text-white shadow-md shadow-ocean-600/25" : "bg-white border-slate-200 text-ocean-700 shadow-sm group-active:scale-95"}`}>
+                  <CategoryIcon name={cat.icon} size={24} />
                 </span>
-              </div>
-
-              {/* Database categories round items slider mapping */}
-              {categories.map((cat) => {
-                let emoji = "🧭";
-                const n = cat.name.toLowerCase();
-                if (
-                  n.includes("gastro") ||
-                  n.includes("restaurante") ||
-                  n.includes("comida")
-                )
-                  emoji = "🍔";
-                else if (
-                  n.includes("hospedagem") ||
-                  n.includes("hotel") ||
-                  n.includes("pousada")
-                )
-                  emoji = "🛌";
-                else if (
-                  n.includes("passeio") ||
-                  n.includes("barco") ||
-                  n.includes("ilha")
-                )
-                  emoji = "⛵";
-                else if (n.includes("serviço") || n.includes("delivery"))
-                  emoji = "🛵";
-                else if (n.includes("praia")) emoji = "⛱️";
-                else if (n.includes("festa") || n.includes("evento"))
-                  emoji = "🎉";
-                else if (n.includes("comércio") || n.includes("loja"))
-                  emoji = "🛍️";
-
-                const isActive =
-                  selectedCategory.toLowerCase() === cat.name.toLowerCase();
-
-                return (
-                  <div
-                    key={cat.id}
-                    onClick={() => {
-                      setSelectedCategory(cat.name);
-                      setSelectedSubCategory("Todos");
-                    }}
-                    className="flex flex-col items-center gap-2 min-w-[68px] sm:min-w-[76px] cursor-pointer group shrink-0"
-                  >
-                    <div
-                      className={`w-[60px] h-[60px] rounded-2xl flex items-center justify-center text-2.5xl transition-all relative ${isActive ? "bg-gradient-to-tr from-ocean-500 to-ocean-600 shadow-md shadow-ocean-500/25 scale-103 text-white" : "bg-white border border-slate-100 text-slate-700 group-hover:bg-slate-100/50 shadow-2xs"}`}
-                    >
-                      <span className="relative z-10 drop-shadow-xs select-none">
-                        {emoji}
-                      </span>
-                      {isActive && (
-                        <div className="absolute inset-0 bg-white/10 rounded-2xl animate-pulse"></div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 max-w-[72px] ${isActive ? "text-ocean-600 font-extrabold" : "text-slate-500 group-hover:text-slate-800"}`}
-                    >
-                      {cat.name}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 2d. Subcategory chips mapping scope */}
-          {currentSubcategories.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 mb-2 items-center">
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">
-                Ramos:
-              </span>
-
-              <button
-                onClick={() => setSelectedSubCategory("Todos")}
-                className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${selectedSubCategory === "Todos" ? "bg-ocean-950 text-white border-ocean-950 shadow-2xs" : "bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100/50"}`}
-              >
-                Todos
+                <span className={`text-[11px] leading-tight text-center line-clamp-2 min-h-[28px] ${isActive ? "font-black text-ocean-700" : "font-bold text-slate-600"}`}>{cat.name}</span>
               </button>
+            );
+          })}
+        </div>
 
-              {currentSubcategories.map((sub) => (
+        {/* Ramos (subcategorias) */}
+        {currentSubcategories.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar px-4 pt-2 items-center">
+            {["Todos", ...currentSubcategories.map((s) => s.name)].map((name) => {
+              const on = selectedSubCategory === name;
+              return (
                 <button
-                  key={sub.id}
-                  onClick={() =>
-                    setSelectedSubCategory(
-                      selectedSubCategory === sub.name ? "Todos" : sub.name,
-                    )
-                  }
-                  className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${selectedSubCategory === sub.name ? "bg-gradient-to-tr from-ocean-500 to-ocean-600 text-white border-transparent shadow-2xs" : "bg-slate-50 text-slate-600 border-transparent hover:bg-slate-100"}`}
+                  key={name}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setSelectedSubCategory(name === "Todos" || selectedSubCategory === name ? "Todos" : name)}
+                  className={`shrink-0 h-9 px-4 rounded-full text-[13px] font-bold border transition-all ${on ? "bg-ocean-950 text-white border-ocean-950" : "bg-white text-slate-600 border-slate-200"}`}
                 >
-                  {sub.name}
+                  {name}
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-        {/* 2e. Sleek Action Row (Perto, Aberto, Location, Filters) */}
-        <div className="flex gap-2 items-center overflow-x-auto hide-scrollbar mt-4 py-0.5">
-          {/* Perto Action button */}
+      {/* 4. ATALHOS: perto, aberto agora, região */}
+      <div className="px-4 mt-3 max-w-7xl mx-auto w-full">
+        <div className="flex gap-2 items-center overflow-x-auto hide-scrollbar py-0.5">
           <button
+            type="button"
             onClick={handleNearbyClick}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-              nearby
-                ? "bg-sky-50 border-sky-200 text-sky-700 font-extrabold"
-                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-            }`}
+            aria-pressed={nearby}
+            className={`shrink-0 h-10 px-4 rounded-full text-[13px] font-bold border flex items-center gap-1.5 transition-all active:scale-95 ${nearby ? "bg-sky-50 border-sky-300 text-sky-700" : "bg-white border-slate-200 text-slate-600"}`}
           >
-            {locating ? (
-              <Loader2 className="animate-spin text-sky-500" size={12} />
-            ) : (
-              <Navigation
-                size={12}
-                className={
-                  nearby
-                    ? "fill-current animate-pulse text-sky-600"
-                    : "text-slate-400"
-                }
-              />
-            )}
-            {locating ? "GPS..." : "Perto"}
+            {locating ? <Loader2 className="animate-spin" size={14} /> : <Navigation size={14} className={nearby ? "fill-current" : ""} />}
+            {locating ? "Buscando…" : "Perto de mim"}
           </button>
-
-          {/* Aberto Toggle button */}
           <button
+            type="button"
             onClick={() => setOnlyOpen(!onlyOpen)}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-              onlyOpen
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold"
-                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-            }`}
+            aria-pressed={onlyOpen}
+            className={`shrink-0 h-10 px-4 rounded-full text-[13px] font-bold border flex items-center gap-1.5 transition-all active:scale-95 ${onlyOpen ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-white border-slate-200 text-slate-600"}`}
           >
-            <Clock
-              size={12}
-              className={onlyOpen ? "text-emerald-500" : "text-slate-400"}
-            />{" "}
-            Aberto
+            <Clock size={14} /> Aberto agora
           </button>
-
-          {/* Location Filter Modal Target */}
           <button
+            type="button"
             onClick={() => setActiveModal("location")}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-              selectedLocation !== "Todos"
-                ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
-                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-            }`}
+            className={`shrink-0 h-10 px-4 rounded-full text-[13px] font-bold border flex items-center gap-1.5 transition-all active:scale-95 ${selectedLocation !== "Todos" ? "bg-ocean-50 border-ocean-300 text-ocean-700" : "bg-white border-slate-200 text-slate-600"}`}
           >
-            <MapIcon
-              size={12}
-              className={
-                selectedLocation !== "Todos"
-                  ? "text-ocean-500"
-                  : "text-slate-400"
-              }
-            />
+            <MapIcon size={14} />
             {selectedLocation === "Todos"
-              ? "Qualquer Região"
-              : cities.find((c) => c.id === selectedLocation)?.name ||
-                neighborhoods.find((n) => n.id === selectedLocation)?.name ||
-                "Local"}
-            <ChevronDown size={10} className="ml-0.5 opacity-60" />
-          </button>
-
-          {/* Filters Modal Target */}
-          <button
-            onClick={() => setActiveModal("filters")}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold border uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 ${
-              selectedAmenities.length > 0
-                ? "bg-ocean-50 border-ocean-200 text-ocean-700 font-extrabold"
-                : "bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50"
-            }`}
-          >
-            <ListFilter
-              size={12}
-              className={
-                selectedAmenities.length > 0
-                  ? "text-ocean-500"
-                  : "text-slate-400"
-              }
-            />
-            Filtros{" "}
-            {selectedAmenities.length > 0 && `(${selectedAmenities.length})`}
-            <ChevronDown size={10} className="ml-0.5 opacity-60" />
+              ? "Qualquer região"
+              : cities.find((c) => c.id === selectedLocation)?.name || neighborhoods.find((n) => n.id === selectedLocation)?.name || "Local"}
+            <ChevronDown size={13} className="opacity-60" />
           </button>
         </div>
 
-        {/* Active amenities indicator bubble tags (Optional beneath action row) */}
+        {/* Filtros de comodidades ativos */}
         {selectedAmenities.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-3 mt-1 items-center">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 mr-1">
-              Temos:
-            </span>
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pt-2 items-center">
             {selectedAmenities.map((id) => (
               <button
                 key={id}
-                onClick={() =>
-                  setSelectedAmenities((p) => p.filter((x) => x !== id))
-                }
-                className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wide hover:bg-slate-900 transition-colors"
+                type="button"
+                onClick={() => setSelectedAmenities((p) => p.filter((x) => x !== id))}
+                className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full bg-ocean-950 text-white text-xs font-bold"
               >
-                <Check size={11} />{" "}
-                {amenities.find((a) => a.id === id)?.label || id}
-                <X size={9} className="ml-1 opacity-75" />
+                <Check size={12} /> {amenities.find((a) => a.id === id)?.label || id} <X size={11} className="opacity-70" />
               </button>
             ))}
           </div>
         )}
+
+        <p className="mt-3 mb-4 text-xs font-bold text-slate-400" data-testid="guide-count" aria-live="polite">
+          {filtered.length} {filtered.length === 1 ? "lugar" : "lugares"}
+        </p>
       </div>
 
       {/* 4. INTEGRATED EDITORIAL DICAS CONTENT (Synergy of Commercial + Blog Content) */}

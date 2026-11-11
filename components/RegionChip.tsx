@@ -9,7 +9,7 @@ import { GENERAL, type RegionLocation } from '../hooks/useRegionLocation';
  *
  * `compact`: pílula pequena para o cabeçalho (fundo escuro). Toda a pílula é o seletor.
  */
-export const RegionChip: React.FC<{ loc: RegionLocation; className?: string; compact?: boolean }> = ({ loc, className = '', compact = false }) => {
+export const RegionChip: React.FC<{ loc: RegionLocation; className?: string; compact?: boolean; tone?: 'dark' | 'light' }> = ({ loc, className = '', compact = false, tone = 'dark' }) => {
   const hasGps = !!loc.gps;
   const value = loc.choice ?? (hasGps ? 'auto' : '');
   const onPick = (v: string) => { if (v === 'gps') loc.request(); else if (v) loc.choose(v); };
@@ -30,7 +30,7 @@ export const RegionChip: React.FC<{ loc: RegionLocation; className?: string; com
       : loc.outside ? 'Fora da região' : 'Toda a região';
     return (
       <div className={className} data-testid="region-chip">
-        <div className="relative inline-flex items-center gap-1.5 h-9 pl-2.5 pr-2 rounded-full bg-white/15 border border-white/30 text-white text-xs font-bold max-w-full">
+        <div className={`relative inline-flex items-center gap-1.5 h-9 pl-2.5 pr-2 rounded-full border text-xs font-bold max-w-full ${tone === 'light' ? 'bg-white border-slate-200 text-ocean-800 shadow-sm' : 'bg-white/15 border-white/30 text-white'}`}>
           <MapPin size={14} className="shrink-0" />
           <span className="truncate max-w-[10.5rem]">{loc.status === 'asking' ? 'Buscando…' : short}</span>
           <ChevronDown size={14} className="shrink-0 opacity-80" />
@@ -39,7 +39,7 @@ export const RegionChip: React.FC<{ loc: RegionLocation; className?: string; com
             {options}
           </select>
         </div>
-        {loc.error && <p className="text-[11px] font-bold text-amber-200 mt-1 max-w-[16rem]" role="status">{loc.error}</p>}
+        {loc.error && <p className={`text-[11px] font-bold mt-1 max-w-[16rem] ${tone === 'light' ? 'text-amber-700' : 'text-amber-200'}`} role="status">{loc.error}</p>}
       </div>
     );
   }
