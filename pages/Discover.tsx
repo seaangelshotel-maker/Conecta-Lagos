@@ -12,6 +12,7 @@ import {
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
 import { SearchBar, HScroller } from '../components/DiscoverUI';
+import { FilterSheet, countFilters, type HomeFilters } from '../components/FilterSheet';
 import { nearbyAdaptive, REGION_MUNICIPALITIES } from '../services/regionGeo';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 
@@ -43,6 +44,10 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const [city, setCity] = useState(init.city);
   const loc = useRegionLocation();
   const where = loc.where;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [draft, setDraft] = useState<HomeFilters>({ cat: '', f: '', city: '' });
+  const openFilters = () => { setDraft({ cat, f: flt, city }); setFiltersOpen(true); };
+  const applyFilters = () => { setCat(draft.cat); setFlt(draft.f); setCity(draft.city); setFiltersOpen(false); };
   const [shown, setShown] = useState(24);
 
   useEffect(() => {
@@ -111,7 +116,7 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
           </div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">Todos os lugares da região</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">Praias, restaurantes, passeios, hospedagens e serviços, com filtros e comodidades.</p>
-          <SearchBar className="mt-5" value={q} onChange={setQ} />
+          <SearchBar className="mt-5" value={q} onChange={setQ} onFilters={openFilters} filterCount={countFilters({ cat, f: flt, city })} />
           {cities.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar" role="group" aria-label="Cidade">
               {[{ id: '', name: 'Toda a região' }, ...cities].map(c => (
@@ -123,6 +128,9 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
           )}
         </div>
       </header>
+
+      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} categories={categories}
+        value={draft} onChange={setDraft} onApply={applyFilters} />
 
       <div className="max-w-5xl mx-auto">
         {/* Categorias */}
