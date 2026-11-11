@@ -431,6 +431,28 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isNotBlocked()
         && request.resource.data.get('userId', uid()) == uid()
         && request.resource.data.status == 'PENDING';
+      allow update: if isAdmin();
+      // LGPD: a pessoa pode retirar o próprio pedido ainda não aprovado (e ao excluir a conta).
+      allow delete: if isAdmin() || (isAuthenticated() && uid() == resource.data.get('userId', '')
+        && resource.data.get('status', '') in ['PENDING', 'REJECTED']);
+    }
+
+    // ===============================================================
+    // Pedidos de privacidade (LGPD, art. 18): acesso, correção, exclusão, portabilidade etc.
+    // A pessoa cria e acompanha o próprio pedido; só o administrador responde e encerra.
+    // ===============================================================
+
+    match /privacyRequests/{reqId} {
+      allow read: if isAdmin() || (isAuthenticated() && uid() == resource.data.get('userId', ''));
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == uid()
+        && request.resource.data.id == reqId
+        && request.resource.data.status == 'open'
+        && request.resource.data.type in ['access', 'correction', 'deletion', 'portability', 'revoke_consent', 'review_removal', 'info', 'account_deleted', 'other']
+        && isShortString(request.resource.data.get('message', ''), 2000)
+        && isShortString(request.resource.data.get('userName', ''), 160)
+        && isShortString(request.resource.data.get('email', ''), 200)
+        && request.resource.data.keys().hasOnly(['id', 'userId', 'userName', 'email', 'type', 'message', 'residual', 'status', 'createdAt']);
       allow update, delete: if isAdmin();
     }
 

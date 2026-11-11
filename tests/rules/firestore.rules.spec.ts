@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import {
     initializeTestEnvironment, assertFails, assertSucceeds, RulesTestEnvironment
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, where, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -179,4 +179,33 @@ test('qualquer visitante lê matérias do Guia', async () => {
 test('dono da empresa NÃO altera experienceTags (curadoria é do admin)', async () => {
     await assertFails(updateDoc(doc(as('ana'), 'businesses/ana'), { experienceTags: ['gratuito'] }));
     await assertSucceeds(updateDoc(doc(as('adm'), 'businesses/ana'), { experienceTags: ['gratuito'] }));
+});
+
+// ---- LGPD: pedidos de privacidade e exclusão ----
+const privacyReq = (over: Record<string, unknown> = {}) => ({ id: 'p1', userId: 'bruno', userName: 'Bruno', email: 'b@x.com', type: 'access', message: 'Quero meus dados', status: 'open', createdAt: 'x', ...over });
+test('pedido de privacidade: o titular cria o próprio, aberto, com tipo válido', async () => {
+    await assertSucceeds(setDoc(doc(as('bruno'), 'privacyRequests/p1'), privacyReq()));
+    await assertFails(setDoc(doc(as('ana'), 'privacyRequests/p2'), privacyReq({ id: 'p2' })));          // em nome de outro
+    await assertFails(setDoc(doc(as(null), 'privacyRequests/p3'), privacyReq({ id: 'p3' })));            // sem login
+    await assertFails(setDoc(doc(as('bruno'), 'privacyRequests/p4'), privacyReq({ id: 'p4', status: 'done' })));
+    await assertFails(setDoc(doc(as('bruno'), 'privacyRequests/p5'), privacyReq({ id: 'p5', type: 'hack' })));
+    await assertFails(setDoc(doc(as('bruno'), 'privacyRequests/p6'), privacyReq({ id: 'p6', extra: 1 })));
+});
+test('pedido de privacidade: só o titular e o admin leem; só o admin responde', async () => {
+    await assertSucceeds(setDoc(doc(as('bruno'), 'privacyRequests/p1'), privacyReq()));
+    await assertSucceeds(getDoc(doc(as('bruno'), 'privacyRequests/p1')));
+    await assertSucceeds(getDoc(doc(as('adm'), 'privacyRequests/p1')));
+    await assertFails(getDoc(doc(as('ana'), 'privacyRequests/p1')));
+    await assertFails(updateDoc(doc(as('bruno'), 'privacyRequests/p1'), { status: 'done' }));
+    await assertSucceeds(updateDoc(doc(as('adm'), 'privacyRequests/p1'), { status: 'done' }));
+});
+test('pedido de empresa: o autor retira enquanto pendente; aprovado só o admin apaga', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), 'companyRequests/r1'), { userId: 'bruno', status: 'PENDING' });
+        await setDoc(doc(ctx.firestore(), 'companyRequests/r2'), { userId: 'bruno', status: 'APPROVED' });
+    });
+    await assertFails(deleteDoc(doc(as('ana'), 'companyRequests/r1')));
+    await assertSucceeds(deleteDoc(doc(as('bruno'), 'companyRequests/r1')));
+    await assertFails(deleteDoc(doc(as('bruno'), 'companyRequests/r2')));
+    await assertSucceeds(deleteDoc(doc(as('adm'), 'companyRequests/r2')));
 });

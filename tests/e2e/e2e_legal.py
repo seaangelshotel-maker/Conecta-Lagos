@@ -58,6 +58,17 @@ async def main():
         ok('sem login pede para entrar', await page.locator('[data-testid=delete-login]').count() == 1)
         await login(page, 'bruno@teste.com')
         await page.evaluate("""() => { const s = JSON.parse(sessionStorage.getItem('__mock_fs__')); s.docs['blog_comments/c-b'] = { id: 'c-b', postId: 'x', userId: 'bruno', userName: 'Bruno', content: 'oi' }; s.docs['public_profiles/bruno'] = { id: 'bruno', name: 'Bruno' }; sessionStorage.setItem('__mock_fs__', JSON.stringify(s)); }""")
+        # 4a. Direitos do titular
+        await page.goto(BASE + '/privacidade'); await page.wait_for_timeout(1500)
+        ok('painel de direitos aparece logado', await page.locator('[data-testid=rights-panel]').count() == 1)
+        async with page.expect_download() as dl:
+            await page.locator('[data-testid=rights-download]').click()
+        ok('baixa arquivo JSON com os dados', (await dl.value).suggested_filename.startswith('meus-dados-lagos-go'))
+        await page.locator('[data-testid=rights-text]').fill('Quero saber o que vocês guardam sobre mim')
+        await page.locator('[data-testid=rights-send]').click(); await page.wait_for_timeout(1200)
+        reqs = [d for d in await mock_docs(page, 'privacyRequests') if d.get('userId') == 'bruno']
+        ok('pedido de privacidade gravado como aberto', len(reqs) == 1 and reqs[0]['status'] == 'open' and reqs[0]['type'] == 'access', str(reqs))
+        ok('titular vê o pedido na lista', await page.locator('[data-testid=rights-list]').count() == 1)
         await page.goto(BASE + '/user-dashboard'); await page.wait_for_timeout(1500)
         ok('perfil tem link para excluir conta', await page.locator('[data-testid=legal-footer] button', has_text='Excluir conta').count() == 1)
         await page.locator('[data-testid=legal-footer] button', has_text='Excluir conta').click(); await page.wait_for_timeout(1200)
@@ -68,6 +79,15 @@ async def main():
         ok('confirma a exclusão', 'excluídos' in (await page.locator('[data-testid=delete-msg]').inner_text()))
         ok('apaga usuário, perfil público e comentários', not await mock_docs(page, 'users/bruno') and not await mock_docs(page, 'public_profiles/bruno') and not await mock_docs(page, 'blog_comments/c-b'))
         ok('apaga o login', await page.evaluate("JSON.parse(sessionStorage.getItem('__mock_fs__')).users.bruno === undefined"))
+        acc = [d for d in await mock_docs(page, 'privacyRequests') if d.get('type') == 'account_deleted']
+        ok('exclusão avisa a equipe com pedido account_deleted', len(acc) == 1 and acc[0]['userId'] == 'bruno', str(acc))
+        await login(page, 'admin@teste.com')
+        await page.goto(BASE + '/admin-dashboard'); await page.wait_for_timeout(1500)
+        await page.locator('button', has_text='ECOSSISTEMA').first.click(); await page.wait_for_timeout(1200)
+        ok('admin vê a fila de pedidos de privacidade', await page.locator('[data-testid=privacy-item]').count() == 2)
+        await page.locator('[data-testid=privacy-done]').first.click(); await page.wait_for_timeout(1000)
+        done = [d for d in await mock_docs(page, 'privacyRequests') if d.get('status') == 'done']
+        ok('admin conclui um pedido', len(done) == 1 and 'resolvedAt' in done[0], str(done))
         ok('outros usuários intactos', len(await mock_docs(page, 'users/ana')) == 1)
 
         ok('nenhum erro de JavaScript', not errors, '; '.join(errors)[:300])

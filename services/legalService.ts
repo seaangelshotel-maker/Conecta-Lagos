@@ -19,7 +19,7 @@ export interface LegalSettings {
 }
 
 export const EMPTY_LEGAL: LegalSettings = { companyName: '', tradeName: 'Lagos GO', cnpj: '', address: '', privacyEmail: '', dpoName: '' };
-export const LEGAL_VERSION = '2026-11-08';
+export const LEGAL_VERSION = '2026-11-11';
 
 let _cache: LegalSettings | null = null;
 

@@ -45,6 +45,7 @@ import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
 import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
+import { PrivacyRequestsAdmin } from '../components/admin/PrivacyRequestsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
@@ -3067,6 +3068,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               <FeaturedBusinessesImport />
               <GuideContentAdmin />
               <LegalSettingsAdmin />
+              <PrivacyRequestsAdmin />
               <PushAdmin />
           </div>
       )}

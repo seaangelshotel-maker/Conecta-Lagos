@@ -287,7 +287,7 @@ function AppContent() {
       case 'search':
         return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} onNavigate={handleNavigate} />;
       case 'privacy':
-        return <PrivacyPolicy onNavigate={handleNavigate} />;
+        return <PrivacyPolicy onNavigate={handleNavigate} currentUser={user} />;
       case 'terms':
         return <TermsOfUse onNavigate={handleNavigate} />;
       case 'delete-account':
