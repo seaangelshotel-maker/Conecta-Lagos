@@ -85,3 +85,21 @@ test('haversine: centros de Arraial e Cabo Frio ficam entre 8 e 12 km', () => {
   const d = haversineKm(byId('arraial-do-cabo'), byId('cabo-frio'));
   assert.ok(d > 8 && d < 12, `dist=${d}`);
 });
+
+test('feed usa o campo date das matérias para desempatar dentro do mesmo nível', () => {
+  const now = Date.parse('2026-11-11T00:00:00Z');
+  const out = orderFeedByGeo([
+    { title: 'Búzios antiga', date: '2026-08-01' },
+    { title: 'Búzios recente', date: '2026-11-10' },
+  ], 'buzios', now);
+  assert.equal(out[0].title, 'Búzios recente');
+  assert.equal(out[0].tier, 1);
+});
+
+test('usuário se desloca: o nível da mesma matéria muda com a cidade', () => {
+  const a = { title: 'Festa em Cabo Frio' };
+  assert.equal(orderFeedByGeo([a], 'cabo-frio')[0].tier, 1);
+  assert.equal(orderFeedByGeo([a], 'arraial-do-cabo')[0].tier, 2);
+  assert.equal(orderFeedByGeo([a], 'saquarema')[0].tier, 3);
+  assert.equal(orderFeedByGeo([a], null)[0].tier, 3); // sem localização: sem prioridade
+});

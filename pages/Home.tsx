@@ -15,6 +15,9 @@ import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { LeadCard, CompactCard, openContent } from '../components/FeedCards';
 import { getAllBusinesses, getBlogPosts, getCollections, getHomeHighlights, redeemCoupon } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
+import { orderFeedByGeo } from '../services/regionGeo';
+import { useRegionLocation } from '../hooks/useRegionLocation';
+import { RegionChip } from '../components/RegionChip';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
@@ -52,6 +55,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const [highlights, setHighlights] = useState<HomeHighlight[]>([]);
   const [slide, setSlide] = useState(0);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const loc = useRegionLocation();
+  const currentMuni = loc.municipality?.id ?? null;
   const [guides, setGuides] = useState<BlogPost[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -88,12 +93,15 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const roteiros = useMemo(() => guides.filter(g => (g.collections || []).includes(C.roteiros)), [guides]);
 
   // Prévia editorial: matéria em destaque + notícias/dicas recentes + outras matérias em destaque.
-  const lead = useMemo(() => guides.find(g => g.featured) || posts[0] || guides[0], [guides, posts]);
+  // Com município conhecido, o conteúdo daquela cidade e vizinhas sobe na prévia (sem esconder o resto).
+  const gGuides = useMemo(() => (currentMuni ? orderFeedByGeo(guides, currentMuni) : guides), [guides, currentMuni]);
+  const gPosts = useMemo(() => (currentMuni ? orderFeedByGeo(posts, currentMuni) : posts), [posts, currentMuni]);
+  const lead = useMemo(() => gGuides.find(g => g.featured) || gPosts[0] || gGuides[0], [gGuides, gPosts]);
   const previews = useMemo(() => {
-    const pool = [...posts.slice(0, 2), ...guides.filter(g => g.featured || g.popular)];
+    const pool = [...gPosts.slice(0, 2), ...gGuides.filter(g => g.featured || g.popular)];
     const seen = new Set<string>([lead?.id || '']);
     return pool.filter(p => p && !seen.has(p.id) && seen.add(p.id)).slice(0, 3);
-  }, [posts, guides, lead]);
+  }, [gPosts, gGuides, lead]);
 
   const openHighlight = (h: HomeHighlight) => {
     const link = h.buttonLink || '';
@@ -134,6 +142,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       </header>
 
       <div className="max-w-5xl mx-auto space-y-10">
+        <RegionChip loc={loc} className="px-4 pt-4 -mb-6" />
         <section aria-label="Categorias" className="pt-5">
           <HScroller label="Categorias">
             {categories.map(c => {

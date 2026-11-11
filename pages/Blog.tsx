@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { orderFeedByGeo } from "../services/regionGeo";
+import { useRegionLocation } from "../hooks/useRegionLocation";
+import { RegionChip } from "../components/RegionChip";
 import { BlogPost, PublicProfile, AppCategory, BlogAd } from "../types";
 import {
   getBlogPosts,
@@ -83,6 +86,8 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const [adsSlides, setAdsSlides] = useState<BlogAd[]>(DEFAULT_ADS);
   const [theme, setTheme] = useState<string>("");
   const [visible, setVisible] = useState(9);
+  const loc = useRegionLocation();
+  const currentMuni = loc.municipality?.id ?? null;
   const sentinel = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -133,12 +138,14 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
   const all = useMemo(() => {
     const seen = new Set<string>();
     const ok = (p: BlogPost) => p && p.title && !seen.has(p.id) && !!seen.add(p.id);
-    const g = guides.filter(ok);
-    const o = [...posts].sort((a, b) => (b.date || "").localeCompare(a.date || "")).filter(ok);
+    // Relevância geográfica: município da pessoa, vizinhança e região (nada é escondido).
+    const byDate = (a: BlogPost, b: BlogPost) => (b.date || "").localeCompare(a.date || "");
+    const g = (currentMuni ? orderFeedByGeo(guides, currentMuni) : guides).filter(ok);
+    const o = (currentMuni ? orderFeedByGeo([...posts].sort(byDate), currentMuni) : [...posts].sort(byDate)).filter(ok);
     const out: BlogPost[] = [];
     for (let i = 0; i < Math.max(g.length, o.length); i++) { if (g[i]) out.push(g[i]); if (o[i]) out.push(o[i]); }
     return out;
-  }, [guides, posts]);
+  }, [guides, posts, currentMuni]);
 
   const q = searchQuery.trim().toLowerCase();
   const filtering = !!(q || typeFilter || selectedCategory !== "Todos" || showOnlyLiked);
@@ -192,6 +199,7 @@ export const Blog: React.FC<BlogProps> = ({ onNavigate }) => {
         <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-red-500">Feed Lagos GO</p>
           <h1 className="text-3xl md:text-4xl font-black text-ocean-950 tracking-tight mt-1">Notícias, matérias e dicas da região</h1>
+          <RegionChip loc={loc} className="mt-3" />
           <label className="mt-4 flex items-center gap-2 bg-slate-100 rounded-2xl px-4 h-12">
             <Search size={16} className="text-slate-400" />
             <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} aria-label="Buscar no Feed" placeholder="Buscar notícias, matérias e dicas" className="flex-1 bg-transparent border-0 shadow-none outline-none ring-0 focus:ring-0 p-0 text-sm text-slate-800" />

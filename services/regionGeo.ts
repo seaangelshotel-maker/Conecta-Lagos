@@ -113,6 +113,7 @@ export interface FeedArticleLike {
   tags?: string[];
   publishedAt?: string;
   createdAt?: string;
+  date?: string;
 }
 
 const foldText = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -140,7 +141,7 @@ export const feedTierFor = (articleMunis: string[], current: string | null): Fee
 };
 
 const recencyScore = (a: FeedArticleLike, now: number) => {
-  const d = Date.parse(a.publishedAt || a.createdAt || '');
+  const d = Date.parse(a.publishedAt || a.createdAt || a.date || '');
   if (Number.isNaN(d)) return 0;
   const days = Math.max(0, (now - d) / 86400000);
   return Math.exp(-days / 30); // 1 hoje, ~0,37 em um mês

@@ -8,6 +8,8 @@ import { REGION_MUNICIPALITIES, locateMunicipality, Municipality } from '../serv
  * - Se negar ou o GPS falhar, oferece escolher um município manualmente.
  */
 const SESSION_KEY = 'lagos_go_last_position';
+// Cidade preferida escolhida pela pessoa: é uma preferência (não rastreamento), fica só no aparelho.
+const PREF_KEY = 'lagos_go_preferred_city';
 
 export type LocationStatus = 'idle' | 'asking' | 'ok' | 'denied' | 'unavailable' | 'manual';
 
@@ -37,11 +39,22 @@ const writeStored = (p: { lat: number; lng: number } | null) => {
   } catch { /* armazenamento indisponível: segue sem cache */ }
 };
 
+const readPref = (): Municipality | null => {
+  try {
+    const id = localStorage.getItem(PREF_KEY);
+    return REGION_MUNICIPALITIES.find(m => m.id === id) || null;
+  } catch { return null; }
+};
+const writePref = (id: string | null) => {
+  try { if (id) localStorage.setItem(PREF_KEY, id); else localStorage.removeItem(PREF_KEY); } catch { /* sem armazenamento */ }
+};
+
 export const useRegionLocation = (): RegionLocation => {
   const stored = readStored();
-  const [status, setStatus] = useState<LocationStatus>(stored ? 'ok' : 'idle');
-  const [where, setWhere] = useState<{ lat: number; lng: number } | null>(stored);
-  const [manual, setManual] = useState<Municipality | null>(null);
+  const pref = stored ? null : readPref();
+  const [status, setStatus] = useState<LocationStatus>(stored ? 'ok' : pref ? 'manual' : 'idle');
+  const [where, setWhere] = useState<{ lat: number; lng: number } | null>(stored ?? (pref ? { lat: pref.lat, lng: pref.lng } : null));
+  const [manual, setManual] = useState<Municipality | null>(pref);
   const [error, setError] = useState('');
 
   const request = useCallback(() => {
@@ -75,11 +88,11 @@ export const useRegionLocation = (): RegionLocation => {
     if (!m) return;
     setManual(m);
     const p = { lat: m.lat, lng: m.lng };
-    setWhere(p); writeStored(null); setStatus('manual'); setError('');
+    setWhere(p); writeStored(null); writePref(m.id); setStatus('manual'); setError('');
   }, []);
 
   const reset = useCallback(() => {
-    setWhere(null); setManual(null); writeStored(null); setStatus('idle'); setError('');
+    setWhere(null); setManual(null); writeStored(null); writePref(null); setStatus('idle'); setError('');
   }, []);
 
   const municipality = manual ?? (where ? (() => {
