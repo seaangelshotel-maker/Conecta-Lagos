@@ -7,7 +7,8 @@ import { REGION_MUNICIPALITIES, locateMunicipality, Municipality } from '../serv
  * - Guarda apenas a última posição autorizada na sessão, sem histórico e sem enviar ao servidor.
  * - Se negar ou o GPS falhar, oferece escolher um município manualmente.
  */
-const SESSION_KEY = 'lagos_go_last_position';
+// Mesma chave usada por Guia, Busca e Mapa, para o app inteiro compartilhar a última posição autorizada.
+const SESSION_KEY = 'user_gps';
 // Cidade preferida escolhida pela pessoa: é uma preferência (não rastreamento), fica só no aparelho.
 const PREF_KEY = 'lagos_go_preferred_city';
 

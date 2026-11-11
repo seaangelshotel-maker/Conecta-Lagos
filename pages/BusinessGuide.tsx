@@ -53,6 +53,9 @@ import {
   hasOpeningHours,
 } from "../services/dataService";
 import { useNotification } from "../components/NotificationSystem";
+import { nearbyAdaptive } from "../services/regionGeo";
+import { useRegionLocation } from "../hooks/useRegionLocation";
+import { RegionChip } from "../components/RegionChip";
 import { useLanguage, Translate } from "../hooks/useLanguage";
 
 interface BusinessGuideProps {
@@ -120,7 +123,9 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
     "recommended" | "rating" | "featured_only"
   >("recommended");
   const [nearby, setNearby] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const loc = useRegionLocation();
+  const locating = loc.status === 'asking';
+  const [awaitingGps, setAwaitingGps] = useState(false);
   const [currentLocationName, setCurrentLocationName] =
     useState("Todas as Regiões");
   const [allCoupons, setAllCoupons] = useState<any[]>([]);
@@ -390,9 +395,8 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
     }
 
     if (nearby && selectedLocation === "Todos") {
-      const storedGps = sessionStorage.getItem("user_gps");
-      if (storedGps) {
-        const { lat, lng } = JSON.parse(storedGps);
+      if (loc.where) {
+        const { lat, lng } = loc.where;
 
         let currentNeighborhoodId: string | null = null;
         let minDistance = Infinity;
@@ -411,13 +415,10 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
             (b) => b.neighborhoodId === currentNeighborhoodId,
           );
         } else {
-          result = result
-            .map((b) => ({
-              ...b,
-              distance: calculateDistance(lat, lng, b.lat || 0, b.lng || 0),
-            }))
-            .filter((b) => (b.distance || 0) < 15)
-            .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+          // Raio adaptativo: começa perto e só amplia se houver poucos lugares.
+          result = nearbyAdaptive(result, { lat, lng }, { minResults: 8 }).items.map(
+            ({ distanceKm, ...b }) => ({ ...b, distance: distanceKm }),
+          ) as typeof result;
         }
       }
     } else {
@@ -459,6 +460,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
     onlyOpen,
     selectedAmenities,
     nearby,
+    loc.where,
     businesses,
     cities,
     neighborhoods,
@@ -479,28 +481,27 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
       setNearby(false);
       return;
     }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        sessionStorage.setItem(
-          "user_gps",
-          JSON.stringify({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          }),
-        );
-        setLocating(false);
-        setNearby(true);
-        setCurrentLocationName(
-          identifyNeighborhood(pos.coords.latitude, pos.coords.longitude),
-        );
-      },
-      () => {
-        setLocating(false);
-        notify("error", "Acesso ao GPS não autorizado.");
-      },
-    );
+    if (loc.where) {
+      setNearby(true);
+      setCurrentLocationName(loc.municipality?.name || identifyNeighborhood(loc.where.lat, loc.where.lng));
+      return;
+    }
+    setAwaitingGps(true);
+    loc.request();
   };
+
+  // Quando o GPS responde (ou falha) depois do clique em "Perto".
+  useEffect(() => {
+    if (!awaitingGps) return;
+    if (loc.where) {
+      setAwaitingGps(false);
+      setNearby(true);
+      setCurrentLocationName(loc.municipality?.name || identifyNeighborhood(loc.where.lat, loc.where.lng));
+    } else if (loc.status === "denied" || loc.status === "unavailable") {
+      setAwaitingGps(false);
+      notify("warning", loc.error || "Não conseguimos sua localização. Escolha sua cidade.");
+    }
+  }, [awaitingGps, loc.where, loc.status]);
 
   if (isLoadingDB) return <GuideSplash />;
 
@@ -523,6 +524,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
               <strong className="text-slate-600">Região dos Lagos</strong> na
               palma da sua mão.
             </p>
+            <RegionChip loc={loc} className="pt-2" />
           </div>
 
           {/* Dynamic GPS indicator shown as a pill matching user design */}

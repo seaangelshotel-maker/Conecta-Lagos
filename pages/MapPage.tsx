@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, X, Loader2 } from 'lucide-react';
 import { Coupon } from '../types';
 import { getCoupons, calculateDistance } from '../services/dataService';
+import { useRegionLocation } from '../hooks/useRegionLocation';
 
 // Bounds of Rio de Janeiro (Greater Rio) for mapping logic
 // Expanded to cover Sepetiba (West) to Niterói (East) and North Zone
@@ -14,27 +15,13 @@ const BOUNDS_SE = { lat: -23.10, lng: -42.90 };
 export const MapPage: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const loc = useRegionLocation();
+  // Só mostra o pino quando a posição veio do GPS autorizado (não de cidade escolhida à mão).
+  const userLocation = loc.status === 'ok' ? loc.where : null;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-        // Check for cached GPS
-        const storedGps = sessionStorage.getItem('user_gps');
-        if (storedGps) {
-            setUserLocation(JSON.parse(storedGps));
-        } else {
-            // Try getting it fresh if not stored
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    setUserLocation(loc);
-                    sessionStorage.setItem('user_gps', JSON.stringify(loc));
-                },
-                () => console.log('GPS denied')
-            );
-        }
-
         const data = await getCoupons();
         setCoupons(data.filter(c => c.active));
         setLoading(false);
@@ -79,7 +66,9 @@ export const MapPage: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-white via-white/90 to-transparent pt-6 pb-12">
             <h1 className="text-2xl font-bold text-ocean-950">Mapa Interativo (RJ)</h1>
             <p className="text-xs text-slate-500 flex items-center gap-1">
-               {userLocation ? <span className="text-green-600 font-bold flex items-center gap-1"><Navigation size={10}/> GPS Ativo</span> : 'Mostrando todas as ofertas'}
+               {userLocation ? <span className="text-green-600 font-bold flex items-center gap-1"><Navigation size={10}/> GPS Ativo</span> : (
+                 <>Mostrando todas as ofertas · <button onClick={loc.request} disabled={loc.status === 'asking'} className="font-bold text-ocean-600 underline disabled:opacity-60">{loc.status === 'asking' ? 'Buscando…' : 'Usar minha localização'}</button></>
+               )}
             </p>
         </div>
 
