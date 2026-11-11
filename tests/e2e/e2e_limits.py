@@ -132,6 +132,12 @@ async def main():
         body = (await page.locator('body').inner_text()).lower()
         ok('selo Recomendado em um único card', (await page.locator('body').inner_text()).upper().count('RECOMENDADO') <= 1)
         ok('6 meses: não mostra o plano de 1 ano', '2.398,80' not in body and '299,40' in body)
+        await patch_store(page, "s.docs['app_settings/global'] = Object.assign(s.docs['app_settings/global'] || {}, { salesWhatsapp: '22999998888' });")
+        await page.goto(BASE + '/pricing-plans'); await page.wait_for_timeout(1300)
+        await page.evaluate("window.__opened = []; window.open = (u) => { window.__opened.push(u); return null; }")
+        await page.get_by_role('button', name=re.compile('Assinar', re.I)).first.click(); await page.wait_for_timeout(700)
+        opened = await page.evaluate("window.__opened")
+        ok('botão Assinar abre o WhatsApp com o 55 na frente', any(u and u.startswith('https://wa.me/5522999998888?text=') for u in opened), str(opened))
         ok('nenhum erro de JavaScript', not [e for e in errors if 'Failed to load resource' not in e], '; '.join(errors)[:300])
         await b.close()
     bad = [r for r in results if not r[1]]

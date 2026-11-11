@@ -4,6 +4,7 @@ import { User, PricingPlan, UserRole } from '../types';
 import { getPricingPlans, getGlobalSettings } from '../services/dataService';
 import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass } from 'lucide-react';
 import { brl, periodLabel, planTotal } from '../services/planRules';
+import { waLink } from '../services/claimRules';
 import { useNotification } from '../components/NotificationSystem';
 
 interface PricingPlansProps {
@@ -50,7 +51,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
             
             const message = `Olá! Tenho interesse no Plano ${plan.name} (${isTrial ? 'Período de Teste' : 'Assinatura'}) do Lagos GO para minha empresa. Meu e-mail de cadastro é: ${currentUser.email}`;
             const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = `https://wa.me/${whatsapp}?text=${encodedMessage}`;
+            const whatsappUrl = waLink(whatsapp, message);
             
             window.open(whatsappUrl, '_blank', 'noopener');
             setLoading(false);
@@ -74,7 +75,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                 return;
             }
             const message = `Olá! Vi o Lagos GO e gostaria de falar com um consultor sobre um plano personalizado para minha empresa.`;
-            const whatsappUrl = `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
+            const whatsappUrl = waLink(whatsapp, message);
             window.open(whatsappUrl, '_blank');
         } catch (e) {
             notify('error', 'Erro ao abrir WhatsApp');

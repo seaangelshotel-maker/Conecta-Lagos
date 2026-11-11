@@ -1,3 +1,4 @@
+import { waLink } from '../../services/claimRules';
 import React, { useEffect, useState } from 'react';
 import { Save, Users } from 'lucide-react';
 import { AppGlobalSettings, SpecialistReferralSettings } from '../../types';
@@ -74,6 +75,13 @@ export const EcosystemSettings: React.FC = () => {
                 <Field label="WhatsApp comercial (com DDD)" htmlFor="eco-sales" hint="Usado no botão “Anuncie conosco” e na página de planos.">
                     <input id="eco-sales" className={inputClass()} inputMode="tel" value={settings.salesWhatsapp || ''} onChange={e => setSettings({ ...settings, salesWhatsapp: e.target.value })} placeholder="22999999999" />
                 </Field>
+                {waLink(settings.salesWhatsapp || '') ? (
+                    <a data-testid="eco-sales-test" href={waLink(settings.salesWhatsapp || '', 'Teste: botão Assinar da Lagos GO')} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700">
+                        Testar meu WhatsApp (abre a conversa)
+                    </a>
+                ) : (
+                    <p className="text-xs font-bold text-amber-600">Sem número: o botão “Assinar via WhatsApp” fica desativado para os clientes.</p>
+                )}
             </section>
 
             <section className="bg-white rounded-[2rem] border border-slate-100 p-6 md:p-8 space-y-4">
