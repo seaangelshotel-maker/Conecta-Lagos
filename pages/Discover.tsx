@@ -12,7 +12,8 @@ import {
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
 import { SearchBar, HScroller } from '../components/DiscoverUI';
-import { locateMunicipality, nearbyAdaptive } from '../services/regionGeo';
+import { nearbyAdaptive, REGION_MUNICIPALITIES } from '../services/regionGeo';
+import { useRegionLocation } from '../hooks/useRegionLocation';
 
 
 interface Props { onNavigate: (page: string, params?: any) => void; }
@@ -40,8 +41,8 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const [flt, setFlt] = useState(init.f);
   const [q, setQ] = useState(init.q);
   const [city, setCity] = useState(init.city);
-  const [where, setWhere] = useState<{ lat: number; lng: number } | null>(null);
-  const [geoMsg, setGeoMsg] = useState('');
+  const loc = useRegionLocation();
+  const where = loc.where;
   const [shown, setShown] = useState(24);
 
   useEffect(() => {
@@ -69,14 +70,6 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
   const pickFilter = (id: string) => {
     if (flt === id) { setFlt(''); return; }
     setFlt(id);
-    if (id === 'perto' && !where) {
-      if (!navigator.geolocation) { setGeoMsg('Seu navegador não permite localização.'); return; }
-      setGeoMsg('Buscando sua localização…');
-      navigator.geolocation.getCurrentPosition(
-        pos => { setWhere({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGeoMsg(''); },
-        () => setGeoMsg('Não conseguimos sua localização. Libere a permissão no navegador e tente de novo.'),
-        { timeout: 8000 });
-    }
   };
 
   const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
@@ -157,7 +150,6 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
                 className={`px-4 h-9 flex items-center rounded-full text-xs font-bold whitespace-nowrap border ${flt === f.id ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200'}`}>{f.label}</button>
             ))}
           </HScroller>
-          {geoMsg && <p className="px-4 text-xs text-amber-700 font-bold mt-1" role="status">{geoMsg}</p>}
         </section>
 
         {/* Comodidades */}
@@ -190,7 +182,28 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
             </div>
             {filterInfo && <p className="text-xs text-slate-500 -mt-3">{filterInfo.hint}</p>}
 
-            {results.length === 0 ? (
+            {flt === 'perto' && !where ? (
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4" data-testid="location-panel">
+                <div className="flex items-start gap-3">
+                  <MapPin className="text-ocean-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-black text-ocean-950">Ver o que está perto de você</p>
+                    <p className="text-sm text-slate-500 mt-1">Usamos sua localização só para mostrar lugares e matérias próximos. Ela fica apenas neste aparelho, durante a visita, e não guardamos seu trajeto.</p>
+                  </div>
+                </div>
+                <button onClick={loc.request} disabled={loc.status === 'asking'} data-testid="use-location" className="w-full h-12 rounded-2xl bg-ocean-600 text-white text-sm font-black disabled:opacity-60">
+                  {loc.status === 'asking' ? 'Buscando sua localização…' : 'Usar minha localização'}
+                </button>
+                {loc.error && <p className="text-xs text-amber-700 font-bold" role="status">{loc.error}</p>}
+                <div>
+                  <label htmlFor="manual-city" className="block text-xs font-bold text-slate-500 mb-1">Ou escolha sua cidade</label>
+                  <select id="manual-city" defaultValue="" onChange={e => e.target.value && loc.chooseManual(e.target.value)} className="w-full h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-ocean-950">
+                    <option value="" disabled>Selecione…</option>
+                    {REGION_MUNICIPALITIES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  </select>
+                </div>
+              </div>
+            ) : results.length === 0 ? (
               <div className="bg-white border border-dashed border-slate-300 rounded-3xl p-8 text-center" data-testid="empty-state">
                 <MapPin className="mx-auto text-slate-300 mb-2" />
                 <p className="font-black text-ocean-950">Nada por aqui ainda</p>
@@ -207,12 +220,11 @@ export const Discover: React.FC<Props> = ({ onNavigate }) => {
             ) : (
               <div>
               {flt === 'perto' && where && (() => {
-                const loc = locateMunicipality(where);
                 const near = nearbyAdaptive(results, where);
-                const where2 = loc.inRegion && loc.municipality ? loc.municipality.name : 'fora da Região dos Lagos';
+                const place = loc.municipality ? loc.municipality.name : 'fora da Região dos Lagos';
                 return (
                   <p className="text-xs font-bold text-ocean-700 mb-3 flex items-center gap-1" data-testid="nearby-summary">
-                    <MapPin size={14} /> Você está em {where2} · lugares em até {near.radiusKm} km{near.exhausted ? ' (poucos por aqui)' : ''}
+                    <MapPin size={14} /> Você está em {place} · lugares em até {near.radiusKm} km{near.exhausted ? ' (poucos por aqui)' : ''}
                   </p>
                 );
               })()}
