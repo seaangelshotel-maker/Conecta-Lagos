@@ -1,3 +1,4 @@
+import { merchantImpact, formatBRL, couponSaving } from '../services/walletRules';
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
 import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity, BlogAd, BlogPost } from '../types';
@@ -1774,6 +1775,11 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
               <form onSubmit={async (e) => { 
                   e.preventDefault(); 
+                  const orig = Number(newCoupon.originalPrice), disc = Number(newCoupon.discountedPrice);
+                  if (!(orig > 0) || !(disc >= 0) || disc >= orig) {
+                      notify('warning', "O preço com desconto precisa ser menor que o preço normal. É essa diferença que o cliente vê como economia.");
+                      return;
+                  }
                   if (!newCoupon.imageUrl) {
                       notify('warning', "Por favor, adicione uma imagem para a oferta.");
                       return;
@@ -1795,11 +1801,16 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                       active: newCoupon.active !== undefined ? newCoupon.active : true,
                       status: status
                   } as Coupon;
-                  await saveCoupon(couponData); 
-                  setView(isEdit ? 'COUPONS' : 'HOME'); 
-                  refreshData(); 
-                  setIsSaving(false); 
-                  notify('success', isEdit ? 'Cupom atualizado com sucesso!' : 'Cupom enviado para aprovação do administrador!');
+                  try {
+                      await saveCoupon(couponData); 
+                      setView(isEdit ? 'COUPONS' : 'HOME'); 
+                      refreshData(); 
+                      notify('success', isEdit ? 'Cupom atualizado com sucesso!' : 'Cupom enviado para aprovação do administrador!');
+                  } catch (err: any) {
+                      notify('error', err?.message || 'Não foi possível salvar o cupom. Tente novamente.');
+                  } finally {
+                      setIsSaving(false); 
+                  }
               }} className="space-y-12">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                       <div className="space-y-8">
@@ -1917,7 +1928,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               </div>
                               {newCoupon.originalPrice! > 0 && newCoupon.discountedPrice! > 0 && (
                                   <div className="bg-green-100 text-green-700 p-4 rounded-xl text-center font-black text-xs uppercase tracking-widest">
-                                      Economia de {Math.round(((newCoupon.originalPrice! - newCoupon.discountedPrice!) / newCoupon.originalPrice!) * 100)}% para o cliente
+                                      Economia de {Math.round(((newCoupon.originalPrice! - newCoupon.discountedPrice!) / newCoupon.originalPrice!) * 100)}% para o cliente ({formatBRL(couponSaving({ originalPrice: newCoupon.originalPrice!, discountedPrice: newCoupon.discountedPrice! }))} aparecem na carteira dele quando você confirmar o código)
                                   </div>
                               )}
                           </div>
@@ -3004,6 +3015,29 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </div>
               </div>
 
+              {redemptions.length > 0 && (() => {
+                  const impact = merchantImpact(redemptions as any);
+                  return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-testid="merchant-impact">
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6">
+                              <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-1">Descontos entregues</p>
+                              <p className="text-3xl font-black text-emerald-600" data-testid="impact-given">{formatBRL(impact.given)}</p>
+                              <p className="text-[11px] text-emerald-700/80 font-bold mt-1">{impact.usedCount} cupom(ns) confirmado(s)</p>
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-3xl p-6">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clientes que usaram</p>
+                              <p className="text-3xl font-black text-ocean-950" data-testid="impact-customers">{impact.customers}</p>
+                              <p className="text-[11px] text-slate-400 font-bold mt-1">pessoas diferentes</p>
+                          </div>
+                          <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6">
+                              <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Aguardando uso</p>
+                              <p className="text-3xl font-black text-amber-600" data-testid="impact-pending">{impact.pendingCount}</p>
+                              <p className="text-[11px] text-amber-700/80 font-bold mt-1">{formatBRL(impact.pendingValue)} a confirmar</p>
+                          </div>
+                      </div>
+                  );
+              })()}
+
               <div className="space-y-6">
                   {redemptions.length === 0 ? (
                       <div className="text-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">
@@ -3037,6 +3071,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       <div className="flex justify-between items-center text-xs">
                                           <span className="text-slate-400 font-bold uppercase tracking-wider">Data</span>
                                           <span className="font-black text-ocean-900">{new Date(redemption.redeemedAt).toLocaleDateString('pt-BR')}</span>
+                                      </div>
+                                      <div className="flex justify-between items-center text-xs">
+                                          <span className="text-slate-400 font-bold uppercase tracking-wider">Desconto dado</span>
+                                          <span className="font-black text-emerald-600">{formatBRL(Number(redemption.amountSaved) || 0)}</span>
                                       </div>
                                       <div className="flex justify-between items-center text-xs pb-4 border-b border-slate-50">
                                           <span className="text-slate-400 font-bold uppercase tracking-wider">Status</span>

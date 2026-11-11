@@ -4,6 +4,7 @@ import { Star, Heart, Flame } from 'lucide-react';
 import { Coupon, User } from '../types';
 import { getCurrentUser, toggleFavorite } from '../services/dataService';
 import { useNotification } from './NotificationSystem';
+import { couponSaving, formatBRL, percentOff } from '../services/walletRules';
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -111,10 +112,16 @@ export const CouponCard: React.FC<CouponCardProps> = ({ coupon, onGetCoupon, isR
                   </div>
                   <div className="flex flex-col items-end gap-1">
                       <span className="text-[10px] font-black text-green-700 bg-green-100 px-2 py-1 rounded-lg border border-green-200 shadow-sm">
-                          -{coupon.discountPercentage}% OFF
+                          -{percentOff(coupon)}% OFF
                       </span>
                   </div>
               </div>
+              {couponSaving(coupon) > 0 && (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mb-1" data-testid="coupon-saving">
+                      <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">Você economiza</span>
+                      <span className="text-sm font-black text-emerald-600">{formatBRL(couponSaving(coupon))}</span>
+                  </div>
+              )}
 
               {/* Scarcity Bar */}
               {isLimited && !isSoldOut && (

@@ -21,6 +21,8 @@ import { pickEditorial } from '../services/editorialPick';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 import { RegionChip } from '../components/RegionChip';
 import { EventsShelf } from '../components/EventCards';
+import { WalletCard } from '../components/WalletCard';
+import { useWallet } from '../services/walletService';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
@@ -49,6 +51,7 @@ const SectionHead: React.FC<{ title: string; subtitle?: string; action?: string;
  * O conteúdo editorial completo mora no Feed; a lista completa de lugares, em /descubra.
  */
 export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
+  const wallet = useWallet(currentUser?.id);
   const { t, language, setLanguage } = useLanguage();
   const [showFlags, setShowFlags] = useState(false);
   const [q, setQ] = useState('');
@@ -224,19 +227,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             <SectionHead title={t('Cupons e ofertas')} subtitle="Vantagens de estabelecimentos parceiros" action={t('Ver todos')} onAction={() => onNavigate('search')} />
             {currentUser && (
               <div className="px-4 mb-3">
-                <div className="bg-white border border-emerald-100 p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0"><Gem size={18} /></div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-wider block">{t('Minha Carteira de Economia')}</span>
-                      <span className="text-xs text-slate-500 block">{currentUser.savedAmount && currentUser.savedAmount > 0 ? t('Veja o quanto você já poupou usando nossos cupons!') : t('Ative cupons grátis e comece a economizar!')}</span>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0 pl-2 border-l border-slate-100">
-                    <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">{t('Total Economizado')}</div>
-                    <div className="text-base font-black text-emerald-600">R$ {(currentUser.savedAmount || 0).toFixed(2)}</div>
-                  </div>
-                </div>
+                <WalletCard summary={wallet.summary} loading={wallet.loading} variant="compact" onOpen={() => onNavigate('user-dashboard')} />
               </div>
             )}
             {uniqueCoupons.length > 0 && (

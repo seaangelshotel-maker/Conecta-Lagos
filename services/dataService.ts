@@ -37,6 +37,7 @@ import {
     PublicProfile, InteractionType, AppGlobalSettings, BlogAd
 } from '../types';
 import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
+import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState } from './walletRules';
 
 export type { AppGlobalSettings };
 
@@ -1721,6 +1722,15 @@ export const saveCoupon = async (c: Coupon) => {
         const { status, companyId, currentRedemptions, ...editable } = couponToSave as any;
         await setDoc(ref, cleanObject(editable), { merge: true });
     } else {
+        // Plano: quantos cupons ativos o comerciante pode ter (cota do admin sobre ele, senão a do plano).
+        const me = getCurrentUser();
+        if (me) {
+            const [plans, mine] = await Promise.all([getPricingPlans(), getCoupons(true, true)]);
+            const state = couponQuotaState(mine.filter(x => x.companyId === couponToSave.companyId), couponQuota(me, plans));
+            if (!state.canCreate) {
+                throw new Error(`Seu plano permite ${state.quota} cupom(ns) ativo(s) e você já tem ${state.used}. Desative um cupom ou fale com a gente para ampliar o plano.`);
+            }
+        }
         await setDoc(ref, cleanObject({ ...couponToSave, status: 'pending', currentRedemptions: 0 }));
     }
 };
@@ -1791,8 +1801,19 @@ export const getBusinessStats = async (businessId: string) => {
     };
 };
 
+/** Economia confirmada de todos os clientes: soma dos resgates validados pelos estabelecimentos. */
+const getConfirmedEconomy = async (): Promise<number> => {
+    try {
+        const snap = await getDocs(query(collection(db, 'redemptions'), where('status', '==', 'USED')));
+        return Math.round(snap.docs.reduce((acc, d) => acc + Math.max(0, Number((d.data() as any).amountSaved) || 0), 0) * 100) / 100;
+    } catch (e) {
+        console.warn('Não foi possível somar a economia confirmada:', e);
+        return 0;
+    }
+};
+
 export const getAdminStats = async () => {
-    const totalEconomy = _users.reduce((acc, u) => acc + (u.savedAmount || 0), 0);
+    const totalEconomy = await getConfirmedEconomy();
     return {
         totalUsers: _users.length,
         totalBusinesses: _businesses.length,
@@ -2217,49 +2238,42 @@ export const trackAction = async (businessId: string, type: string, source?: str
 };
 
 /**
- * 🔒 SEGURANÇA REFINADA: Resgate de Cupons
- * - Gera um código de verificação único.
- * - Registra em uma coleção dedicada para auditoria.
- * - Valida limites de uso e expiração.
+ * 🔒 Resgate de cupom (reserva).
+ * - Gera o código de 6 dígitos que o cliente mostra no balcão e grava o resgate como PENDING.
+ * - NÃO credita economia: o valor só entra na carteira quando o estabelecimento confirma o código
+ *   (validateRedemption). A carteira é derivada dos resgates (services/walletRules.ts).
+ * - Valida limite do cupom, limite por pessoa e validade.
  */
 export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
     const user = getCurrentUser();
     if (!user) throw new Error("Usuário não autenticado.");
 
-    // 1. Verificar Limites do Cupom
+    // 1. Cupom precisa estar no ar
+    if (c.active === false || (c.status && c.status !== 'approved')) {
+        throw new Error("Este cupom não está disponível.");
+    }
     if (c.maxRedemptions && (c.currentRedemptions || 0) >= c.maxRedemptions) {
         throw new Error("Este cupom atingiu o limite máximo de resgates.");
     }
-
-    // 2. Verificar Expiração
-    if (new Date(c.expiryDate) < new Date()) {
+    if (isExpired(c.expiryDate)) {
         throw new Error("Este cupom já expirou.");
     }
 
-    // 3. Verificar Limite por Usuário (Firestore query para segurança)
+    // 2. Limite por pessoa (consulta os resgates do próprio usuário)
+    const limitPerUser = c.limitPerUser || 1;
+    let alreadyHas = 0;
     try {
-        const q = query(
-            collection(db, 'redemptions'), 
-            where('userId', '==', uid), 
-            where('couponId', '==', c.id)
-        );
-        const snap = await getDocs(q);
-        if (c.limitPerUser && snap.size >= c.limitPerUser) {
-            throw new Error(`Você já atingiu o limite de ${c.limitPerUser} resgates para este cupom.`);
-        }
-    } catch (e: any) {
-        if (e.message.includes('permission-denied')) {
-            console.warn("Permission denied checking redemptions, falling back to local history check.");
-            const historyCount = (user.history || []).filter(h => h.couponId === c.id).length;
-            if (c.limitPerUser && historyCount >= c.limitPerUser) {
-                throw new Error(`Você já atingiu o limite de ${c.limitPerUser} resgates para este cupom.`);
-            }
-        } else {
-            throw e;
-        }
+        const snap = await getDocs(query(collection(db, 'redemptions'), where('userId', '==', uid), where('couponId', '==', c.id)));
+        alreadyHas = snap.size;
+    } catch (e) {
+        console.error("Falha ao conferir resgates anteriores:", e);
+        throw new Error("Não foi possível conferir seus resgates agora. Tente novamente.");
+    }
+    if (alreadyHas >= limitPerUser) {
+        throw new Error(`Você já atingiu o limite de ${limitPerUser} resgate(s) para este cupom.`);
     }
 
-    // 4. Gerar Código de Verificação (6 dígitos aleatórios)
+    // 3. Código que o estabelecimento confere (6 dígitos)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     let companyName = c.companyName;
@@ -2275,28 +2289,17 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         userName: user.name,
         couponId: c.id,
         companyId: c.companyId,
+        companyName: companyName || '',
         couponTitle: c.title,
-        amountSaved: c.originalPrice - c.discountedPrice,
+        amountSaved: couponSaving(c),
         redeemedAt: new Date().toISOString(),
+        expiryDate: (c.expiryDate || '').slice(0, 10),
         status: 'PENDING',
-        verificationCode: verificationCode
+        verificationCode
     };
 
-    const record: SavingsRecord = { 
-        date: redemption.redeemedAt, 
-        amount: redemption.amountSaved, 
-        couponTitle: c.title, 
-        couponId: c.id,
-        companyName: companyName,
-        expiryDate: c.expiryDate,
-        code: c.code, // Código original do cupom
-        verificationId: redemptionId, // Referência para o novo registro
-        verificationCode // Código de 6 dígitos que a empresa confere
-    };
-
-    // 5. Gravações no banco.
-    // A e B são obrigatórias: sem o registro de resgate a empresa não consegue conferir
-    // o código, e sem o contador o limite do cupom deixa de valer. Se falharem, o resgate falha.
+    // 4. Gravações obrigatórias: sem o resgate o estabelecimento não confere o código,
+    // e sem o contador o limite do cupom deixa de valer. Se falharem, o resgate falha.
     try {
         await setDoc(doc(db, 'redemptions', redemptionId), cleanObject(redemption));
         await updateDoc(doc(db, 'coupons', c.id), { currentRedemptions: increment(1) });
@@ -2305,26 +2308,8 @@ export const redeemCoupon = async (uid: string, c: Coupon): Promise<string> => {
         throw new Error("Não foi possível concluir o resgate agora. Verifique sua conexão e tente novamente.");
     }
 
-    try {
-        // C. Atualizar perfil do usuário e economias (INFORMATIVO - NÃO-BLOQUEANTE)
-        await updateDoc(doc(db, 'users', uid), { 
-            savedAmount: increment(record.amount),
-            history: arrayUnion(record)
-        });
-    } catch (error) {
-        console.warn("Aviso (não-bloqueante): Não foi possível atualizar a carteira de economias do usuário no Firestore:", error);
-    }
-
-    // D. Sincronizar cache local (Sempre atualiza o cache local para experiência instantânea do usuário)
-    if (user.id === uid) {
-        const updatedUser = {
-            ...user,
-            savedAmount: (user.savedAmount || 0) + record.amount,
-            history: [...(user.history || []), record]
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(updatedUser));
-        notifyListeners();
-    }
+    // 5. Atualiza a carteira na tela (a carteira lê os resgates)
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('walletUpdated'));
 
     recordInteraction('coupon_redeem', c.id, { ownerId: businessOwnerId(c.companyId) });
 
@@ -2337,28 +2322,35 @@ export const getRedemptionsByBusiness = async (businessId: string) => {
     return snap.docs.map(d => d.data());
 };
 
-export const validateRedemption = async (redemptionId: string, merchantUid: string) => {
+/**
+ * Confirma o uso do cupom no balcão: o estabelecimento digita o código de 6 dígitos que o cliente mostra.
+ * Só o dono da empresa (ou o admin) confirma, o código precisa bater, e só uma vez.
+ * É essa confirmação que faz a economia entrar na carteira do cliente.
+ */
+export const validateRedemption = async (redemptionId: string, typedCode: string) => {
+    const me = getCurrentUser();
+    if (!me) throw new Error("Faça login para validar.");
+
     const rDoc = await getDoc(doc(db, 'redemptions', redemptionId));
     if (!rDoc.exists()) throw new Error("Resgate não encontrado.");
-    
-    const redemption = rDoc.data();
-    const isAdminUser = getCurrentUser()?.role === UserRole.SUPER_ADMIN;
-    if (redemption.companyId !== merchantUid && !isAdminUser) {
+    const redemption = rDoc.data() as any;
+
+    if (me.role !== UserRole.SUPER_ADMIN && redemption.companyId !== me.id) {
         const biz = _businesses.find(b => b.id === redemption.companyId) || await getBusinessByIdAdmin(redemption.companyId);
-        if (!isOwnerOfBusiness(biz, merchantUid)) {
+        if (!isOwnerOfBusiness(biz, me.id)) {
             throw new Error("Você não tem permissão para validar este cupom.");
         }
     }
-    
-    if (redemption.status === 'USED') {
-        throw new Error("Este cupom já foi utilizado.");
-    }
-    
-    await updateDoc(doc(db, 'redemptions', redemptionId), { 
+
+    const check = checkRedemptionCode(typedCode, redemption);
+    if (check.ok === false) throw new Error(CODE_ERROR_MESSAGE[check.reason]);
+
+    await updateDoc(doc(db, 'redemptions', redemptionId), {
         status: 'USED',
         validatedAt: new Date().toISOString()
     });
-    
+
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('walletUpdated'));
     notifyListeners();
 };
 

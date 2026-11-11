@@ -196,6 +196,12 @@ export interface CouponRedemption {
   redeemedAt: string;
   status: 'PENDING' | 'USED' | 'EXPIRED';
   verificationCode: string;
+  /** Nome do estabelecimento no momento do resgate (para o comprovante). */
+  companyName?: string;
+  /** Validade do cupom (AAAA-MM-DD): o resgate reservado vale até o fim desse dia. */
+  expiryDate?: string;
+  /** Quando o estabelecimento confirmou o código. */
+  validatedAt?: string;
 }
 
 export interface Subcategory {

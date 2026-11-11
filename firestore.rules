@@ -90,9 +90,9 @@ service cloud.firestore {
     function userSelfEditableKeys() {
       return ['name', 'surname', 'avatarUrl', 'phone', 'bio', 'profession', 'instagram',
               'website', 'location', 'specialties', 'achievements', 'favorites',
-              'profileTypes', 'cityId', 'companyName', 'category',
-              // resgate de cupons atualiza histórico e economia do próprio usuário
-              'savedAmount', 'history'];
+              'profileTypes', 'cityId', 'companyName', 'category'];
+      // savedAmount/history NÃO são editáveis pelo usuário: a carteira de economia é calculada
+      // dos resgates confirmados pelo estabelecimento (coleção redemptions).
     }
 
     match /users/{userId} {
@@ -231,13 +231,26 @@ service cloud.firestore {
         isBusinessOwner(resource.data.companyId) ||
         isAdmin()
       );
+      // O cliente só reserva (PENDING), com o valor exato do cupom e o código de 6 dígitos.
+      // Quem confirma o uso (USED) é o estabelecimento; é isso que credita a economia.
       allow create: if isAuthenticated() && isNotBlocked()
         && uid() == request.resource.data.userId
         && request.resource.data.status == 'PENDING'
+        && request.resource.data.keys().hasOnly(['id', 'userId', 'userName', 'couponId', 'companyId', 'companyName',
+              'couponTitle', 'amountSaved', 'redeemedAt', 'expiryDate', 'status', 'verificationCode'])
         && request.resource.data.verificationCode is string
-        && exists(/databases/$(database)/documents/coupons/$(request.resource.data.couponId));
+        && request.resource.data.verificationCode.matches('^[0-9]{6}$')
+        && exists(/databases/$(database)/documents/coupons/$(request.resource.data.couponId))
+        && request.resource.data.companyId == get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.companyId
+        && get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.get('active', true) != false
+        && get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.get('status', 'approved') == 'approved'
+        && request.resource.data.amountSaved is number
+        && math.abs(request.resource.data.amountSaved - (
+              get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.originalPrice
+              - get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.discountedPrice)) < 0.01;
       allow update: if isAdmin() || (
         isBusinessOwner(resource.data.companyId)
+        && resource.data.status == 'PENDING'
         && changedKeys().hasOnly(['status', 'validatedAt'])
         && request.resource.data.status == 'USED'
       );

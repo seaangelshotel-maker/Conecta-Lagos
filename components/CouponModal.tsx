@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { X, MapPin, Clock, FileText, Check, Copy, AlertTriangle, Loader2 } from 'lucide-react';
 import { Coupon } from '../types';
 import { getCurrentUser } from '../services/dataService';
+import { useWallet } from '../services/walletService';
+import { couponSaving, formatBRL, percentOff } from '../services/walletRules';
 
 const getCleanErrorMessage = (message: string): string => {
   try {
@@ -31,20 +33,22 @@ interface CouponModalProps {
 }
 
 export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRedeem, isRedeemed }) => {
-  const [step, setStep] = useState<'details' | 'code' | 'success'>(isRedeemed ? 'code' : 'details');
+  const [step, setStep] = useState<'details' | 'success'>('details');
   const [error, setError] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
+  const [isGetting, setIsGetting] = useState(false);
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const user = getCurrentUser();
+  const { items: myRedemptions } = useWallet(user?.id);
   const gallery = coupon.gallery && coupon.gallery.length > 0 ? coupon.gallery : [coupon.imageUrl];
+  const saving = couponSaving(coupon);
 
   useEffect(() => {
-      if (!user) return;
-      
-      const userUsage = user.history?.filter(h => h.couponId === coupon.id).length || 0;
+      if (!user || step === 'success') return;
+
+      const userUsage = myRedemptions.filter(r => r.couponId === coupon.id).length;
       const limit = coupon.limitPerUser || 1;
-      
+
       if (userUsage >= limit && !isRedeemed) {
           setError(`Você já atingiu o limite de ${limit} cupom(ns) por pessoa.`);
       }
@@ -52,26 +56,24 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
       if (coupon.maxRedemptions && (coupon.currentRedemptions || 0) >= coupon.maxRedemptions && !isRedeemed) {
           setError("Este lote de cupons esgotou!");
       }
-  }, [user, coupon, isRedeemed]);
+  }, [user, coupon, isRedeemed, myRedemptions, step]);
 
-  const handleGetCode = () => {
-      setStep('code');
-  };
-
-  const handleValidateFinal = async () => {
-    if (!user) return setError("Faça login para validar.");
+  // Um passo só: pegar o cupom reserva o resgate e já mostra o código de 6 dígitos.
+  // A economia entra na carteira quando o estabelecimento confirma esse código.
+  const handleGetCoupon = async () => {
+    if (!user) return setError("Faça login para pegar o cupom.");
     setError(null);
-    setIsValidating(true);
+    setIsGetting(true);
     try {
-        const vCode = await onRedeem(coupon); 
+        const vCode = await onRedeem(coupon);
         if (vCode && typeof vCode === 'string') {
             setVerificationCode(vCode);
         }
         setStep('success');
     } catch (e: any) {
-        setError(e.message || "Erro ao validar. Tente novamente.");
+        setError(e.message || "Erro ao pegar o cupom. Tente novamente.");
     } finally {
-        setIsValidating(false);
+        setIsGetting(false);
     }
   };
 
@@ -84,9 +86,9 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                 <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mb-4 shadow-xl shadow-green-500/40">
                     <Check size={40} strokeWidth={4} />
                 </div>
-                <h2 className="text-2xl font-bold text-ocean-950 mb-2">Cupom Resgatado! 🎉</h2>
+                <h2 className="text-2xl font-bold text-ocean-950 mb-2">Cupom reservado! 🎉</h2>
                 <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                    Economia de R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)} somada à sua Carteira de Economia!
+                    Mostre o código abaixo no estabelecimento. Quando ele confirmar, <strong className="text-emerald-600">{formatBRL(saving)}</strong> entram na sua Carteira de Economia.
                 </p>
 
                 {verificationCode && (
@@ -99,8 +101,8 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
 
                 <div className="bg-ocean-50 border border-ocean-100 p-4 rounded-xl mb-6 w-full text-left">
                     <p className="text-ocean-700 text-[11px] font-medium leading-relaxed">
-                        ✅ O comprovante foi salvo no seu <strong>Perfil</strong>.<br/>
-                        ✅ O estabelecimento pode solicitar o código acima para validar seu desconto.
+                        ✅ O cupom está guardado no seu <strong>Perfil</strong>, em Cupons.<br/>
+                        ✅ O estabelecimento digita o código acima para confirmar seu desconto.
                     </p>
                 </div>
                 
@@ -162,9 +164,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1">
-                   {step === 'details' ? (
-                     <>
-                       <h3 className="text-xl font-bold text-ocean-900 mb-2">{coupon.title}</h3>
+                   <>                       <h3 className="text-xl font-bold text-ocean-900 mb-2">{coupon.title}</h3>
                        <p className="text-slate-600 text-sm mb-6 leading-relaxed">{coupon.description}</p>
                        
                        <div className="space-y-4 mb-8">
@@ -200,31 +200,16 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                                <p className="text-green-600 font-bold text-2xl">R$ {coupon.discountedPrice.toFixed(2)}</p>
                            </div>
                            <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-                               -{coupon.discountPercentage}% OFF
+                               -{percentOff(coupon)}% OFF
                            </div>
                        </div>
+                       {saving > 0 && (
+                           <div className="mt-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between" data-testid="modal-saving">
+                               <span className="text-[11px] font-black text-emerald-700 uppercase tracking-wider">Você economiza</span>
+                               <span className="text-xl font-black text-emerald-600">{formatBRL(saving)}</span>
+                           </div>
+                       )}
                      </>
-                   ) : (
-                     <div className="flex flex-col items-center justify-center h-full py-8 text-center animate-in slide-in-from-bottom-10">
-                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
-                             <Check size={40} strokeWidth={3} />
-                         </div>
-                         <h3 className="text-2xl font-bold text-ocean-900 mb-2">Código do Cupom</h3>
-                         <p className="text-slate-500 text-sm mb-8">Apresente este código no caixa.</p>
-                         
-                         <div className="bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl p-6 w-full mb-6 relative group cursor-pointer" onClick={() => navigator.clipboard.writeText(coupon.code)}>
-                             <p className="text-3xl font-mono font-bold text-ocean-900 tracking-widest">{coupon.code}</p>
-                             <p className="text-left md:text-center text-[10px] text-slate-400 mt-2 uppercase">Toque para copiar</p>
-                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400">
-                                <Copy size={16}/>
-                             </div>
-                         </div>
-
-                         <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-xs w-full text-left">
-                             ⚠️ <strong>Atenção:</strong> A economia de <strong>R$ {(coupon.originalPrice - coupon.discountedPrice).toFixed(2)}</strong> só será adicionada à sua Carteira de Economia após clicar no botão Validar abaixo.
-                         </div>
-                     </div>
-                   )}
                 </div>
 
                 <div className="p-4 border-t border-slate-100 bg-white space-y-3">
@@ -234,22 +219,14 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                             <span className="text-left leading-snug">{getCleanErrorMessage(error)}</span>
                         </div>
                     )}
-                    {step === 'details' ? (
-                        !error && (
-                            <button 
-                                onClick={handleGetCode}
-                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all"
-                            >
-                                PEGAR CUPOM
-                            </button>
-                        )
-                    ) : (
+                    {!error && (
                         <button 
-                            onClick={handleValidateFinal}
-                            disabled={isValidating}
-                            className="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                            onClick={handleGetCoupon}
+                            disabled={isGetting}
+                            data-testid="get-coupon"
+                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                            {isValidating ? <Loader2 className="animate-spin" size={24} /> : "VALIDAR & ECONOMIZAR"}
+                            {isGetting ? <Loader2 className="animate-spin" size={24} /> : "PEGAR CUPOM"}
                         </button>
                     )}
                 </div>

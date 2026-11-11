@@ -2,7 +2,7 @@
 import { LegalFooter } from '../components/LegalFooter';
 import { PushPreferences } from '../components/PushPreferences';
 import React, { useState, useEffect } from 'react';
-import { User, SavingsRecord, Coupon, BusinessProfile, UserRole } from '../types';
+import { User, Coupon, BusinessProfile, UserRole } from '../types';
 import { Tag, LogOut, ChevronRight, HelpCircle, Trophy, TrendingUp, Wallet, Star, Heart, Store, Ticket, Send, Camera, Loader2, ShieldCheck, Zap, Bell, Clock, ShoppingBag, Settings, PenTool } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 // Fix: Removed non-existent export 'sendSupportMessage' from dataService
@@ -10,16 +10,20 @@ import { getCoupons, getBusinesses, getBusinessById, updateUser, logout, redeemC
 import { CouponCard } from '../components/CouponCard';
 import { ParticipationHub } from '../components/ParticipationHub';
 import { CouponModal } from '../components/CouponModal';
+import { WalletCard } from '../components/WalletCard';
+import { useWallet } from '../services/walletService';
+import { RedemptionView, walletStatus, WALLET_STATUS_LABEL, formatBRL } from '../services/walletRules';
 import { ImageUpload } from '../components/ImageUpload';
 import { useNotification } from '../components/NotificationSystem';
 import { X, AlertTriangle } from 'lucide-react';
 
 interface CouponReceiptModalProps {
-    record: SavingsRecord;
+    record: RedemptionView;
     onClose: () => void;
 }
 
 const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose }) => {
+    const st = walletStatus(record);
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
@@ -31,7 +35,7 @@ const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose
                         <Ticket size={32} />
                     </div>
                     <h2 className="text-2xl font-black uppercase tracking-tight">Comprovante</h2>
-                    <p className="text-ocean-100 text-xs font-bold uppercase tracking-widest mt-1">Válido por 24h após resgate</p>
+                    <p className="text-ocean-100 text-xs font-bold uppercase tracking-widest mt-1">{record.expiryDate ? `Válido até ${new Date(record.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}` : WALLET_STATUS_LABEL[st]}</p>
                 </div>
                 
                 <div className="p-8 space-y-6">
@@ -47,27 +51,41 @@ const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose
                         </div>
                         <div className="pt-4 border-t border-slate-200">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Código de Validação</p>
-                            <p className="text-3xl font-mono font-black text-ocean-600 tracking-[0.2em]">{record.verificationCode || record.code || '------'}</p>
+                            <p className="text-3xl font-mono font-black text-ocean-600 tracking-[0.2em]">{record.verificationCode || '------'}</p>
                         </div>
                     </div>
 
                     <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                             <span className="text-slate-500 font-bold">Data do Resgate:</span>
-                            <span className="text-ocean-950 font-black">{new Date(record.date).toLocaleDateString('pt-BR')}</span>
+                            <span className="text-ocean-950 font-black">{new Date(record.redeemedAt).toLocaleDateString('pt-BR')}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-slate-500 font-bold">Economia Gerada:</span>
-                            <span className="text-green-600 font-black">R$ {record.amount.toFixed(2)}</span>
+                            <span className="text-slate-500 font-bold">{st === 'used' ? 'Você economizou:' : 'Você vai economizar:'}</span>
+                            <span className="text-green-600 font-black">{formatBRL(record.amountSaved)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-500 font-bold">Situação:</span>
+                            <span className={`font-black ${st === 'used' ? 'text-green-600' : st === 'expired' ? 'text-slate-400' : 'text-amber-600'}`}>{WALLET_STATUS_LABEL[st]}</span>
                         </div>
                     </div>
 
-                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
-                        <AlertTriangle size={20} className="text-amber-500 shrink-0" />
-                        <p className="text-[10px] font-bold text-amber-700 leading-relaxed">
-                            <strong>Apresente este cupom no estabelecimento</strong> para garantir seu benefício. Este comprovante é de uso único e pessoal.
-                        </p>
-                    </div>
+                    {st === 'used' ? (
+                        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl text-[10px] font-bold text-emerald-700 leading-relaxed">
+                            Confirmado pelo estabelecimento{record.validatedAt ? ` em ${new Date(record.validatedAt).toLocaleString('pt-BR')}` : ''}. Esse valor já está na sua Carteira de Economia.
+                        </div>
+                    ) : st === 'expired' ? (
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[10px] font-bold text-slate-500 leading-relaxed">
+                            Este cupom expirou sem ser usado, então não entrou na sua carteira.
+                        </div>
+                    ) : (
+                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
+                            <AlertTriangle size={20} className="text-amber-500 shrink-0" />
+                            <p className="text-[10px] font-bold text-amber-700 leading-relaxed">
+                                <strong>Mostre este código no estabelecimento.</strong> A economia entra na sua carteira quando ele confirmar. Uso único e pessoal.
+                            </p>
+                        </div>
+                    )}
 
                     <button 
                         onClick={onClose}
@@ -93,7 +111,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
   const [favCoupons, setFavCoupons] = useState<Coupon[]>([]);
   const [favBusinesses, setFavBusinesses] = useState<BusinessProfile[]>([]);
   const [businessesWithCoupons, setBusinessesWithCoupons] = useState<Set<string>>(new Set());
-  const [selectedReceipt, setSelectedReceipt] = useState<SavingsRecord | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<RedemptionView | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   
@@ -152,8 +170,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
       }
   }, [activeTab, currentUser]);
 
-  const history = currentUser.history || [];
-  const savedAmount = currentUser.savedAmount || 0;
+  const { items: history, summary: wallet, loading: walletLoading } = useWallet(currentUser.id);
 
   const handleUpdateAvatar = async () => {
       if(!newAvatarUrl) return;
@@ -252,14 +269,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
           {activeTab === 'overview' && (
               <div className="animate-in fade-in space-y-6 md:space-y-10">
-                  <div className="bg-[#1e293b] rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden group">
-                      <div className="relative z-10">
-                        <p className="text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 md:mb-2">Passaporte de Economia</p>
-                        <h2 className="text-4xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">R$ {savedAmount.toFixed(2)}</h2>
-                        <p className="text-xs md:text-base text-slate-300 font-medium">Total economizado no Lagos GO.</p>
-                      </div>
-                      <div className="absolute -right-20 -bottom-20 w-64 h-64 md:w-96 md:h-96 bg-ocean-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
-                  </div>
+                  <WalletCard summary={wallet} loading={walletLoading} variant="full" />
 
                   {/* Quick access to last coupons */}
                   {history.length > 0 && (
@@ -271,9 +281,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                               </button>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                              {[...history].reverse().slice(0, 3).map((record, idx) => (
+                              {history.slice(0, 3).map((record) => (
                                   <div 
-                                    key={idx} 
+                                    key={record.id} 
                                     onClick={() => setSelectedReceipt(record)}
                                     className="bg-white p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 flex items-center justify-between hover:shadow-xl hover:border-ocean-100 transition-all cursor-pointer group"
                                   >
@@ -287,8 +297,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                           </div>
                                       </div>
                                       <div className="text-right shrink-0">
-                                          <p className="text-sm md:text-lg font-black text-emerald-600">- R$ {record.amount.toFixed(2)}</p>
-                                          <p className="text-[9px] md:text-[10px] text-slate-400 font-bold">{new Date(record.date).toLocaleDateString('pt-BR')}</p>
+                                          <p className={`text-sm md:text-lg font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : walletStatus(record) === 'expired' ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
+                                          <p className="text-[9px] md:text-[10px] text-slate-400 font-bold">{WALLET_STATUS_LABEL[walletStatus(record)]} · {new Date(record.redeemedAt).toLocaleDateString('pt-BR')}</p>
                                       </div>
                                   </div>
                               ))}
@@ -304,21 +314,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                       <h3 className="text-lg md:text-2xl font-black text-ocean-950 uppercase tracking-tight">Meus Cupons</h3>
                       <div className="flex items-center gap-2 bg-ocean-50 px-3 py-1.5 rounded-full">
                           <Trophy size={14} className="text-ocean-600 md:w-[18px] md:h-[18px]" />
-                          <span className="text-[10px] md:text-xs font-black text-ocean-600 uppercase">{history.length} Resgates</span>
+                          <span className="text-[10px] md:text-xs font-black text-ocean-600 uppercase">{history.length} Cupons</span>
                       </div>
                   </div>
 
                   {history.length === 0 ? (
                       <div className="text-center py-16 md:py-24 bg-white rounded-[2rem] md:rounded-[3rem] border border-dashed border-slate-200">
                           <Ticket size={48} className="mx-auto text-slate-200 mb-4 md:w-[64px] md:h-[64px]" />
-                          <p className="text-slate-400 font-bold text-sm md:text-base">Você ainda não resgatou nenhum cupom.</p>
+                          <p className="text-slate-400 font-bold text-sm md:text-base">Você ainda não pegou nenhum cupom.</p>
                           <button onClick={() => onNavigate('search')} className="mt-4 text-ocean-600 font-black text-[10px] md:text-xs uppercase tracking-widest hover:underline">Explorar Ofertas</button>
                       </div>
                   ) : (
                       <div className="grid grid-cols-1 gap-4 md:gap-6">
-                          {[...history].reverse().slice(0, showFullHistory ? undefined : 5).map((record, idx) => (
+                          {history.slice(0, showFullHistory ? undefined : 5).map((record) => (
                               <div 
-                                key={idx} 
+                                key={record.id} 
                                 onClick={() => setSelectedReceipt(record)}
                                 className="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 flex items-center justify-between hover:shadow-xl hover:border-ocean-100 transition-all cursor-pointer group relative overflow-hidden"
                               >
@@ -333,7 +343,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                               {(record.companyName && record.companyName !== 'Minha Empresa') ? record.companyName : 'Empresa Parceira'}
                                           </p>
                                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                              <span className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock size={12} /> {new Date(record.date).toLocaleDateString('pt-BR')}</span>
+                                              <span className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock size={12} /> {new Date(record.redeemedAt).toLocaleDateString('pt-BR')}</span>
                                               {record.expiryDate && (
                                                   <span className="text-[9px] md:text-[10px] text-amber-600 flex items-center gap-1 font-bold"><Zap size={12} /> Expira em {new Date(record.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
                                               )}
@@ -341,7 +351,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                       </div>
                                   </div>
                                   <div className="text-right shrink-0 flex flex-col items-end">
-                                      <p className="text-sm md:text-xl font-black text-emerald-600">- R$ {record.amount.toFixed(2)}</p>
+                                      <p className={`text-sm md:text-xl font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : walletStatus(record) === 'expired' ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
+                                      <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-0.5 text-slate-400">{WALLET_STATUS_LABEL[walletStatus(record)]}</p>
                                       <p className="hidden sm:block text-[9px] md:text-[10px] font-black text-ocean-400 uppercase tracking-widest mt-1">Ver Comprovante</p>
                                       <ChevronRight className="text-slate-300 group-hover:text-ocean-600 group-hover:translate-x-1 transition-all sm:hidden" />
                                   </div>
