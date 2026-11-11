@@ -38,6 +38,7 @@ import {
     PublicProfile, InteractionType, AppGlobalSettings, BlogAd
 } from '../types';
 import { recordInteraction, getInteractionSummary, InteractionSummary } from './interactionService';
+import { claimApprovalCheck, siblingClaims, pendingClaimFor, validateClaim, releasableForClaim, canClaim, ClaimForm } from './claimRules';
 import { needsDowngrade, downgradeFields, FREE_PLAN_ID } from './planRules';
 import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
@@ -2541,57 +2542,103 @@ export const approveBusiness = async (businessId: string) => {
     }
 };
 
+/** Pedidos de reivindicação da própria pessoa (a regra do Firestore só deixa ler os próprios). */
+export const getMyClaims = async (uid: string): Promise<CompanyRequest[]> => {
+    const snap = await getDocs(query(collection(db, 'companyRequests'), where('userId', '==', uid)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as CompanyRequest)).filter(r => r.type === 'CLAIM');
+};
+
+/** Reivindicar uma empresa: valida, impede pedido repetido e só avisa "enviado" depois de gravar. */
+export const submitClaim = async (business: BusinessProfile, form: ClaimForm): Promise<void> => {
+    const user = getCurrentUser();
+    if (!user) throw new Error('Faça login para reivindicar esta empresa.');
+    if (!canClaim(business as any)) throw new Error('Esta empresa não está disponível para reivindicação.');
+    const errors = validateClaim(form);
+    const first = Object.values(errors)[0];
+    if (first) throw new Error(first);
+    const mine = await getMyClaims(user.id);
+    if (pendingClaimFor(mine, user.id, business.id)) throw new Error('Você já tem um pedido em análise para esta empresa.');
+    const id = `req_${Date.now()}`;
+    await setDoc(doc(db, 'companyRequests', id), cleanObject({
+        id, userId: user.id, type: 'CLAIM', status: 'PENDING', requestDate: new Date().toISOString(),
+        companyId: business.id, companyName: business.name, category: business.category,
+        ownerName: form.ownerName.trim(), email: user.email, phone: form.whatsapp.trim(), whatsapp: form.whatsapp.trim(),
+        claimerRole: form.role, companyPhone: business.phone || '', document: '',
+        description: `${form.role} de ${business.name}`,
+    }));
+};
+
 export const rejectCompanyRequest = async (requestId: string) => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
     await updateDoc(doc(db, 'companyRequests', requestId), { status: 'REJECTED' });
 };
 
 export const approveCompanyRequest = async (requestId: string) => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
     const reqDoc = await getDoc(doc(db, 'companyRequests', requestId));
     if (!reqDoc.exists()) return;
-    
-    const request = reqDoc.data() as CompanyRequest;
-    await updateDoc(doc(db, 'companyRequests', requestId), { status: 'APPROVED' });
-    
-    if (request.type === 'CLAIM' && request.companyId && request.userId) {
+    const request = { id: reqDoc.id, ...reqDoc.data() } as CompanyRequest;
+
+    if (request.type === 'CLAIM') {
+        // Nunca tira a empresa de quem já é dono, e só aprova pedido ainda em análise.
+        const bizSnap = request.companyId ? await getDoc(doc(db, 'businesses', request.companyId)) : null;
+        const biz = bizSnap?.exists() ? ({ id: bizSnap.id, ...bizSnap.data() } as BusinessProfile) : null;
+        const check = claimApprovalCheck(request, biz as any);
+        if (check.ok === false) throw new Error(check.message);
+
+        await updateDoc(doc(db, 'companyRequests', requestId), { status: 'APPROVED' });
         // Reivindicação: a empresa passa a ter o solicitante como dono (ownerId).
-        // (Antes gravava o campo "id" com o UID, mas o documento continuava com o ID
-        // antigo — o dono nunca conseguia editar a empresa reivindicada.)
-        await updateDoc(doc(db, 'businesses', request.companyId), {
-            isClaimed: true,
-            canBeClaimed: false,
-            ownerId: request.userId,
-            updatedAt: new Date().toISOString()
+        await updateDoc(doc(db, 'businesses', request.companyId!), {
+            isClaimed: true, canBeClaimed: false, ownerId: request.userId, updatedAt: new Date().toISOString()
         });
-        
-        // Also update user role to COMPANY
-        const userDoc = await getDoc(doc(db, 'users', request.userId));
+        // Outros pedidos para a mesma empresa deixam de fazer sentido.
+        const all = await getDocs(query(collection(db, 'companyRequests'), where('companyId', '==', request.companyId)));
+        const others = siblingClaims(all.docs.map(d => ({ id: d.id, ...d.data() } as CompanyRequest)), request);
+        for (const o of others) await updateDoc(doc(db, 'companyRequests', o.id), { status: 'REJECTED' });
+
+        const userDoc = await getDoc(doc(db, 'users', request.userId!));
         if (userDoc.exists()) {
             const user = { id: userDoc.id, ...userDoc.data() } as User;
             await updateUser({
                 ...user,
                 role: UserRole.COMPANY,
                 companyName: request.companyName,
-                permissions: {
-                    canCreateCoupons: true,
-                    canManageBusiness: true
-                }
+                // O plano da empresa (ex.: teste grátis de cortesia) passa a valer também nos limites do dono.
+                ...(biz?.plan && biz.plan !== FREE_PLAN_ID ? { plan: biz.plan } : {}),
+                permissions: { canCreateCoupons: true, canManageBusiness: true }
             });
         }
-    } else if (request.userId) {
-        // Handle New Registration
+        const cached = _businesses.find(b => b.id === request.companyId);
+        if (cached) { cached.isClaimed = true; cached.canBeClaimed = false; (cached as any).ownerId = request.userId; }
+        notifyListeners();
+        return;
+    }
+
+    await updateDoc(doc(db, 'companyRequests', requestId), { status: 'APPROVED' });
+    if (request.userId) {
+        // Novo cadastro
         const userDoc = await getDoc(doc(db, 'users', request.userId));
         if (userDoc.exists()) {
             const user = { id: userDoc.id, ...userDoc.data() } as User;
-            const updatedUser = {
+            await updateUser({
                 ...user,
-                permissions: {
-                    ...(user.permissions || { canCreateCoupons: false, canManageBusiness: false }),
-                    canCreateBusiness: true
-                }
-            };
-            await updateUser(updatedUser);
+                permissions: { ...(user.permissions || { canCreateCoupons: false, canManageBusiness: false }), canCreateBusiness: true }
+            });
         }
     }
+};
+
+/** Admin: libera a reivindicação das empresas sem dono (nunca lugares públicos). Devolve quantas foram liberadas. */
+export const releaseClaims = async (categories?: string[]): Promise<number> => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
+    const list = releasableForClaim(await getAllBusinesses(true), categories);
+    for (const b of list) {
+        await updateDoc(doc(db, 'businesses', b.id), { canBeClaimed: true });
+        const cached = _businesses.find(x => x.id === b.id);
+        if (cached) cached.canBeClaimed = true;
+    }
+    if (list.length) notifyListeners();
+    return list.length;
 };
 
 /**

@@ -47,6 +47,8 @@ import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
+import { ClaimReleaseCard } from '../components/admin/ClaimReleaseCard';
+import { hasOwner, waLink } from '../services/claimRules';
 import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
@@ -394,12 +396,21 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   };
 
   const handleApprove = async (requestId: string) => {
-    await approveCompanyRequest(requestId);
+    const req = requests.find(r => r.id === requestId);
+    if (req?.type === 'CLAIM' && !(await confirm({
+      title: 'Aprovar reivindicação',
+      message: `Você confirmou com a empresa "${req.companyName}" (telefone ${req.companyPhone || 'da página'}) que ${req.ownerName} realmente a representa? Ao aprovar, essa pessoa passa a ser a dona da página.`,
+    }))) return;
+    try {
+      await approveCompanyRequest(requestId);
+      notify('success', req?.type === 'CLAIM' ? 'Reivindicação aprovada. A pessoa já pode gerenciar a empresa.' : 'Solicitação aprovada.');
+    } catch (e: any) { notify('error', e?.message || 'Não foi possível aprovar.'); }
     refreshData();
   };
 
   const handleReject = async (requestId: string) => {
-    await rejectCompanyRequest(requestId);
+    try { await rejectCompanyRequest(requestId); notify('success', 'Pedido recusado.'); }
+    catch (e: any) { notify('error', e?.message || 'Não foi possível recusar.'); }
     refreshData();
   };
 
@@ -2257,6 +2268,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
             </button>
           </div>
           
+          <ClaimReleaseCard businesses={allBusinesses as any} onDone={refreshData} />
+
           <div className="space-y-4">
             {requests.length === 0 && allBusinesses.filter(b => b.status === 'PENDING').length === 0 ? (
               <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
@@ -2332,6 +2345,20 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                           <p className="text-sm text-slate-600 flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {req.phone}</p>
                           <p className="text-sm text-slate-600 flex items-center gap-2"><CalendarDays size={14} className="text-slate-400" /> {new Date(req.requestDate).toLocaleDateString('pt-BR')}</p>
                       </div>
+                      {req.type === 'CLAIM' && (() => {
+                          const target = allBusinesses.find(b => b.id === req.companyId);
+                          const taken = !!target && hasOwner(target as any);
+                          const callTo = waLink(req.companyPhone || target?.phone || '', `Olá! Aqui é da equipe Lagos GO. Recebemos um pedido de ${req.ownerName} para gerenciar a página de ${req.companyName}. Você confirma?`);
+                          return (
+                            <div className="mt-2 space-y-2" data-testid="claim-details">
+                              <p className="text-xs font-bold text-slate-600">{req.claimerRole || 'Relação não informada'} · WhatsApp de quem pede: {req.whatsapp || req.phone || '—'}</p>
+                              {taken && <p className="text-xs font-black text-red-600" data-testid="claim-taken">Esta empresa já tem dono. Recuse este pedido.</p>}
+                              {callTo
+                                ? <a href={callTo} target="_blank" rel="noopener noreferrer" data-testid="claim-call-company" className="inline-block text-xs font-black text-emerald-700 underline">Confirmar com a empresa no WhatsApp ({req.companyPhone || target?.phone})</a>
+                                : <p className="text-xs font-bold text-amber-700">A empresa não tem telefone cadastrado: confirme por outro meio antes de aprovar.</p>}
+                            </div>
+                          );
+                      })()}
                       {req.description && (
                           <p className="text-xs text-slate-400 mt-2 bg-white p-3 rounded-xl border border-slate-100 italic">&quot;{req.description}&quot;</p>
                       )}

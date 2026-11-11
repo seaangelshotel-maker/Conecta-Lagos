@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { ClaimBox } from '../components/ClaimBox';
 import { 
   ArrowLeft, Clock, MapPin, Phone, Instagram, Globe, 
   MessageCircle, Share2, Loader2, Ticket, Search,
@@ -406,37 +407,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             )}
 
 
-            {!business.isClaimed && business.canBeClaimed !== false && (
-                <div className="bg-amber-50 p-8 rounded-[2rem] border border-amber-100 space-y-4">
-                    <div className="flex items-center gap-3 text-amber-600">
-                        <Building2 size={24} />
-                        <h3 className="text-lg font-black uppercase tracking-tight">Esta é sua empresa?</h3>
-                    </div>
-                    <p className="text-sm text-amber-900/70 font-medium leading-relaxed">
-                        Reivindique esta página para gerenciar informações, responder avaliações e criar cupons de desconto exclusivos para seus clientes.
-                    </p>
-                    <button 
-                        onClick={() => {
-                            if (!currentUser) return notify('warning', "Faça login para reivindicar esta empresa.");
-                            const claimRequest = {
-                                companyId: business.id,
-                                companyName: business.name,
-                                ownerName: currentUser.name,
-                                email: currentUser.email,
-                                phone: business.phone,
-                                document: '', // Will be filled in admin or asked later
-                                category: business.category,
-                                description: `Reivindicação da empresa ${business.name}`
-                            };
-                            createCompanyRequest(claimRequest, 'CLAIM');
-                            notify('success', "Sua solicitação de reivindicação foi enviada para análise!");
-                        }}
-                        className="bg-amber-500 text-white font-black px-6 py-3 rounded-xl shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all text-xs uppercase tracking-widest"
-                    >
-                        Reivindicar agora
-                    </button>
-                </div>
-            )}
+            <ClaimBox business={business} currentUser={currentUser} onLogin={() => onNavigate('login')} />
 
             {hasOpeningHours(business.openingHours) && (
             <div className="space-y-4">

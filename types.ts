@@ -140,6 +140,9 @@ export interface CompanyRequest {
   description: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   type: 'NEW_REGISTRATION' | 'CLAIM';
+  /** Reivindicação: relação de quem pede com a empresa e o telefone público da empresa (para a equipe confirmar). */
+  claimerRole?: string;
+  companyPhone?: string;
   requestDate: string;
 }
 
