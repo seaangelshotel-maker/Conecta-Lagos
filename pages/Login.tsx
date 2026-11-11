@@ -10,6 +10,18 @@ interface LoginProps {
   onNavigate?: (page: string, params?: any) => void;
 }
 
+/** Mensagens claras para os erros de conta do Firebase (antes tudo virava "Erro ao criar conta"). */
+const accountError = (err: any, fallback: string): string => {
+  switch (err?.code) {
+    case 'auth/email-already-in-use': return 'Este e-mail já tem conta. Use "Entrar" (ou "Esqueci minha senha").';
+    case 'auth/weak-password': return 'A senha precisa ter pelo menos 6 caracteres.';
+    case 'auth/invalid-email': return 'Esse e-mail não parece válido. Confira e tente de novo.';
+    case 'auth/network-request-failed': return 'Sem conexão com a internet. Tente de novo.';
+    case 'auth/too-many-requests': return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.';
+    default: return err?.message && !/firebase/i.test(err.message) ? err.message : fallback;
+  }
+};
+
 export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
   const { notify } = useNotification();
   const [mode, setMode] = useState<'LOGIN' | 'REGISTER_USER' | 'REGISTER_COMPANY'>('LOGIN');
@@ -44,6 +56,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
       category: 'Gastronomia',
       description: ''
   });
+  const [companyPassword, setCompanyPassword] = useState('');
   const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
@@ -101,20 +114,34 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
           await registerUser(regName, regEmail, regPassword);
           onLogin(); 
       } catch (err: any) {
-          setError('Erro ao criar conta.');
+          setError(accountError(err, 'Não foi possível criar a conta. Tente de novo.'));
       } finally {
           setLoading(false);
       }
   };
 
-  const handleCompanyRegisterSubmit = (e: React.FormEvent) => {
+  // O pedido só pode ser gravado por quem tem conta (regra do banco). Por isso o cadastro cria a conta e, em seguida, envia o pedido.
+  const handleCompanyRegisterSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setError('');
       setLoading(true);
-      setTimeout(() => {
-          createCompanyRequest(regForm, 'NEW_REGISTRATION');
+      let accountCreated = false;
+      try {
+          await registerUser(regForm.ownerName, regForm.email, companyPassword);
+          accountCreated = true;
+          await createCompanyRequest({ ...regForm, whatsapp: regForm.phone }, 'NEW_REGISTRATION');
           setRequestSent(true);
+          notify('success', 'Pedido enviado! Vamos analisar e avisar você.');
+      } catch (err: any) {
+          if (accountCreated) {
+              // A conta existe, só o pedido falhou: a pessoa já está logada e pode tentar de novo pelo painel.
+              notify('warning', 'Sua conta foi criada, mas não conseguimos enviar o pedido da empresa. Tente de novo pelo seu perfil.');
+          } else {
+              setError(accountError(err, 'Não foi possível enviar. Tente de novo.'));
+          }
+      } finally {
           setLoading(false);
-      }, 1500);
+      }
   };
 
   if (mode === 'REGISTER_COMPANY' && requestSent) {
@@ -188,6 +215,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                             <input 
                                 type="email" 
                                 required
+                                autoComplete="email"
                                 placeholder="seu@email.com"
                                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 focus:border-ocean-500 outline-none transition-all text-sm font-bold"
                                 value={email}
@@ -202,6 +230,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                             <input 
                                 type={showPassword ? "text" : "password"}
                                 required
+                                autoComplete="current-password"
                                 placeholder="••••••••"
                                 className="w-full pl-12 pr-14 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 focus:border-ocean-500 outline-none transition-all text-sm font-bold"
                                 value={password}
@@ -272,15 +301,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                     )}
                 </button>
 
-                <div className="bg-amber-50/70 border border-amber-100 rounded-2xl p-4 text-left space-y-1">
-                    <p className="text-[9px] font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                        <AlertCircle size={12} /> Nota sobre o Login Google
-                    </p>
-                    <p className="text-[10px] text-amber-700/90 font-medium leading-relaxed">
-                        Se estiver usando o visualizador do AI Studio, o login do Google pode ser bloqueado devido a restrições de iFrame do navegador. Para funcionar, use o botão <strong>&quot;Abrir em nova aba&quot;</strong> no canto superior direito para abrir o site diretamente, ou use login comum de e-mail e senha.
-                    </p>
-                </div>
-
                 <div className="pt-6 border-t border-slate-100 mt-6 text-center flex flex-col gap-4">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Possui um negócio?</p>
                     <button 
@@ -307,20 +327,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                 <form onSubmit={handleUserRegisterSubmit} className="space-y-4">
                     <div>
                         <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Nome Completo</label>
-                        <input required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 outline-none font-bold text-sm" value={regName} onChange={(e) => setRegName(e.target.value)} />
+                        <input required autoComplete="name" className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 outline-none font-bold text-sm" value={regName} onChange={(e) => setRegName(e.target.value)} />
                     </div>
                     <div>
                         <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Email</label>
-                        <input type="email" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 outline-none font-bold text-sm" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+                        <input type="email" required autoComplete="email" className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-ocean-500/10 outline-none font-bold text-sm" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Senha</label>
-                            <input type="password" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} />
+                            <input type="password" required minLength={6} autoComplete="new-password" placeholder="Mínimo 6 caracteres" className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} />
                         </div>
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Confirmação</label>
-                            <input type="password" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm" value={regConfirmPassword} onChange={(e) => setRegConfirmPassword(e.target.value)} />
+                            <input type="password" required autoComplete="new-password" className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm" value={regConfirmPassword} onChange={(e) => setRegConfirmPassword(e.target.value)} />
                         </div>
                     </div>
                     <button type="submit" disabled={loading} className="w-full bg-ocean-600 text-white font-black py-5 rounded-2xl shadow-xl mt-4">
@@ -368,10 +388,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
                         </div>
                         <input type="email" placeholder="Email Comercial" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-sm outline-none" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} />
                         <input type="tel" placeholder="WhatsApp (DDD + Número)" required className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-sm outline-none" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})} />
+                        <input type="password" placeholder="Crie uma senha (mínimo 6 caracteres)" required minLength={6} autoComplete="new-password" className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-sm outline-none" value={companyPassword} onChange={e => setCompanyPassword(e.target.value)} />
                         <select className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-500 font-bold text-sm outline-none" value={regForm.category} onChange={e => setRegForm({...regForm, category: e.target.value})}>
                             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         </select>
                     </div>
+                    {error && <p role="alert" className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">{error}</p>}
+                    <p className="text-[11px] text-slate-400 font-medium">Vamos criar sua conta com esse e-mail e analisar o pedido da empresa. Você poderá entrar com ele e a senha acima.</p>
                     <button type="submit" disabled={loading} className="w-full bg-ocean-950 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-black transition-all flex justify-center items-center gap-2">
                         {loading ? <Loader2 className="animate-spin" size={20}/> : <><CheckCircle2 size={20}/> ENVIAR PARA ANÁLISE</>}
                     </button>
