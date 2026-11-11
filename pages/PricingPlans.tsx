@@ -87,6 +87,9 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
     const activePeriod = periodsAvailable.includes(period) ? period : (periodsAvailable[0] || period);
     const visiblePlans = (hasNew ? plans.filter(p => p.period === activePeriod) : plans).slice().sort((a, b) => a.price - b.price);
 
+    // O selo "Recomendado" vai em um só card: o plano mais barato entre os que têm destaque.
+    const recommendedId = visiblePlans.find(p => p.isFeatured)?.id;
+
     if (loading && plans.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -124,9 +127,9 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                     {visiblePlans.map((plan) => (
                         <div 
                             key={plan.id} 
-                            className={`bg-white rounded-[3.5rem] p-12 border-2 transition-all flex flex-col relative ${plan.isFeatured ? 'border-ocean-500 shadow-2xl shadow-ocean-500/10 md:scale-105 z-10' : 'border-slate-100 shadow-xl hover:border-ocean-200'}`}
+                            className={`bg-white rounded-[3.5rem] p-12 border-2 transition-all flex flex-col relative ${plan.id === recommendedId ? 'border-ocean-500 shadow-2xl shadow-ocean-500/10 md:scale-105 z-10' : 'border-slate-100 shadow-xl hover:border-ocean-200'}`}
                         >
-                            {plan.isFeatured && (
+                            {plan.id === recommendedId && (
                                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-ocean-600 text-white px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
                                     Recomendado
                                 </div>
@@ -219,7 +222,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                             <div className="space-y-4">
                                 <button 
                                     onClick={() => handleSelectPlan(plan, false)}
-                                    className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${plan.isFeatured ? 'bg-ocean-600 text-white shadow-2xl shadow-ocean-600/30 hover:bg-ocean-700' : 'bg-slate-100 text-ocean-950 hover:bg-slate-200'}`}
+                                    className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${plan.id === recommendedId ? 'bg-ocean-600 text-white shadow-2xl shadow-ocean-600/30 hover:bg-ocean-700' : 'bg-slate-100 text-ocean-950 hover:bg-slate-200'}`}
                                 >
                                     <MessageCircle size={18} />
                                     Assinar Via WhatsApp

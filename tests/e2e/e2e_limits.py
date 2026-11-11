@@ -130,6 +130,7 @@ async def main():
         ok('1 ano: mostra total 2.398,80 e os itens extras do pacote de redes', '2.398,80' in body and '1 vídeo por mês' in body and await page.locator('[data-testid=plan-extra]').count() == 2, body[:300])
         await page.locator('[data-testid=period-semiannual]').click(); await page.wait_for_timeout(300)
         body = (await page.locator('body').inner_text()).lower()
+        ok('selo Recomendado em um único card', (await page.locator('body').inner_text()).upper().count('RECOMENDADO') <= 1)
         ok('6 meses: não mostra o plano de 1 ano', '2.398,80' not in body and '299,40' in body)
         ok('nenhum erro de JavaScript', not [e for e in errors if 'Failed to load resource' not in e], '; '.join(errors)[:300])
         await b.close()
