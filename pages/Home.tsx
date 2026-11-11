@@ -17,6 +17,7 @@ import { LeadCard, CompactCard, openContent } from '../components/FeedCards';
 import { getAllBusinesses, getBlogPosts, getCollections, getHomeHighlights, redeemCoupon } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
 import { orderFeedByGeo } from '../services/regionGeo';
+import { pickEditorial } from '../services/editorialPick';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 import { RegionChip } from '../components/RegionChip';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
@@ -94,12 +95,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   // Com município conhecido, o conteúdo daquela cidade e vizinhas sobe na prévia (sem esconder o resto).
   const gGuides = useMemo(() => (currentMuni ? orderFeedByGeo(guides, currentMuni) : guides), [guides, currentMuni]);
   const gPosts = useMemo(() => (currentMuni ? orderFeedByGeo(posts, currentMuni) : posts), [posts, currentMuni]);
-  const lead = useMemo(() => gGuides.find(g => g.featured) || gPosts[0] || gGuides[0], [gGuides, gPosts]);
-  const previews = useMemo(() => {
-    const pool = [...gPosts.slice(0, 2), ...gGuides.filter(g => g.featured || g.popular)];
-    const seen = new Set<string>([lead?.id || '']);
-    return pool.filter(p => p && !seen.has(p.id) && seen.add(p.id)).slice(0, 3);
-  }, [gPosts, gGuides, lead]);
+  // Destaque grande e subdestaques: o admin escolhe (Painel > Destaques editoriais); sem escolha, automático.
+  const { lead, subs: previews } = useMemo(
+    () => pickEditorial(guides, posts, gGuides, gPosts, config.editorial),
+    [guides, posts, gGuides, gPosts, config.editorial],
+  );
 
   const openHighlight = (h: HomeHighlight) => {
     const link = h.buttonLink || '';

@@ -53,7 +53,9 @@ export interface CategoryConfig {
   rule?: CategoryRule;
 }
 
-export interface HomeDiscoveryConfig { placesPerCategory: number; categories: CategoryConfig[]; updatedAt?: string; }
+import { EditorialConfig, normalizeEditorial } from './editorialPick';
+
+export interface HomeDiscoveryConfig { placesPerCategory: number; categories: CategoryConfig[]; editorial?: EditorialConfig; updatedAt?: string; }
 
 export const PLACES_MIN = 1;
 export const PLACES_MAX = 24;
@@ -92,7 +94,7 @@ export const normalizeConfig = (raw?: Partial<HomeDiscoveryConfig> | null): Home
   }
   MAIN_CATEGORIES.forEach(m => { if (!seen.has(m.id)) out.push({ id: m.id, label: m.label, icon: m.icon, order: 1000 + out.length, active: true }); });
   out.sort((a, b) => a.order - b.order);
-  return { placesPerCategory, categories: out.map((c, i) => ({ ...c, order: i })), updatedAt: raw?.updatedAt };
+  return { placesPerCategory, categories: out.map((c, i) => ({ ...c, order: i })), editorial: normalizeEditorial(raw?.editorial), updatedAt: raw?.updatedAt };
 };
 
 /** Categorias prontas para a tela (só as ativas, na ordem do admin). */
