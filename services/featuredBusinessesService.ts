@@ -107,7 +107,7 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
             email: b.email || '',
             instagram: b.instagram || '',
             website: b.website || '',
-            amenities: [],
+            amenities: b.amenities || [],
             openingHours: b.hours || {},
             rating: 0,
             reviewCount: 0,

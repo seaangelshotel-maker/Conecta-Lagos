@@ -26,6 +26,8 @@ export interface FeaturedBusiness {
   email?: string;
   instagram?: string;
   website?: string;
+  /** Ids de comodidades confirmadas (ver AMENITIES em types.ts). Vazio se não confirmado. */
+  amenities?: string[];
   /** Horário publicado pela empresa, por dia (chaves: Domingo, Segunda, Terça, Quarta, Quinta, Sexta, Sábado). Vazio se não publicado. */
   hours?: Record<string, string>;
   description: string;
@@ -282,5 +284,26 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     hours: { Domingo: '12:00 - 22:00', Quarta: '17:00 - 23:00', Quinta: '17:00 - 23:00', Sexta: '17:00 - 00:00', 'Sábado': '12:00 - 00:00' },
     description: 'Restaurante no bairro São Bento, em Cabo Frio. Outro telefone: (22) 99773-5096. Horário publicado de quarta a domingo.',
     sources: ['https://saboresdecabofrio.com.br/mar/'], checkedAt: D,
+  },
+  // ───────── Arraial do Cabo · Restaurantes (curadoria conforme docs/CADASTRO_PADRAO.md)
+  {
+    name: 'Restaurante Saint Tropez', cityId: AC, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'Praça Daniel Barreto, 2, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
+    phone: '(22) 2622-1222', whatsapp: '(22) 99856-1708',
+    instagram: 'https://www.instagram.com/restaurantesainttropez/',
+    hours: { Domingo: '12:00 - 23:30', Segunda: '12:00 - 23:30', 'Terça': '12:00 - 23:30', Quarta: '12:00 - 23:30', Quinta: '12:00 - 23:30', Sexta: '12:00 - 23:30', 'Sábado': '12:00 - 23:30' },
+    amenities: ['parking', 'access', 'kids', 'pet', 'card', 'bar'],
+    description: 'Desde 1981, o Saint Tropez ocupa uma esquina da Praça do Cova e reúne duas cozinhas: a francesa do chef Guy, que vive em Arraial desde 1980, e a mesa farta do litoral brasileiro. O cardápio é longo, com frutos do mar, carnes, massas, sopas e pizzas, e traz pratos de personalidade, como o surf and turf de polvo com bacon e o frango à cubana com bananas e abacaxis empanados. As porções são pensadas para dividir, então combine o pedido com a mesa. É parada natural para o almoço depois do passeio de barco, no coração da Praia dos Anjos.',
+    sources: ['https://www.instagram.com/restaurantesainttropez/', 'https://linktr.ee/restaurantesainttropezz', 'https://www.google.com/maps/place/Restaurante+Saint+Tropez/@-22.9701477,-42.0202437,17z', 'https://www.viajenaviagem.com/destino/arraial-do-cabo/onde-comer/', 'https://guia.melhoresdestinos.com.br/saint-tropez-190-5138-l.html'], checkedAt: '2026-11-12',
+  },
+  {
+    name: 'Casa da Piedra', cityId: AC, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'R. Santa Cruz, 4, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
+    phone: '(22) 2340-1687', whatsapp: '(22) 98110-1724',
+    instagram: 'https://www.instagram.com/casadapiedra_/',
+    hours: { Domingo: '12:00 - 00:00', Segunda: '12:00 - 00:00', 'Terça': '12:00 - 00:00', Quarta: '12:00 - 00:00', Quinta: '12:00 - 00:00', Sexta: '12:00 - 00:00', 'Sábado': '12:00 - 00:00' },
+    amenities: ['wifi', 'parking', 'access', 'kids', 'card', 'bar', 'delivery'],
+    description: 'Num casarão histórico à beira da praia, a Casa da Piedra é ao mesmo tempo restaurante, bar e centro cultural. O visitante vê exposições de arte local e, nos fins de semana, encontra música ao vivo. A cozinha tem frutos do mar, drinques e uma seção vegetariana e vegana no cardápio, e o terraço convida a ficar além do jantar. É endereço certo para unir boa mesa e um pouco de história da cidade, em dupla, em família ou em grupo.',
+    sources: ['https://www.instagram.com/casadapiedra_/', 'https://www.google.com/maps/place/Restaurante+Casa+da+Piedra/@-22.9691536,-42.0191739,17z', 'https://wanderlog.com/place/details/1409109', 'https://www.happycow.net/reviews/casa-da-piedra-arraial-do-cabo-359986'], checkedAt: '2026-11-12',
   },
 ];
