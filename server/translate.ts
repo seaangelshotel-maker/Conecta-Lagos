@@ -17,10 +17,16 @@ const rateLimited = (ip: string) => {
     const h = hits.get(ip);
     if (!h || h.reset < now) { hits.set(ip, { n: 1, reset: now + 60_000 }); return false; }
     h.n++;
-    return h.n > 40;
+    return h.n > 200;
 };
 
-const viaGoogle = async (text: string, target: string): Promise<string> => {
+const viaGoogle = async (text: string, target: string, tries = 3): Promise<string> => {
+    for (let i = 0; i < tries; i++) {
+        try { return await viaGoogleOnce(text, target); } catch { await new Promise(r => setTimeout(r, 250 * (i + 1))); }
+    }
+    return text;
+};
+const viaGoogleOnce = async (text: string, target: string): Promise<string> => {
     const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`);
     if (!r.ok) throw new Error('google ' + r.status);
     const data: any = await r.json();
@@ -59,7 +65,9 @@ export const handleTranslate = async (req: Req, res: Res) => {
         if (key) { try { done = await viaGemini(miss, target, key); } catch (e) { console.warn('[translate] gemini falhou', e); } }
         if (!done) {
             const g = target === 'pt-PT' ? 'pt-PT' : target;
-            done = await Promise.all(miss.map(t => viaGoogle(t, g).catch(() => t)));
+            done = [];
+            for (const part of Array.from({ length: Math.ceil(miss.length / 8) }, (_, i) => miss.slice(i * 8, i * 8 + 8)))
+                done.push(...await Promise.all(part.map(t => viaGoogle(t, g))));
         }
         missIdx.forEach((idx, k) => {
             out[idx] = done![k];

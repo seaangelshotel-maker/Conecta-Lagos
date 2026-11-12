@@ -28,9 +28,9 @@ const blocked = (el: Element | null): boolean => {
     return false;
 };
 
-const loadStore = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem('lagos_tr_' + lang) || '{}'); } catch { return {}; } };
+const loadStore = (): Record<string, string> => { try { const o = JSON.parse(localStorage.getItem('lagos_tr2_' + lang) || '{}'); for (const k in o) if (o[k] === k) delete o[k]; return o; } catch { return {}; } };
 let store: Record<string, string> = {};
-const saveStore = () => { try { const s = JSON.stringify(store); if (s.length < 1_500_000) localStorage.setItem('lagos_tr_' + lang, s); } catch { /* cheio */ } };
+const saveStore = () => { try { const s = JSON.stringify(store); if (s.length < 1_500_000) localStorage.setItem('lagos_tr2_' + lang, s); } catch { /* cheio */ } };
 
 const lookup = (src: string): string | undefined => {
     const key = src.trim();
@@ -39,13 +39,34 @@ const lookup = (src: string): string | undefined => {
     return memo.get(lang + '|' + key) ?? store[key];
 };
 
+/** Plano B no navegador (IP de cada visitante) quando o servidor não conseguiu traduzir. */
+const viaBrowser = async (target: string, texts: string[]): Promise<string[]> => {
+    const out: string[] = [];
+    for (let i = 0; i < texts.length; i += 6) {
+        out.push(...await Promise.all(texts.slice(i, i + 6).map(async t => {
+            try {
+                const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${target}&dt=t&q=${encodeURIComponent(t)}`);
+                if (!r.ok) return t;
+                const d = await r.json();
+                return (d[0] || []).map((x: any) => x[0]).join('') || t;
+            } catch { return t; }
+        })));
+    }
+    return out;
+};
+
 const fetchBatch = async (target: string, texts: string[]): Promise<string[] | null> => {
+    let res: string[] | null = null;
     try {
         const r = await fetch('/api/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, texts }) });
-        if (!r.ok) return null;
-        const d = await r.json();
-        return Array.isArray(d.translations) ? d.translations : null;
-    } catch { return null; }
+        if (r.ok) { const d = await r.json(); if (Array.isArray(d.translations)) res = d.translations; }
+    } catch { /* cai no plano B */ }
+    const unchanged = res ? texts.filter((t, i) => res![i] === t && /\p{L}{4,}/u.test(t)).length : texts.length;
+    if (!res || unchanged > texts.length / 2) {
+        const fb = await viaBrowser(target, texts);
+        return res ? texts.map((t, i) => (res![i] !== t ? res![i] : fb[i])) : fb;
+    }
+    return res;
 };
 
 const setText = (t: Text, src: string, tr: string) => {
@@ -66,8 +87,10 @@ const collect = (root: Node, texts: Text[], attrs: Element[]) => {
     }
 };
 
+let retryLater = false;
 const run = async (root: Node) => {
     if (lang === 'pt') return;
+    retryLater = false;
     const myLang = lang;
     const texts: Text[] = []; const els: Element[] = [];
     if (root.nodeType === 3) texts.push(root as Text); else collect(root, texts, els);
@@ -102,10 +125,17 @@ const run = async (root: Node) => {
         const res = await fetchBatch(myLang, part);
         if (myLang !== lang) return;
         if (!res) continue;
-        part.forEach((s, i) => { if (res[i]) { memo.set(myLang + '|' + s, res[i]); store[s] = res[i]; } });
+        // só guarda o que realmente mudou: se veio igual ao original, foi falha/limite — tenta de novo depois
+        let failed = 0;
+        part.forEach((s, i) => {
+            if (res[i] && res[i] !== s) { memo.set(myLang + '|' + s, res[i]); store[s] = res[i]; }
+            else if (/\p{L}{4,}/u.test(s) && s.includes(' ')) failed++;
+        });
+        if (failed > part.length / 3) retryLater = true;
         saveStore();
         for (const j of jobs) { const h = memo.get(myLang + '|' + j.src.trim()); if (h) j.apply(h); }
     }
+    if (retryLater && myLang === lang) { retryLater = false; window.setTimeout(() => { if (myLang === lang) void run(root); }, 4000); }
 };
 
 const flush = () => {
