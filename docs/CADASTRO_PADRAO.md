@@ -21,7 +21,7 @@ Prioridade para negócios que o público já procura. A relevância ordena a fil
 
 ## Passo 0: antes de pesquisar, olhar o que já temos
 Para cada empresa, antes de abrir qualquer fonte externa:
-1. Procurar no projeto (data/featuredBusinesses.ts, data/publicPlaces.ts, services/dataService.ts, artigos do blog) e, quando houver acesso, nos registros do Firestore.
+1. Conferir primeiro o site de produção pelo Chrome: abrir `https://lagosgo.com.br/descubra?q=<parte do nome>`, esperar uns 4 segundos carregar e ler o resultado (use só uma palavra do nome, a busca também casa descrição). Os cadastros reais ficam no banco e só aparecem aí. Depois olhar o código (data/featuredBusinesses.ts, data/publicPlaces.ts, services/dataService.ts, artigos do blog).
 2. Se já existe: não duplicar. Comparar o que está salvo com as fontes (endereço, telefone, horário, Instagram, comodidades, descrição) e entregar só a lista do que precisa atualizar.
 3. Se só aparece em texto (artigo do blog, roteiro), conferir se o texto ainda está correto e apontar o que corrigir.
 4. Só se não existir, seguir o fluxo completo abaixo.
