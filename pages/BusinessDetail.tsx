@@ -165,16 +165,23 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
               break;
           }
           case 'menu': setShowMenuOverlay(true); break;
-          case 'social': if(business.instagram) window.open(`https://instagram.com/${business.instagram.replace('@', '')}`, '_blank'); break;
+          case 'social': if(business.instagram) {
+              // Aceita @perfil, perfil ou o endereço completo do perfil.
+              const ig = String(business.instagram).trim();
+              window.open(/^https?:\/\//i.test(ig) ? ig : `https://instagram.com/${ig.replace('@', '')}`, '_blank', 'noopener');
+          } break;
           case 'phone': if(business.phone) window.open(`tel:${business.phone}`, '_self'); break;
           case 'website': if(business.website) window.open(business.website.startsWith('http') ? business.website : `https://${business.website}`, '_blank'); break;
           case 'delivery': if(business.deliveryUrl) window.open(business.deliveryUrl, '_blank'); break;
           case 'booking': if(business.bookingUrl) window.open(business.bookingUrl, '_blank'); break;
           case 'map': {
               // Coordenadas quando houver; senão nome + localização (sem os complementos entre parênteses).
+              // Sem coordenadas, o endereço sozinho localiza melhor: o nome pode casar com outro lugar parecido
+              // (ex.: "Casa da Piedra" x "Casa da Pedra").
+              const cleanAddress = (business.address || '').replace(/\(.*?\)/g, '').trim();
               const q = (typeof business.lat === 'number' && typeof business.lng === 'number')
                   ? `${business.lat},${business.lng}`
-                  : `${business.name}, ${(business.address || '').replace(/\(.*?\)/g, '').trim()}`;
+                  : (/\d/.test(cleanAddress) && cleanAddress.includes(',') ? cleanAddress : `${business.name}, ${cleanAddress}`);
               window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
               break;
           }
