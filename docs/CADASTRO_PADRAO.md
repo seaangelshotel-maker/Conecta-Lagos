@@ -6,6 +6,19 @@ Os campos abaixo vêm de `BusinessProfile` (types.ts), do formulário do admin e
 ## Regra de ouro
 Só passa para a lista de aprovadas a empresa que cumpre **todos** os itens obrigatórios, com fonte. Dado não confirmado fica vazio e a empresa **não passa** (não se inventa nada). Foto está fora desta checagem.
 
+## Relevância: quem entra primeiro na fila
+Prioridade para negócios que o público já procura. A relevância ordena a fila e não substitui o checklist. Sinais, combinados:
+- Volume de avaliações na ficha do Google Meu Negócio e no TripAdvisor, e a posição no ranking da cidade e da categoria.
+- Instagram com muitos seguidores. Conferir que é o perfil oficial: existem perfis homônimos (o endereço da bio deve bater com o da ficha do Google).
+- Citação em guias de viagem.
+
+## Fontes de pesquisa
+- **Ficha do Google Meu Negócio:** endereço, telefone, horário por dia, site.
+- **TripAdvisor:** posição no ranking, tipo de cozinha, faixa de preço, facilidades.
+- **Instagram oficial:** bio (endereço e horário), seguidores, canal de contato.
+- **Site oficial** e guias de viagem como apoio.
+- Para passar, dois ou mais itens independentes precisam concordar nos dados de contato. Uso: conferir fatos públicos. Notas, comentários e textos dessas plataformas não são copiados.
+
 ## 1. Barreiras eliminatórias (qualquer uma reprova)
 - Empresa fechada, não localizada ou com CNPJ trocado.
 - Já existe no guia (mesmo nome na mesma cidade, ignorando acento e parênteses).
