@@ -1,4 +1,5 @@
 import { merchantImpact, formatBRL, couponSaving } from '../services/walletRules';
+import { canOrder } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
 import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity, BlogAd, BlogPost } from '../types';
@@ -68,6 +69,7 @@ const PLAN_BLANK: Partial<PricingPlan> = {
   isFeatured: false,
   showGallery: true,
   showMenu: true,
+  showOrders: true,
   showSocialMedia: true,
   showReviews: true,
   hasFreeTrial: false,
@@ -225,6 +227,9 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
         setUsers(allU);
         const pReviews = await getPendingReviews();
         setPendingReviews(pReviews);
+    } else {
+        // Empresas também precisam dos planos (para saber o que o plano delas libera, ex.: pedidos por WhatsApp).
+        try { setPlans(await getPricingPlans()); } catch { /* segue sem planos */ }
     }
     setLoading(false);
   };
@@ -505,7 +510,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
       return new Date(myBusiness.subscriptionEndsAt) < new Date();
   };
 
-  const activePlan = plans.find(p => p.name === myBusiness?.plan || p.name === currentUser.plan);
+  const activePlan = plans.find(p => p.id === myBusiness?.plan || p.name === myBusiness?.plan || p.id === currentUser.plan || p.name === currentUser.plan);
   const isExpired = isSubscriptionExpired();
 
   return (
@@ -1698,10 +1703,48 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
               <div className="space-y-10">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-black text-ocean-950">Gestão de Cardápio</h2>
+                    <h2 className="text-3xl font-black text-ocean-950">Gestão de {editBusiness.orderMode === 'services' ? 'Serviços' : 'Cardápio'}</h2>
                     <button onClick={handleAddMenuSection} className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2">
                         <Plus size={16} /> NOVA SEÇÃO
                     </button>
+                  </div>
+
+                  <div className="bg-ocean-50 border border-ocean-100 p-6 rounded-[2rem] space-y-4" data-testid="orders-settings">
+                      <div>
+                          <h3 className="font-black text-ocean-950">Pedidos pelo WhatsApp</h3>
+                          <p className="text-xs text-slate-500">O cliente monta o pedido no seu perfil e a mensagem pronta chega no seu WhatsApp. Sem pagamento e sem comissão.</p>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                          <label className="space-y-1 block">
+                              <span className="text-[10px] font-black uppercase text-slate-500">O que você cadastra aqui</span>
+                              <select data-testid="order-mode" className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold"
+                                  value={editBusiness.orderMode || 'menu'}
+                                  onChange={e => setEditBusiness({ ...editBusiness, orderMode: e.target.value as 'menu' | 'services' })}>
+                                  <option value="menu">Cardápio (comidas, bebidas, produtos)</option>
+                                  <option value="services">Serviços (passeios, diárias, atendimentos)</option>
+                              </select>
+                          </label>
+                          <label className="space-y-1 block">
+                              <span className="text-[10px] font-black uppercase text-slate-500">WhatsApp que recebe os pedidos</span>
+                              <input data-testid="order-whatsapp" className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold" placeholder="(22) 99999-9999"
+                                  value={editBusiness.orderWhatsapp ?? ''}
+                                  onChange={e => setEditBusiness({ ...editBusiness, orderWhatsapp: e.target.value })} />
+                              <span className="text-[10px] text-slate-400">Vazio = usa o WhatsApp do seu perfil.</span>
+                          </label>
+                      </div>
+                      {canOrder(activePlan) || currentUser.role === UserRole.SUPER_ADMIN ? (
+                          <label className="flex items-center gap-3 cursor-pointer">
+                              <input data-testid="orders-enabled" type="checkbox" className="w-5 h-5 rounded text-ocean-600"
+                                  checked={editBusiness.ordersEnabled === true}
+                                  onChange={e => setEditBusiness({ ...editBusiness, ordersEnabled: e.target.checked })} />
+                              <span className="text-sm font-bold text-ocean-950">Receber pedidos pelo app</span>
+                          </label>
+                      ) : (
+                          <div data-testid="orders-locked" className="bg-white border border-amber-200 rounded-xl p-4 text-xs text-amber-800 font-bold flex items-center justify-between gap-3">
+                              <span>Pedidos por WhatsApp estão nos planos Pro e Premium. Seu cardápio continua visível para os clientes.</span>
+                              <button type="button" onClick={() => setView('MY_PLAN')} className="bg-amber-500 text-white px-3 py-2 rounded-lg whitespace-nowrap">VER PLANOS</button>
+                          </div>
+                      )}
                   </div>
 
                   {editBusiness.menu?.map((section, sIdx) => (
@@ -1716,8 +1759,11 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                     setEditBusiness({ ...editBusiness, menu: newMenu });
                                 }}
                               />
-                              <button onClick={() => handleAddMenuItem(sIdx)} className="bg-ocean-100 text-ocean-600 p-2 rounded-lg ml-4">
+                              <button onClick={() => handleAddMenuItem(sIdx)} className="bg-ocean-100 text-ocean-600 p-2 rounded-lg ml-4" aria-label="Adicionar item">
                                   <Plus size={20} />
+                              </button>
+                              <button onClick={() => { const m = [...(editBusiness.menu || [])]; m.splice(sIdx, 1); setEditBusiness({ ...editBusiness, menu: m }); }} className="text-red-300 hover:text-red-500 p-2 ml-1" aria-label="Remover seção">
+                                  <Trash2 size={18} />
                               </button>
                           </div>
                           
@@ -1736,8 +1782,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                 }}
                                             />
                                             <input 
-                                                type="number"
-                                                className="font-black text-green-600 bg-transparent focus:outline-none text-right w-20"
+                                                type="number" min={0} step="0.01"
+                                                className="font-black text-green-600 bg-transparent focus:outline-none text-right w-24"
                                                 value={item.price}
                                                 onChange={e => {
                                                     const newMenu = [...(editBusiness.menu || [])];
@@ -1757,9 +1803,20 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                             }}
                                           />
                                       </div>
-                                      <button onClick={() => handleDeleteMenuItem(sIdx, iIdx)} className="text-red-300 hover:text-red-500">
-                                          <Trash2 size={16} />
-                                      </button>
+                                      <div className="flex flex-col items-end justify-between">
+                                          <button onClick={() => handleDeleteMenuItem(sIdx, iIdx)} className="text-red-300 hover:text-red-500" aria-label="Remover item">
+                                              <Trash2 size={16} />
+                                          </button>
+                                          <label className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-400 cursor-pointer">
+                                              <input type="checkbox" checked={item.available !== false} data-testid="item-available"
+                                                  onChange={e => {
+                                                      const newMenu = [...(editBusiness.menu || [])];
+                                                      newMenu[sIdx].items[iIdx].available = e.target.checked;
+                                                      setEditBusiness({ ...editBusiness, menu: newMenu });
+                                                  }} />
+                                              Disponível
+                                          </label>
+                                      </div>
                                   </div>
                               ))}
                           </div>
@@ -2665,6 +2722,16 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                 <input 
                                     type="checkbox" 
                                     className="w-5 h-5 rounded-lg border-slate-200 text-ocean-600 focus:ring-ocean-500"
+                                    checked={newPlan.showOrders ?? false}
+                                    onChange={e => setNewPlan({...newPlan, showOrders: e.target.checked})}
+                                />
+                                <span className="text-xs font-bold text-slate-600 group-hover:text-ocean-600 transition-colors">Pedidos por WhatsApp</span>
+                            </label>
+
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 rounded-lg border-slate-200 text-ocean-600 focus:ring-ocean-500"
                                     checked={newPlan.showSocialMedia}
                                     onChange={e => setNewPlan({...newPlan, showSocialMedia: e.target.checked})}
                                 />
@@ -2755,6 +2822,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                         {plan.isFeatured && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Destaque nas buscas</div>}
                                         {plan.showGallery && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Galeria de fotos</div>}
                                         {plan.showMenu && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Cardápio digital</div>}
+                                        {canOrder(plan) && <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Check size={12} className="text-green-500" /> Pedidos por WhatsApp</div>}
                                     </div>
 
                                     <div className="flex items-center gap-2">

@@ -21,6 +21,8 @@ export interface PricingPlan {
   isFeatured: boolean;
   showGallery: boolean;
   showMenu: boolean;
+  /** Libera o botão "Fazer pedido" (cardápio/serviços enviados por WhatsApp). Ausente = planos pagos com cardápio. */
+  showOrders?: boolean;
   showSocialMedia: boolean;
   showReviews: boolean;
   hasFreeTrial?: boolean;
@@ -99,6 +101,12 @@ export interface BusinessProfile {
   amenities: string[];
   openingHours: { [key: string]: string };
   menu?: MenuSection[];
+  /** O que o empresário cadastrou: cardápio (itens) ou serviços. Define o formulário do pedido. */
+  orderMode?: 'menu' | 'services';
+  /** Recebe pedidos pelo WhatsApp (precisa do plano liberado). */
+  ordersEnabled?: boolean;
+  /** WhatsApp que recebe os pedidos; se vazio usa o WhatsApp/telefone do perfil. */
+  orderWhatsapp?: string;
   reviews?: Review[];
   rating: number;
   reviewCount?: number;
@@ -266,6 +274,8 @@ export interface MenuItem {
   description?: string;
   price: number;
   imageUrl?: string;
+  /** false = esgotado/indisponível (aparece, mas não dá para pedir). */
+  available?: boolean;
 }
 
 export interface MenuSection {
@@ -575,6 +585,7 @@ export type InteractionType =
   | 'map_click'
   | 'social_click'
   | 'menu_open'
+  | 'order_sent'
   | 'delivery_click'
   | 'booking_click'
   | 'share'
@@ -592,6 +603,7 @@ export const INTERACTION_LABELS: Record<InteractionType, string> = {
   map_click: 'Pedidos de rota',
   social_click: 'Cliques no Instagram',
   menu_open: 'Cardápio aberto',
+  order_sent: 'Pedidos enviados',
   delivery_click: 'Cliques no delivery',
   booking_click: 'Cliques em agendamento',
   share: 'Compartilhamentos',

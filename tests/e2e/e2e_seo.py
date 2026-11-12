@@ -22,7 +22,7 @@ s.docs['businesses/ac1'] = mk('ac1', 'Bar de Arraial', { cityId: 'city_arraial_d
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(**p.devices['iPhone 13'])
+        ctx = await b.new_context(**p.devices['iPhone 13'], locale='pt-BR')
         page = await ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
         await page.goto(BASE + '/'); await page.evaluate("sessionStorage.clear(); localStorage.clear()")

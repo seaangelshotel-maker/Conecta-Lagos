@@ -34,7 +34,7 @@ async def main():
     future = (datetime.date.today() + datetime.timedelta(days=5)).isoformat()
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(**p.devices['iPhone 13'])
+        ctx = await b.new_context(**p.devices['iPhone 13'], locale='pt-BR')
         page = await ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
         page.on('console', lambda m: errors.append(f'console.{m.type}: {m.text}') if m.type == 'error' else None)

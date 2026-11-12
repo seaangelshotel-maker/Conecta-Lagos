@@ -1,4 +1,5 @@
 
+import { canOrder } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
 import { getPricingPlans, getGlobalSettings } from '../services/dataService';
@@ -201,6 +202,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                                 <Check size={14} className="text-ocean-600" />
                                             </div>
                                             <span className="text-sm font-bold">Cardápio digital interativo</span>
+                                        </div>
+                                    )}
+                                    {canOrder(plan) && (
+                                        <div className="flex items-center gap-4 text-slate-600">
+                                            <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-ocean-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">Pedidos direto no seu WhatsApp, sem comissão</span>
                                         </div>
                                     )}
                                     {(plan.extra || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => (

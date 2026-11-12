@@ -24,7 +24,7 @@ async def home_state(page):
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(**p.devices['iPhone 13'])
+        ctx = await b.new_context(**p.devices['iPhone 13'], locale='pt-BR')
         page = await ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
         page.on('dialog', lambda d: asyncio.ensure_future(d.accept()))

@@ -19,7 +19,7 @@ window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android',
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(**p.devices['Pixel 7'])
+        ctx = await b.new_context(**p.devices['Pixel 7'], locale='pt-BR')
         await ctx.grant_permissions(['clipboard-read', 'clipboard-write'])
         page = await ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
@@ -52,7 +52,7 @@ async def main():
         await ctx.close()
 
         # 4. Container nativo simulado: link profundo, voltar, compartilhar nativo
-        nctx = await b.new_context(**p.devices['Pixel 7'])
+        nctx = await b.new_context(**p.devices['Pixel 7'], locale='pt-BR')
         npg = await nctx.new_page()
         npg.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
         await npg.add_init_script(CAP)

@@ -1,4 +1,5 @@
 
+import { canOrder, whatsappNumber } from '../services/orderModel';
 import { addPlanPeriod, brl, periodLabel, planTotal } from '../services/planRules';
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, BusinessProfile, PricingPlan } from '../types';
@@ -56,6 +57,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
         cityId: '',
         neighborhoodId: '',
         phone: currentUser.phone || '',
+        instagram: '',
         coverImage: ''
     });
 
@@ -76,6 +78,8 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
         console.log("Tentativa de submissão - Passo:", step);
         if (step < totalSteps) return nextStep();
         
+        const waNumber = whatsappNumber(formData.phone);
+        if (!waNumber) { setLoading(false); return notify('warning', 'Informe um WhatsApp válido com DDD, ex.: (22) 99999-9999.'); }
         setLoading(true);
         try {
             let subscriptionEndsAt = undefined;
@@ -106,6 +110,9 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 lat: selectedNeighborhood?.lat,
                 lng: selectedNeighborhood?.lng,
                 phone: formData.phone,
+                // O campo do cadastro é o WhatsApp: grava nos dois, senão o botão "WhatsApp" do perfil nasce sem número.
+                whatsapp: formData.phone,
+                ...(formData.instagram.trim() ? { instagram: formData.instagram.trim().replace(/^@/, '') } : {}),
                 amenities: [],
                 openingHours: {},
                 rating: 5,
@@ -359,6 +366,16 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                             placeholder="(21) 99999-9999"
                                             value={formData.phone}
                                             onChange={e => setFormData({...formData, phone: e.target.value})}
+                                            data-testid="reg-whatsapp"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Instagram (opcional)</label>
+                                        <input 
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 font-bold text-ocean-950 outline-none focus:ring-4 focus:ring-ocean-500/10 transition-all"
+                                            placeholder="@suaempresa"
+                                            value={formData.instagram}
+                                            onChange={e => setFormData({...formData, instagram: e.target.value})}
                                         />
                                     </div>
                                     <div>
@@ -433,6 +450,12 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                             <div className="flex items-center gap-3 text-slate-600">
                                                 <Check size={16} className="text-emerald-500 shrink-0" />
                                                 <span className="text-sm font-bold">Cardápio digital interativo</span>
+                                            </div>
+                                        )}
+                                        {canOrder(selectedPlan) && (
+                                            <div className="flex items-center gap-3 text-slate-600">
+                                                <Check size={16} className="text-emerald-500 shrink-0" />
+                                                <span className="text-sm font-bold">Pedidos direto no seu WhatsApp, sem comissão</span>
                                             </div>
                                         )}
                                         {selectedPlan.showSocialMedia && (

@@ -1839,6 +1839,7 @@ export const getBusinessStats = async (businessId: string) => {
             { name: 'Agendamento', cliques: t.booking_click || 0 },
             { name: 'Delivery', cliques: t.delivery_click || 0 },
             { name: 'Cardápio', cliques: t.menu_open || 0 },
+            { name: 'Pedidos', cliques: t.order_sent || 0 },
             { name: 'Resgates', cliques: t.coupon_redeem || 0 }
         ],
         byType: t,
@@ -2274,7 +2275,7 @@ export const incrementBusinessView = (id: string, source?: string) =>
 
 const LEGACY_ACTION_MAP: Record<string, InteractionType> = {
     phone: 'phone_click', whatsapp: 'whatsapp_click', website: 'website_click', map: 'map_click',
-    social: 'social_click', menu: 'menu_open', delivery: 'delivery_click', booking: 'booking_click',
+    social: 'social_click', menu: 'menu_open', order: 'order_sent', delivery: 'delivery_click', booking: 'booking_click',
     share: 'share'
 };
 
@@ -2778,6 +2779,7 @@ export const savePricingPlan = async (plan: Partial<PricingPlan>) => {
         isFeatured: plan.isFeatured || false,
         showGallery: plan.showGallery || false,
         showMenu: plan.showMenu || false,
+        showOrders: plan.showOrders ?? (plan.showMenu === true && (plan.price || 0) > 0),
         showSocialMedia: plan.showSocialMedia || false,
         showReviews: plan.showReviews || false,
         hasFreeTrial: plan.hasFreeTrial || false,

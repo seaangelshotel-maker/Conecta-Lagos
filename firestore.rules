@@ -465,7 +465,7 @@ service cloud.firestore {
 
     function validInteractionType(t) {
       return t in ['business_view', 'whatsapp_click', 'phone_click', 'website_click', 'map_click',
-                   'social_click', 'menu_open', 'delivery_click', 'booking_click', 'share',
+                   'social_click', 'menu_open', 'order_sent', 'delivery_click', 'booking_click', 'share',
                    'collection_view', 'coupon_redeem', 'opportunity_view', 'opportunity_interest',
                    'specialist_referral'];
     }

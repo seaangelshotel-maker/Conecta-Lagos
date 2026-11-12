@@ -11,7 +11,7 @@ def ok(name, cond, detail=''):
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(viewport={'width': 420, 'height': 900})
+        ctx = await b.new_context(viewport={'width': 420, 'height': 900}, locale='pt-BR')
         await ctx.grant_permissions(['notifications', 'clipboard-read', 'clipboard-write'], origin=BASE)
         page = await ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))

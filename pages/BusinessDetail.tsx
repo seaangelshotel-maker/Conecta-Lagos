@@ -1,11 +1,12 @@
 
+import { canOrder, orderTarget, cartAdd, cartSetNote, cartCount, cartTotal, cartLines, validateOrder, buildOrderMessage, whatsappUrl, formatBRL, isAvailable, type Cart, type OrderCustomer, type OrderMode } from '../services/orderModel';
 import React, { useEffect, useState } from 'react';
 import { ClaimBox } from '../components/ClaimBox';
 import { 
   ArrowLeft, Clock, MapPin, Phone, Instagram, Globe, 
   MessageCircle, Share2, Loader2, Ticket, Search,
   Star, Heart, Utensils, Navigation, X, ShoppingCart, CalendarDays, Building2, ShoppingBag,
-  ChevronLeft, ChevronRight, Store, Sparkles
+  ChevronLeft, ChevronRight, Store, Sparkles, Plus, Minus
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
@@ -28,6 +29,9 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
   const [isFav, setIsFav] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showMenuOverlay, setShowMenuOverlay] = useState(false);
+  const [cart, setCart] = useState<Cart>({});
+  const [checkout, setCheckout] = useState(false);
+  const [customer, setCustomer] = useState<OrderCustomer>({ name: '', delivery: 'pickup' });
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [newReviewRating, setNewReviewRating] = useState(5);
@@ -350,7 +354,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     {(plan?.showMenu !== false) && business.menu && business.menu.length > 0 && (
                         <button onClick={() => handleAction('menu')} className="flex flex-col items-center gap-2 group">
                             <div className="w-14 h-14 bg-ocean-600 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition-all"><Utensils size={24}/></div>
-                            <span className="text-[9px] font-black uppercase text-ocean-600 font-bold">Cardápio</span>
+                            <span className="text-[9px] font-black uppercase text-ocean-600 font-bold">{canOrder(plan) && business.ordersEnabled && orderTarget(business) ? (business.orderMode === 'services' ? 'Solicitar' : 'Pedir') : (business.orderMode === 'services' ? 'Serviços' : 'Cardápio')}</span>
                         </button>
                     )}
                 </div>
@@ -551,31 +555,95 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             )}
         </div>
 
-        {showMenuOverlay && (
-            <div className="fixed inset-0 z-[100] bg-white animate-in slide-in-from-bottom flex flex-col">
+        {showMenuOverlay && (() => {
+            const mode: OrderMode = business.orderMode === 'services' ? 'services' : 'menu';
+            const target = orderTarget(business);
+            const ordersOn = canOrder(plan) && business.ordersEnabled === true && !!target;
+            const count = cartCount(cart);
+            const total = cartTotal(cart, business.menu || []);
+            const sendOrder = () => {
+                const err = validateOrder(mode, cart, business.menu || [], customer);
+                if (err) { notify('warning', err); return; }
+                const msg = buildOrderMessage(business.name, mode, cart, business.menu || [], customer);
+                trackAction(businessId, 'order', getNavigationSource());
+                window.open(whatsappUrl(target, msg), '_blank', 'noopener');
+                setCart({}); setCheckout(false);
+                notify('success', 'Pedido pronto! Finalize a conversa no WhatsApp.');
+            };
+            return (
+            <div className="fixed inset-0 z-[100] bg-white animate-in slide-in-from-bottom flex flex-col" data-testid="menu-overlay">
                 <div className="p-6 border-b flex justify-between items-center pt-12">
-                    <h2 className="text-2xl font-black text-ocean-950">Cardápio Digital</h2>
-                    <button onClick={() => setShowMenuOverlay(false)} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center"><X size={24}/></button>
+                    <h2 className="text-2xl font-black text-ocean-950">{checkout ? 'Finalizar pedido' : mode === 'services' ? 'Serviços' : 'Cardápio Digital'}</h2>
+                    <button onClick={() => { setShowMenuOverlay(false); setCheckout(false); }} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center" aria-label="Fechar"><X size={24}/></button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {!checkout ? (
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-32">
+                    {ordersOn && <p className="text-xs text-slate-500 bg-ocean-50 rounded-xl p-3 font-bold">Monte seu pedido e envie direto para o WhatsApp de {business.name}. Sem taxas do app.</p>}
                     {business.menu?.map(section => (
                         <div key={section.title} className="space-y-4">
                             <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest">{section.title}</h3>
-                            {section.items.map(item => (
-                                <div key={item.id} className="bg-slate-50 p-5 rounded-2xl flex justify-between items-center">
+                            {section.items.map(item => {
+                                const qty = cart[item.id]?.qty || 0;
+                                const off = !isAvailable(item);
+                                return (
+                                <div key={item.id} data-testid="menu-item" className={`bg-slate-50 p-5 rounded-2xl flex justify-between items-center gap-3 ${off ? 'opacity-50' : ''}`}>
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-sm text-ocean-950">{item.name}</h4>
+                                        <h4 className="font-bold text-sm text-ocean-950">{item.name}{off && <span className="ml-2 text-[10px] font-black uppercase text-red-500">Esgotado</span>}</h4>
                                         <p className="text-xs text-slate-400">{item.description}</p>
+                                        <span className="font-black text-green-600 text-sm">{item.price > 0 ? formatBRL(item.price) : 'Sob consulta'}</span>
                                     </div>
-                                    <span className="font-black text-green-600 whitespace-nowrap ml-4">R$ {item.price?.toFixed(2) || '0.00'}</span>
-                                </div>
-                            ))}
+                                    {ordersOn && !off && (
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {qty > 0 && <>
+                                                <button onClick={() => setCart(c => cartAdd(c, item, -1))} className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center" aria-label="Diminuir"><Minus size={16}/></button>
+                                                <span className="font-black w-5 text-center" data-testid="item-qty">{qty}</span>
+                                            </>}
+                                            <button onClick={() => setCart(c => cartAdd(c, item, 1))} className="w-9 h-9 rounded-full bg-ocean-600 text-white flex items-center justify-center" aria-label="Adicionar" data-testid="item-add"><Plus size={16}/></button>
+                                        </div>
+                                    )}
+                                </div>);
+                            })}
                         </div>
                     ))}
-                    {(!business.menu || business.menu.length === 0) && <p className="text-center py-20 text-slate-400">O cardápio será disponibilizado em breve.</p>}
+                    {(!business.menu || business.menu.length === 0) && <p className="text-center py-20 text-slate-400">{mode === 'services' ? 'Os serviços serão' : 'O cardápio será'} disponibilizado em breve.</p>}
                 </div>
-            </div>
-        )}
+                ) : (
+                <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32" data-testid="checkout">
+                    <div className="space-y-3">
+                        {cartLines(cart, business.menu || []).map(l => (
+                            <div key={l.itemId} className="bg-slate-50 rounded-2xl p-4 space-y-2">
+                                <div className="flex justify-between font-bold text-sm text-ocean-950"><span>{l.qty}x {l.item.name}</span><span>{l.item.price > 0 ? formatBRL(l.item.price * l.qty) : ''}</span></div>
+                                <input className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2" placeholder="Observação (ex.: sem cebola)" maxLength={140} value={l.note || ''} onChange={e => setCart(c => cartSetNote(c, l.itemId, e.target.value))} />
+                            </div>
+                        ))}
+                        {total > 0 && <div className="flex justify-between font-black text-ocean-950 px-1"><span>Total estimado</span><span data-testid="order-total">{formatBRL(total)}</span></div>}
+                    </div>
+                    <input data-testid="cust-name" className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold" placeholder="Seu nome" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} />
+                    {mode === 'menu' ? (<>
+                        <div className="flex gap-2">
+                            {(['pickup', 'delivery'] as const).map(m => (
+                                <button key={m} type="button" data-testid={`recv-${m}`} onClick={() => setCustomer({ ...customer, delivery: m })} className={`flex-1 p-3 rounded-xl text-xs font-black uppercase border ${(customer.delivery || 'pickup') === m ? 'bg-ocean-600 text-white border-ocean-600' : 'bg-white text-slate-500 border-slate-200'}`}>{m === 'pickup' ? 'Retirar no local' : 'Entrega'}</button>
+                            ))}
+                        </div>
+                        {customer.delivery === 'delivery' && <input data-testid="cust-address" className="w-full border border-slate-200 rounded-xl p-3 text-sm" placeholder="Endereço completo para entrega" value={customer.address || ''} onChange={e => setCustomer({ ...customer, address: e.target.value })} />}
+                    </>) : (<>
+                        <input data-testid="cust-date" className="w-full border border-slate-200 rounded-xl p-3 text-sm" placeholder="Data ou período desejado (ex.: sábado de manhã)" value={customer.date || ''} onChange={e => setCustomer({ ...customer, date: e.target.value })} />
+                        <input data-testid="cust-people" type="number" min={1} className="w-full border border-slate-200 rounded-xl p-3 text-sm" placeholder="Quantas pessoas?" value={customer.people || ''} onChange={e => setCustomer({ ...customer, people: Number(e.target.value) || undefined })} />
+                    </>)}
+                    <textarea className="w-full border border-slate-200 rounded-xl p-3 text-sm" rows={2} placeholder="Observações gerais (opcional)" value={customer.note || ''} onChange={e => setCustomer({ ...customer, note: e.target.value })} />
+                    <p className="text-[11px] text-slate-400">Ao enviar, o WhatsApp abre com a mensagem pronta. Valores e disponibilidade são confirmados pelo estabelecimento.</p>
+                </div>
+                )}
+                {ordersOn && count > 0 && (
+                    <div className="absolute bottom-0 inset-x-0 p-4 bg-white border-t flex gap-3">
+                        {checkout && <button onClick={() => setCheckout(false)} className="px-5 rounded-2xl border border-slate-200 font-black text-xs uppercase">Voltar</button>}
+                        <button data-testid={checkout ? 'send-order' : 'open-checkout'} onClick={() => checkout ? sendOrder() : setCheckout(true)} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2">
+                            {checkout ? <>ENVIAR PELO WHATSAPP</> : <>{count} {count === 1 ? 'item' : 'itens'} · {total > 0 ? formatBRL(total) : 'ver pedido'}</>}
+                        </button>
+                    </div>
+                )}
+            </div>);
+        })()}
 
         {selectedCoupon && <CouponModal coupon={selectedCoupon} onClose={() => setSelectedCoupon(null)} onRedeem={(c) => redeemCoupon(currentUser?.id || '', c)} isRedeemed={false} />}
 

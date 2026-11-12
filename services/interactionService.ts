@@ -69,7 +69,7 @@ const ENTITY_BY_TYPE: Record<InteractionType, InteractionEvent['entityType']> = 
     website_click: 'business',
     map_click: 'business',
     social_click: 'business',
-    menu_open: 'business',
+    menu_open: 'business', order_sent: 'business',
     delivery_click: 'business',
     booking_click: 'business',
     share: 'business',

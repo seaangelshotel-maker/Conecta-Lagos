@@ -23,7 +23,7 @@ async def count_results(page):
     return int(t.split()[0])
 
 async def run_viewport(b, p, name, ctx_args):
-    ctx = await b.new_context(**ctx_args)
+    ctx = await b.new_context(**ctx_args, locale='pt-BR')
     page = await ctx.new_page()
     page.on('pageerror', lambda e: errors.append(f'PAGEERROR: {e}'))
     page.on('console', lambda m: errors.append(f'console.error: {m.text}') if m.type == 'error' and 'TUNNEL' not in m.text else None)
