@@ -40,16 +40,16 @@ const viaGemini = async (texts: string[], target: string, apiKey: string): Promi
         try {
             resp = await ai.models.generateContent({
                 model,
-                contents: `Translate each string of this JSON array from Brazilian Portuguese to ${TARGETS[target]}. Keep proper nouns (places, brands), emojis, numbers, URLs and formatting. Return ONLY a JSON array of the same length.\n${JSON.stringify(texts)}`,
+                contents: `Translate every value of this JSON object from Brazilian Portuguese to ${TARGETS[target]}. Translate ALL of them, even short ones. Keep proper nouns (places, brands), emojis, numbers, URLs and line breaks. Return ONLY a JSON object with the same keys.\n${JSON.stringify(Object.fromEntries(texts.map((t, i) => [String(i), t])))}`,
                 config: { responseMimeType: 'application/json', temperature: 0 } as any,
             });
             break;
         } catch (e) { lastErr = e; }
     }
     if (!resp) throw lastErr;
-    const arr = JSON.parse(resp.text || '[]');
-    if (!Array.isArray(arr) || arr.length !== texts.length) throw new Error('bad gemini output');
-    return arr.map((x, i) => (typeof x === 'string' && x ? x : texts[i]));
+    const obj = JSON.parse(resp.text || '{}');
+    if (!obj || typeof obj !== 'object') throw new Error('bad gemini output');
+    return texts.map((t, i) => { const x = Array.isArray(obj) ? obj[i] : obj[String(i)]; return typeof x === 'string' && x ? x : t; });
 };
 
 export const handleTranslate = async (req: Req, res: Res) => {

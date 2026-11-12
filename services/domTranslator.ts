@@ -121,7 +121,7 @@ const run = async (root: Node) => {
         const hit = lookup(key);
         if (hit !== undefined) j.apply(hit); else if (!need.includes(key)) need.push(key);
     }
-    for (const part of chunk(need, 40)) {
+    for (const part of chunk(need, 25)) {
         const res = await fetchBatch(myLang, part);
         if (myLang !== lang) return;
         if (!res) continue;
