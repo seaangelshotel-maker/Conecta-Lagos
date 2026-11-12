@@ -64,14 +64,17 @@ export const handleTranslate = async (req: Req, res: Res) => {
     if (!texts.length || texts.length > MAX_TEXTS || texts.join('').length > MAX_CHARS) return sendJson(res, 400, { error: 'Lote inválido.' });
 
     const out: string[] = texts.map(t => cache.get(target + '|' + t) as string);
+    let engine = 'cache';
+    let geminiError = '';
     const missIdx = out.map((v, i) => (v === undefined ? i : -1)).filter(i => i >= 0);
     if (missIdx.length) {
         const miss = missIdx.map(i => texts[i]);
         let done: string[] | null = null;
         const key = process.env.GEMINI_API_KEY;
-        if (key) { try { done = await viaGemini(miss, target, key); } catch (e) { console.warn('[translate] gemini falhou', e); } }
+        if (key) { try { done = await viaGemini(miss, target, key); engine = 'gemini'; } catch (e: any) { console.warn('[translate] gemini falhou', e); geminiError = String(e?.message || e).slice(0, 200); } }
         if (!done) {
             const g = target === 'pt-PT' ? 'pt-PT' : target;
+            engine = 'google';
             done = [];
             for (const part of Array.from({ length: Math.ceil(miss.length / 8) }, (_, i) => miss.slice(i * 8, i * 8 + 8)))
                 done.push(...await Promise.all(part.map(t => viaGoogle(t, g))));
@@ -82,5 +85,5 @@ export const handleTranslate = async (req: Req, res: Res) => {
         });
     }
     res.setHeader('Cache-Control', 'no-store');
-    return sendJson(res, 200, { translations: out });
+    return sendJson(res, 200, { translations: out, engine, ...(geminiError ? { geminiError } : {}) });
 };
