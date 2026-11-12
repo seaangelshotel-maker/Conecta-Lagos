@@ -24,7 +24,7 @@ Só passa a empresa que cumpre **todos** os itens obrigatórios, cada um com fon
 A relevância ordena a fila e não substitui o checklist. Sinais combinados: volume de avaliações no Google Meu Negócio e no TripAdvisor, posição no ranking da cidade, Instagram com muitos seguidores (conferir que é o perfil oficial: há homônimos; o endereço da bio deve bater), citação em guias de viagem.
 
 ## 2. Fontes e como ler cada uma
-**Hierarquia quando divergem (regra do Yuri):** para horário e contato, o **Instagram oficial vale mais que o Google**, por ser mais atual. Sem Instagram legível, o horário precisa de duas fontes ou a empresa fica retida.
+**Hierarquia quando divergem (regra do Yuri):** para horário e contato, o **Instagram oficial vale mais que o Google**, por ser mais atual. **Exceção definida pelo Yuri (12/11/2026):** se a empresa **não tem Instagram oficial** (não existe ou não foi achado), o horário da **ficha do Google** vale, desde que nenhuma outra fonte o contradiga (a página oficial do Facebook ou o site podem corroborar, mesmo sem publicar horário por dia). Se o Instagram existe mas não dá para ler (pede login), a empresa fica retida até o horário ser confirmado; a exceção não se aplica.
 
 | Fonte | Serve para | Como ler |
 |---|---|---|
@@ -61,7 +61,7 @@ Notas, comentários e textos dessas plataformas **não são copiados**; só fato
 | 4 | Endereço completo | Rua, número, bairro e CEP, em fonte confiável | `address` |
 | 5 | Telefone | Confirmado em **duas fontes independentes** | `phone` |
 | 6 | Horário por dia | Domingo a Sábado ou "Fechado", pela hierarquia da seção 2 | `hours` |
-| 7 | Canal digital | Instagram e/ou site, conferido: existe e é da mesma empresa | `instagram`, `website` |
+| 7 | Canal digital | Instagram e/ou site, conferido: existe e é da mesma empresa. Sem Instagram, a página oficial do Facebook entra como canal (campo `website`) | `instagram`, `website` |
 | 8 | Descrição editorial | Padrão da seção 6 | `description` |
 | 9 | Comodidades | Só as confirmadas, pelo mapa abaixo | `amenities` |
 | 10 | Fontes | Lista de URLs conferidas + data | `sources`, `checkedAt` |
