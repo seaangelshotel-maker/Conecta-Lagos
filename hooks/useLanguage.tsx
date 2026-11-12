@@ -1,13 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translateText } from '../services/translations';
+import { detectFlag, flagToLang } from '../services/langDetect';
+import { setPageLanguage } from '../services/domTranslator';
 
-export const flagToLangMap: Record<string, string> = {
-  '🇧🇷': 'pt',
-  '🇵🇹': 'pt-PT',
-  '🇪🇸': 'es',
-  '🇺🇸': 'en',
-  '🇫🇷': 'fr',
-};
+export const flagToLangMap: Record<string, string> = flagToLang;
 
 interface LanguageContextType {
   language: string;
@@ -19,8 +15,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<string>(() => {
-    return localStorage.getItem('lagos_go_selected_language') || '🇧🇷';
+    const saved = localStorage.getItem('lagos_go_selected_language');
+    if (saved) return saved;
+    // Primeira visita: detecta o idioma do aparelho (a escolha manual na bandeira sempre vence).
+    return detectFlag(typeof navigator !== 'undefined' ? navigator.languages || [navigator.language] : []);
   });
+
+  useEffect(() => { setPageLanguage(language); }, [language]);
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang);
@@ -69,64 +70,9 @@ export const useLanguage = () => {
   return context;
 };
 
+/** A tradução da página inteira é feita por services/domTranslator; este componente só exibe o texto. */
 export const Translate: React.FC<{ text: string; fallback?: string }> = ({ text, fallback }) => {
   const { language } = useLanguage();
-  const [translatedText, setTranslatedText] = useState(text || fallback || '');
-
-  useEffect(() => {
-    let active = true;
-    const targetLang = flagToLangMap[language] || 'pt';
-
-    const raw = text || fallback || '';
-    if (!raw.trim()) {
-      setTranslatedText('');
-      return;
-    }
-
-    // Default to PT - no translation required
-    if (targetLang === 'pt') {
-      setTranslatedText(raw);
-      return;
-    }
-
-    // Check if we have a direct static translation
-    const staticTranslation = translateText(raw, language);
-    if (staticTranslation !== raw) {
-      setTranslatedText(staticTranslation);
-      return;
-    }
-
-    // Dynamic fetch from the Google Translate mirror
-    const runTranslation = async () => {
-      try {
-        const cacheKey = `lang_tr_${targetLang}_${raw.substring(0, 100)}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          if (active) setTranslatedText(cached);
-          return;
-        }
-
-        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${targetLang}&dt=t&q=${encodeURIComponent(raw)}`);
-        if (res.ok) {
-          const data = await res.json();
-          const translation = data[0].map((item: any) => item[0]).join('');
-          if (translation) {
-            localStorage.setItem(cacheKey, translation);
-            if (active) setTranslatedText(translation);
-          }
-        }
-      } catch (err) {
-        console.error("Translation fail", err);
-        if (active) setTranslatedText(raw);
-      }
-    };
-
-    runTranslation();
-
-    return () => {
-      active = false;
-    };
-  }, [text, fallback, language]);
-
-  return <>{translatedText}</>;
+  const raw = text || fallback || '';
+  return <>{translateText(raw, language)}</>;
 };
