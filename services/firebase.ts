@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAnalytics, isSupported, setAnalyticsCollectionEnabled } from 'firebase/analytics';
 import { getConsent, CONSENT_EVENT } from './consent';
 
@@ -27,7 +27,7 @@ const app = initializeApp(firebaseConfig);
 // sem a chave, nada muda. Passo a passo em docs/CUSTOS.md.
 const appCheckKey = env.VITE_APPCHECK_SITE_KEY;
 if (appCheckKey && typeof window !== 'undefined') {
-  try { initializeAppCheck(app, { provider: new ReCaptchaV3Provider(appCheckKey), isTokenAutoRefreshEnabled: true }); }
+  try { initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(appCheckKey), isTokenAutoRefreshEnabled: true }); }
   catch { /* sem App Check o app segue funcionando */ }
 }
 

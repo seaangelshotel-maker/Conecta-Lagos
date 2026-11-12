@@ -1,2 +1,2 @@
 export const initializeAppCheck = () => ({});
-export class ReCaptchaV3Provider { constructor(k) { this.k = k; } }
+export class ReCaptchaEnterpriseProvider { constructor(k) { this.k = k; } }
