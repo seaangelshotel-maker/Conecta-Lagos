@@ -70,7 +70,7 @@ REGRAS INEGOCIÁVEIS:
 };
 
 export async function runAgentStep(role: string, input: string, context?: string, feedback?: string, manualApiKey?: string): Promise<string> {
-  const model = "gemini-3-flash-preview"; 
+  const model = "gemini-flash-latest"; 
   
   const prompt = `
 CONTEXTO DO PROJETO:
@@ -104,7 +104,7 @@ Responda com foco em PESQUISA PROFUNDA e COPYWRITING DE ALTO NÍVEL. Não aceite
 }
 
 export async function finalizeLocation(finalContent: string, quantity: number = 1, manualApiKey?: string): Promise<Partial<BusinessProfile>[]> {
-  const model = "gemini-3-flash-preview"; 
+  const model = "gemini-flash-latest"; 
   
   const responseText = await generateText({
     model,
