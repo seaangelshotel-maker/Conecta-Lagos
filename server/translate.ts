@@ -35,11 +35,18 @@ const viaGoogleOnce = async (text: string, target: string): Promise<string> => {
 
 const viaGemini = async (texts: string[], target: string, apiKey: string): Promise<string[]> => {
     const ai = new GoogleGenAI({ apiKey });
-    const resp = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Translate each string of this JSON array from Brazilian Portuguese to ${TARGETS[target]}. Keep proper nouns (places, brands), emojis, numbers, URLs and formatting. Return ONLY a JSON array of the same length.\n${JSON.stringify(texts)}`,
-        config: { responseMimeType: 'application/json', temperature: 0 } as any,
-    });
+    let resp: any = null, lastErr: unknown;
+    for (const model of ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-flash-lite-latest']) {
+        try {
+            resp = await ai.models.generateContent({
+                model,
+                contents: `Translate each string of this JSON array from Brazilian Portuguese to ${TARGETS[target]}. Keep proper nouns (places, brands), emojis, numbers, URLs and formatting. Return ONLY a JSON array of the same length.\n${JSON.stringify(texts)}`,
+                config: { responseMimeType: 'application/json', temperature: 0 } as any,
+            });
+            break;
+        } catch (e) { lastErr = e; }
+    }
+    if (!resp) throw lastErr;
     const arr = JSON.parse(resp.text || '[]');
     if (!Array.isArray(arr) || arr.length !== texts.length) throw new Error('bad gemini output');
     return arr.map((x, i) => (typeof x === 'string' && x ? x : texts[i]));

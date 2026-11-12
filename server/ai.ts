@@ -11,7 +11,7 @@ import { verifyRequestUser, isAdminToken } from './firebaseAdmin.js';
 import { Req, Res, sendJson, readJsonBody, methodNotAllowed } from './http.js';
 
 const ALLOWED_MODELS = new Set([
-    'gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'
+    'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'
 ]);
 
 export const handleAiGenerate = async (req: Req, res: Res) => {
@@ -25,7 +25,7 @@ export const handleAiGenerate = async (req: Req, res: Res) => {
 
     try {
         const body = await readJsonBody<{ model?: string; contents?: unknown; config?: Record<string, unknown> }>(req);
-        const model = body.model && ALLOWED_MODELS.has(body.model) ? body.model : 'gemini-2.5-flash';
+        const model = body.model && ALLOWED_MODELS.has(body.model) ? body.model : 'gemini-flash-latest';
         if (!body.contents) return sendJson(res, 400, { error: 'Conteúdo vazio.' });
         const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
