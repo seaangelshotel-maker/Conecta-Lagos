@@ -19,6 +19,14 @@ Prioridade para negócios que o público já procura. A relevância ordena a fil
 - **Site oficial** e guias de viagem como apoio.
 - Para passar, dois ou mais itens independentes precisam concordar nos dados de contato. Uso: conferir fatos públicos. Notas, comentários e textos dessas plataformas não são copiados.
 
+## Passo 0: antes de pesquisar, olhar o que já temos
+Para cada empresa, antes de abrir qualquer fonte externa:
+1. Procurar no projeto (data/featuredBusinesses.ts, data/publicPlaces.ts, services/dataService.ts, artigos do blog) e, quando houver acesso, nos registros do Firestore.
+2. Se já existe: não duplicar. Comparar o que está salvo com as fontes (endereço, telefone, horário, Instagram, comodidades, descrição) e entregar só a lista do que precisa atualizar.
+3. Se só aparece em texto (artigo do blog, roteiro), conferir se o texto ainda está correto e apontar o que corrigir.
+4. Só se não existir, seguir o fluxo completo abaixo.
+Regra de fonte para horário e contato: o Instagram oficial vale mais que o Google quando divergem (definido por Yuri, mais atual).
+
 ## 1. Barreiras eliminatórias (qualquer uma reprova)
 - Empresa fechada, não localizada ou com CNPJ trocado.
 - Já existe no guia (mesmo nome na mesma cidade, ignorando acento e parênteses).
