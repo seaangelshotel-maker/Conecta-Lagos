@@ -79,6 +79,7 @@ async def main():
         ok('cadastro mostra participação gratuita (sem plano fictício)', await page.locator('text=Gratuita').count() > 0)
         await page.locator('button[type=submit]', has_text='Continuar').click()
         await page.wait_for_timeout(500)
+        await page.fill('input[placeholder="(21) 99999-9999"]', '(22) 99977-6655')
         await page.locator('button[type=submit]', has_text='Finalizar Cadastro').click()
         await page.wait_for_timeout(1500)
         biz = await mock_docs(page, 'businesses/carla')
