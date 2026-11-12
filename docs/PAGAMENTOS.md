@@ -31,3 +31,16 @@ Planos, preços, periodicidade, split e regras comerciais **não** são definido
 
 ## Pendências que dependem de decisão comercial
 Assinaturas recorrentes automáticas, split/comissões, cancelamento, reembolso e botão de compra na interface.
+
+## Adendo (12/nov/2026) — o que falta para ligar o Asaas
+
+Estado verificado: o código do checkout e do webhook está pronto e testado (`tests/asaas.test.ts`), mas **desligado** em produção (`/api/health` → `paymentsEnabled: false`). Falta só configuração, que depende do Yuri:
+
+1. Criar/aprovar a conta no Asaas (conta de **sandbox** primeiro) e gerar a chave da API.
+2. Na Vercel (Environment Variables, Production): `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN` (32–255 caracteres), `ASAAS_ENV=sandbox`, `PAYMENTS_ENABLED=true`. Redeploy.
+3. No Asaas: webhook para `https://lagosgo.com.br/api/webhook` com o mesmo token, eventos de cobrança.
+4. Preencher o **WhatsApp de vendas** em Admin → Ecossistema (o botão "Assinar" usa esse número enquanto os pagamentos estão desligados).
+5. Conferir os planos em Admin → Planos: preço por mês, período, e a opção **Pedidos por WhatsApp** (Pro/Premium).
+6. Testar no sandbox: criar cobrança, pagar, conferir plano ativo e `payments/asaas_<id>`. Só depois trocar para `production`.
+
+Observação de dados: o webhook grava `plan = <id do plano>` na empresa e `plan = <nome>` no usuário. O app já aceita id ou nome nos dois lugares (perfil público, painel e cadastro).
