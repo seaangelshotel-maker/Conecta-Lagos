@@ -49,8 +49,12 @@ export const fromFs = (v: any): any => {
 };
 const docToObj = (d: any) => ({ id: String(d.name).split('/').pop(), ...fromFs({ mapValue: { fields: d.fields || {} } }) });
 
+/** Chamadas ao Firestore (REST) levam o Referer do site oficial: a chave de API é restrita por domínio no Google Cloud. */
+const fsFetch = (url: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}) =>
+  fetch(url, { ...init, headers: { Referer: `${OFFICIAL_SITE_URL}/`, ...(init.headers || {}) } });
+
 const fsGet = async (path: string): Promise<any | null> => {
-  const r = await fetch(`${FS}/${path}?key=${API_KEY}`);
+  const r = await fsFetch(`${FS}/${path}?key=${API_KEY}`);
   if (!r.ok) return null;
   return docToObj(await r.json());
 };
@@ -60,7 +64,7 @@ const fsList = async (collection: string, mask: string[]): Promise<any[]> => {
   const out: any[] = []; let token = '';
   const fields = mask.map(f => `mask.fieldPaths=${encodeURIComponent(f)}`).join('&');
   for (let i = 0; i < 10; i++) {
-    const r = await fetch(`${FS}/${collection}?pageSize=200&${fields}&key=${API_KEY}${token ? `&pageToken=${token}` : ''}`);
+    const r = await fsFetch(`${FS}/${collection}?pageSize=200&${fields}&key=${API_KEY}${token ? `&pageToken=${token}` : ''}`);
     if (!r.ok) break;
     const j: any = await r.json();
     (j.documents || []).forEach((d: any) => out.push(docToObj(d)));
@@ -72,7 +76,7 @@ const fsList = async (collection: string, mask: string[]): Promise<any[]> => {
 
 /** Matéria criada pelo admin com outro id: procura pelo slug. */
 const fsFindBySlug = async (slug: string): Promise<any | null> => {
-  const r = await fetch(`${FS}:runQuery?key=${API_KEY}`, {
+  const r = await fsFetch(`${FS}:runQuery?key=${API_KEY}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'blog_posts' }], where: { fieldFilter: { field: { fieldPath: 'slug' }, op: 'EQUAL', value: { stringValue: slug } } }, limit: 1 } }),
   });
@@ -84,7 +88,7 @@ const fsFindBySlug = async (slug: string): Promise<any | null> => {
 
 /** Consulta simples por igualdade (a regra de eventos só libera leitura filtrada por status). */
 const fsQueryEq = async (collection: string, field: string, value: string, limit = 500): Promise<any[]> => {
-  const r = await fetch(`${FS}:runQuery?key=${API_KEY}`, {
+  const r = await fsFetch(`${FS}:runQuery?key=${API_KEY}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ structuredQuery: { from: [{ collectionId: collection }], where: { fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: { stringValue: value } } }, limit } }),
   });
