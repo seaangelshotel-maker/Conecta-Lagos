@@ -1,82 +1,126 @@
 # Padrão de cadastro de empresas (Lagos GO)
 
-Como pesquisar, conferir e escrever uma empresa antes de ela entrar no guia. Vale para quem cadastra (Yuri, Claude ou ajudante).
-Os campos abaixo vêm de `BusinessProfile` (types.ts), do formulário do admin e do importador `services/featuredBusinessesService.ts`.
+Como pesquisar, conferir, escrever e publicar uma empresa no guia. Vale para quem cadastra (Yuri, Claude ou ajudante) e é seguido **à risca**, sem pular etapa. Foi validado no cadastro do Saint Tropez e da Casa da Piedra (12/11/2026).
+Os campos vêm de `BusinessProfile` (types.ts), do formulário do admin e do importador `services/featuredBusinessesService.ts`.
 
 ## Regra de ouro
-Só passa para a lista de aprovadas a empresa que cumpre **todos** os itens obrigatórios, com fonte. Dado não confirmado fica vazio e a empresa **não passa** (não se inventa nada). Foto está fora desta checagem.
+Só passa a empresa que cumpre **todos** os itens obrigatórios, cada um com fonte. Dado não confirmado fica vazio e a empresa **não passa**: não se inventa nada, não se chuta, não se escolhe um lado quando as fontes divergem sem regra para decidir. Foto está fora desta checagem. Curadoria vale mais que quantidade.
 
-## Relevância: quem entra primeiro na fila
-Prioridade para negócios que o público já procura. A relevância ordena a fila e não substitui o checklist. Sinais, combinados:
-- Volume de avaliações na ficha do Google Meu Negócio e no TripAdvisor, e a posição no ranking da cidade e da categoria.
-- Instagram com muitos seguidores. Conferir que é o perfil oficial: existem perfis homônimos (o endereço da bio deve bater com o da ficha do Google).
-- Citação em guias de viagem.
-
-## Fontes de pesquisa
-- **Ficha do Google Meu Negócio:** endereço, telefone, horário por dia, site.
-- **TripAdvisor:** posição no ranking, tipo de cozinha, faixa de preço, facilidades.
-- **Instagram oficial:** bio (endereço e horário), seguidores, canal de contato.
-- **Site oficial** e guias de viagem como apoio.
-- Para passar, dois ou mais itens independentes precisam concordar nos dados de contato. Uso: conferir fatos públicos. Notas, comentários e textos dessas plataformas não são copiados.
+## Fluxo, em ordem
+0. **Passo 0: o que já temos.** 
+1. **Fila por relevância.** 
+2. **Pesquisa nas fontes**, pela extensão do Chrome. 
+3. **Checklist** (seção 3) e **entrega** das aprovadas ao Yuri (seção 7). 
+4. **Só com a confirmação dele:** gravar, importar, conferir no site (seção 8).
 
 ## Passo 0: antes de pesquisar, olhar o que já temos
-Para cada empresa, antes de abrir qualquer fonte externa:
-1. Conferir primeiro o site de produção pelo Chrome: abrir `https://lagosgo.com.br/descubra?q=<parte do nome>`, esperar uns 4 segundos carregar e ler o resultado (use só uma palavra do nome, a busca também casa descrição). Os cadastros reais ficam no banco e só aparecem aí. Depois olhar o código (data/featuredBusinesses.ts, data/publicPlaces.ts, services/dataService.ts, artigos do blog).
-2. Se já existe: não duplicar. Comparar o que está salvo com as fontes (endereço, telefone, horário, Instagram, comodidades, descrição) e entregar só a lista do que precisa atualizar.
-3. Se só aparece em texto (artigo do blog, roteiro), conferir se o texto ainda está correto e apontar o que corrigir.
-4. Só se não existir, seguir o fluxo completo abaixo.
-Regra de fonte para horário e contato: o Instagram oficial vale mais que o Google quando divergem (definido por Yuri, mais atual).
+1. Conferir o site de produção pelo Chrome: abrir `https://lagosgo.com.br/descubra?q=<uma palavra do nome>`, esperar uns 4 segundos carregar e ler o resultado. A busca também casa descrição (ex.: "Pimenta" trouxe um hostel). Os cadastros reais ficam no banco e só aparecem aí.
+2. Depois olhar o código: `data/featuredBusinesses.ts`, `data/publicPlaces.ts`, `services/dataService.ts` e os artigos do blog.
+3. Se já existe: não duplicar. Comparar o que está salvo com as fontes (endereço, telefone, horário, Instagram, comodidades, descrição) e entregar só o que precisa atualizar.
+4. Se só aparece em texto (artigo, roteiro): conferir se está correto e apontar a correção.
+5. Só se não existir, seguir o fluxo completo.
 
-## 1. Barreiras eliminatórias (qualquer uma reprova)
+## 1. Relevância: quem entra primeiro
+A relevância ordena a fila e não substitui o checklist. Sinais combinados: volume de avaliações no Google Meu Negócio e no TripAdvisor, posição no ranking da cidade, Instagram com muitos seguidores (conferir que é o perfil oficial: há homônimos; o endereço da bio deve bater), citação em guias de viagem.
+
+## 2. Fontes e como ler cada uma
+**Hierarquia quando divergem (regra do Yuri):** para horário e contato, o **Instagram oficial vale mais que o Google**, por ser mais atual. Sem Instagram legível, o horário precisa de duas fontes ou a empresa fica retida.
+
+| Fonte | Serve para | Como ler |
+|---|---|---|
+| Instagram oficial | Horário, contato, endereço, seguidores | Bio visível sem login só até a primeira linha |
+| Link da bio (Linktree, bit.ly) | WhatsApp oficial, cardápio, perguntas | Abrir no Chrome; o link do WhatsApp mostra o número |
+| Ficha do Google Maps | Endereço, telefone, horário, **comodidades** | Chrome: aba "Sobre" |
+| TripAdvisor, Wanderlog, guias de viagem | Segunda fonte de telefone, história, especialidades | WebSearch |
+| Site oficial | Apoio (se estiver no ar) | Chrome |
+
+Notas, comentários e textos dessas plataformas **não são copiados**; só fatos públicos são conferidos.
+
+### Método no Chrome (extensão)
+- Sempre abrir uma aba nova (`tabs_context_mcp` primeiro) e **fechar ao terminar**. `navigate` vai em chamada própria, nunca dentro de `browser_batch`.
+- **Google Maps:** navegar para `https://www.google.com/maps/search/<nome>+<cidade>`, esperar 4 s, clicar na aba "Sobre" (aprox. x=430, y=370 em tela 1536×695, ou achar com `find`) e ler com `get_page_text`. Confirmar pelo título/endereço que é o lugar certo.
+- **Aviso de cookies:** recusar os não essenciais.
+- **Nunca entrar em conta** (login, "continuar com Facebook") nem digitar senha. Se o Instagram pedir login para abrir a bio completa, parar e usar o link da bio, ou pedir um print ao Yuri.
+- **Links de WhatsApp:** só ler o número; **não enviar mensagem**.
+- WebFetch costuma bloquear sites; nesse caso a leitura vai pelo Chrome.
+- Esperar a página carregar antes de ler (a busca do site mostra "carregando" por alguns segundos).
+
+## 3. Barreiras eliminatórias (qualquer uma reprova)
 - Empresa fechada, não localizada ou com CNPJ trocado.
-- Já existe no guia (mesmo nome na mesma cidade, ignorando acento e parênteses).
+- Já existe no guia (Passo 0).
 - Fora de Arraial do Cabo, Cabo Frio ou Búzios (por enquanto).
-- Categoria Passeios: ninguém cadastra passeio, só a Guida Trips vende.
-- Fontes se contradizem em endereço ou telefone e não dá para resolver.
+- Categoria Passeios (só a Guida Trips vende).
+- Fontes se contradizem em endereço, telefone ou perfil do negócio e não dá para resolver (ex.: ficha do Google diz buffet a quilo, os guias dizem frutos do mar à la carte).
 
-## 2. Checklist obrigatório (todos precisam estar OK)
+## 4. Checklist obrigatório (todos OK)
 | # | Campo | Critério | Campo no sistema |
 |---|-------|----------|------------------|
-| 1 | Nome | Como aparece na fachada, no site ou no perfil oficial | `name` |
-| 2 | Cidade e bairro | Uma das 3 cidades; bairro quando a fonte informa | `cityId`, `neighborhoodId` |
-| 3 | Categoria e subcategoria | Da taxonomia do guia (Gastronomia, Hospedagem, Comércio, Serviços) | `category`, `subcategory` |
-| 4 | Endereço completo | Rua, número e bairro, em fonte confiável | `address` |
-| 5 | Telefone | Número que atende, na fonte oficial | `phone` |
-| 6 | Horário por dia | Domingo a Sábado, ou "Fechado", como a empresa publica | `openingHours` |
-| 7 | Canal digital | Instagram e/ou site, conferido (perfil existe e é da mesma empresa) | `instagram`, `website` |
-| 8 | Descrição editorial | Segue o padrão da seção 4 | `description` |
-| 9 | Comodidades | Só as confirmadas, entre as 12 do guia | `amenities` |
-| 10 | Fontes | Site oficial + pelo menos 1 ficha pública, ou 2 fontes independentes; data da conferência | `sources` |
+| 1 | Nome | Como na fachada, site ou perfil oficial | `name` |
+| 2 | Cidade e bairro | Uma das 3 cidades; bairro se a fonte informa | `cityId`, `neighborhood` |
+| 3 | Categoria e subcategoria | Da taxonomia do guia | `category`, `subcategory` |
+| 4 | Endereço completo | Rua, número, bairro e CEP, em fonte confiável | `address` |
+| 5 | Telefone | Confirmado em **duas fontes independentes** | `phone` |
+| 6 | Horário por dia | Domingo a Sábado ou "Fechado", pela hierarquia da seção 2 | `hours` |
+| 7 | Canal digital | Instagram e/ou site, conferido: existe e é da mesma empresa | `instagram`, `website` |
+| 8 | Descrição editorial | Padrão da seção 6 | `description` |
+| 9 | Comodidades | Só as confirmadas, pelo mapa abaixo | `amenities` |
+| 10 | Fontes | Lista de URLs conferidas + data | `sources`, `checkedAt` |
 
-## 3. Campos opcionais (preencher só se a fonte confirmar)
-- WhatsApp (`whatsapp`), e-mail (`email`).
-- Link de delivery (`deliveryUrl`) e de reserva (`bookingUrl`).
-- Cardápio com preços ou lista de serviços (`menu`): só se a própria empresa publica; preço muda, registrar a data.
-- Coordenadas (`lat`, `lng`).
-- Etiquetas de experiência (`experienceTags`): familias, casais, criancas, aventura, chuva, gratuito, imperdivel. Sugestão minha, o administrador decide.
-- Nunca preencher: nota (`rating`), número de avaliações (`reviewCount`), "aberto agora".
+### Comodidades: como confirmar
+Fonte: aba "Sobre" do Google, site ou Instagram da própria empresa. **Agregadores de terceiros não valem** (ex.: sites que listam "Wi-Fi" sem estar na ficha).
 
-Comodidades do guia: Wi-Fi grátis, ar-condicionado, estacionamento, acessibilidade, espaço kids, pet friendly, piscina, café da manhã, televisão, bar no local, aceita cartão, faz entrega.
+| Item do Google | Id no guia |
+|---|---|
+| Wi-Fi gratuito | `wifi` |
+| Ar-condicionado | `ac` |
+| Qualquer estacionamento listado (gratuito, pago, na rua) | `parking` |
+| Entrada, assento, banheiro ou estacionamento com acessibilidade | `access` |
+| Bom para crianças, cadeirinhas, cardápio infantil, espaço kids | `kids` |
+| Cães permitidos (área externa ou entrada) | `pet` |
+| Piscina | `pool` |
+| Café da manhã | `breakfast` |
+| Televisão | `tv` |
+| Bar no local | `bar` |
+| Cartão de crédito ou débito | `card` |
+| Entrega | `delivery` |
 
-## 4. Padrão editorial da descrição
-Objetivo: texto que o leitor lembra, sem exagero. A reputação do Lagos GO é a escrita.
-- 450 a 700 caracteres, em português do Brasil.
-- Abre com algo específico da empresa (um prato, a vista, o jeito de receber), não com "O restaurante X é…".
-- Cada afirmação vem de fonte conferida. Sem adjetivo vazio ("incrível", "maravilhoso") e sem superlativo que ninguém comprovou ("o melhor").
-- Diz para quem serve e em que momento faz sentido ir, só se a fonte sustenta.
-- Sem preço, sem horário e sem nota no texto (mudam).
-- Parafrasear sempre. Não copiar frase de site, de Instagram ou de ficha de terceiros.
-- Fecha com utilidade concreta (onde fica em relação à praia ou ao centro, como chegar), se confirmado.
+Item que não aparece na fonte **não entra** (ex.: Casa da Piedra não lista "pets", então não leva `pet`).
 
-## 5. Como o resultado é entregue
-Para cada empresa pesquisada:
-1. Ficha com os campos acima.
-2. Quadro de checagem: item, OK ou falta, e a fonte.
-3. Descrição proposta.
-4. Dúvidas em aberto, se houver.
+## 5. Formato dos dados no cadastro (`data/featuredBusinesses.ts`)
+- `phone`: telefone principal no formato `(22) 2622-1222`. `whatsapp`: número do link oficial da bio ou da ficha, separado.
+- `instagram`: endereço completo do perfil (`https://www.instagram.com/perfil/`). O botão da ficha aceita também `@perfil`.
+- `hours`: objeto com as chaves `Domingo, Segunda, Terça, Quarta, Quinta, Sexta, Sábado`, valor `'12:00 - 23:30'` ou `'Fechado'`.
+- `amenities`: lista de ids da tabela acima.
+- `sources`: URLs das páginas conferidas (Instagram, ficha do Google, link da bio, guias). `checkedAt`: data da conferência (AAAA-MM-DD).
+- `description`: texto puro. Sem foto, sem nota, sem `reviewCount`, sem "aberto agora".
+- Opcionais só se a fonte confirmar: e-mail, `deliveryUrl`, `bookingUrl`, `lat`/`lng`, cardápio com preços e data, `experienceTags` (sugestão; o admin decide).
+- Sem `lat`/`lng`, o botão "Rota" busca pelo **endereço**; por isso o endereço precisa estar completo.
 
-No fim, a lista **Aprovadas** (todos os itens OK) vai para confirmação do Yuri. As reprovadas aparecem em uma linha cada, só com o motivo. Nada é gravado no guia sem a confirmação dele.
+## 6. Padrão editorial da descrição
+A reputação do Lagos GO é a escrita.
+- 450 a 700 caracteres, português do Brasil.
+- Abre com algo específico (a cozinha, o prédio, o jeito de receber), nunca "O restaurante X é…".
+- Cada afirmação vem de fonte conferida. Sem adjetivo vazio e sem superlativo não comprovado.
+- Diz para quem serve e quando faz sentido ir, só se a fonte sustenta.
+- Sem preço, horário ou nota no texto (mudam).
+- Parafrasear sempre; não copiar frases de site, Instagram, avaliações ou terceiros.
+- Fecha com utilidade concreta (onde fica, momento ideal), se confirmado.
 
-## 6. Limites conhecidos
-- Google Maps, Instagram e iFood costumam bloquear a leitura automática. Quando o dado só existe lá, a empresa fica como "falta confirmar" e vai para o formulário de confirmação do dono (WhatsApp) em vez de ser inventada.
-- Hospedagem: conferir também o cadastro no Cadastur, quando acessível.
+## 7. Entrega ao Yuri
+Para cada empresa: ficha (endereço, telefones, horário, Instagram, comodidades) com a fonte de cada item, descrição pronta e dúvidas em aberto.
+- **Aprovadas:** todos os itens OK. Vão para confirmação dele.
+- **Retidas:** uma linha cada, dizendo exatamente o que falta e como fechar (ex.: "horário só pelo Instagram, que pede login: mande print da bio").
+- Se as fontes divergirem, mostrar o conflito e perguntar; não escolher sozinho fora da regra da hierarquia.
+- **Nada é gravado sem a confirmação dele.**
+
+## 8. Publicação e conferência (só após a confirmação)
+1. Acrescentar a empresa em `FEATURED_BUSINESSES` (`data/featuredBusinesses.ts`), commit e push no `main` (a Vercel publica).
+2. No site, logado como administrador (sessão do Chrome do Yuri): painel admin → **Ecossistema** → **Empresas em destaque** → **Ver prévia**. A prévia tem que listar **exatamente** as empresas esperadas (as já existentes aparecem como "puladas"). Só então **Importar**.
+3. O importador publica as completas (endereço, telefone e fonte) com 90 dias grátis do plano Pro; incompletas viram rascunho. Ele pula as que já existem.
+4. **Conferir no site público:** `descubra?q=` encontra a empresa, a contagem da categoria subiu e os filtros de comodidade refletem as novas. Abrir a ficha e testar **horário, descrição, botão do Instagram e botão Rota**. Corrigir o que falhar antes de dar como concluído.
+5. Fechar abas do Chrome abertas e relatar o resultado ao Yuri.
+
+## 9. Limites conhecidos
+- Instagram sem login mostra a bio só até a primeira linha; Google Maps e iFood podem bloquear leitura automática.
+- Hospedagem: conferir também o Cadastur, quando acessível.
+- Empresa sem canal digital oficial ou com dado de uma fonte só fica retida; o caminho é o formulário de confirmação do dono (WhatsApp).
