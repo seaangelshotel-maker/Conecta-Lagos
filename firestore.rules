@@ -44,7 +44,7 @@ service cloud.firestore {
     function isAllowlistedAdminEmail() {
       return isAuthenticated()
         && request.auth.token.email_verified == true
-        && request.auth.token.email in ['sea.angelshotel@gmail.com'];
+        && request.auth.token.email in ['sea.angelshotel@gmail.com', 'yurirmg@gmail.com'];
     }
 
     function isAdmin() {

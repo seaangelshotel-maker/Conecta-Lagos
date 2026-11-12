@@ -400,7 +400,7 @@ export const login = async (email: string, pass: string): Promise<User | null> =
     }
 };
 
-const ADMIN_BOOTSTRAP_EMAILS = ['sea.angelshotel@gmail.com'];
+const ADMIN_BOOTSTRAP_EMAILS = ['sea.angelshotel@gmail.com', 'yurirmg@gmail.com'];
 
 /** Cria o documento de perfil de um novo usuário com o papel padrão (CUSTOMER). */
 const createBaseProfile = async (uid: string, name: string, email: string, avatarUrl?: string, emailVerified = false): Promise<User> => {
