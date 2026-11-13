@@ -10,6 +10,7 @@ import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import path from "path";
 import { handleWebhook, handleCreateCheckout, paymentsEnabled } from "./server/payments.js";
+import handleEmail from "./server/emailHandler.js";
 import { handleAiGenerate } from "./server/ai.js";
 import { handleTranslate } from "./server/translate.js";
 
@@ -34,6 +35,7 @@ async function startServer() {
     res.json({ status: "ok", paymentsEnabled: paymentsEnabled(), aiEnabled: !!process.env.GEMINI_API_KEY });
   });
   app.post("/api/create-checkout-session", (req, res) => { handleCreateCheckout(req as any, res); });
+  app.all("/api/email", (req, res) => { handleEmail(req as any, res); });
   app.post("/api/translate", (req, res) => { handleTranslate(req as any, res); });
   app.post("/api/ai/generate", (req, res) => { handleAiGenerate(req as any, res); });
 

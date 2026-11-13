@@ -11,6 +11,8 @@
  * - Planos, preços, periodicidade, split e regras comerciais NÃO são definidos aqui.
  */
 import { adminDb, verifyRequestUser } from './firebaseAdmin.js';
+import { adminRecipients, isEmail, mailConfigured, sendMail, siteUrl } from './mail.js';
+import { adminAlert, planActivated } from './mailTemplates.js';
 import { Req, Res, sendJson, readJsonBody, readRawBody, methodNotAllowed } from './http.js';
 import {
     asaasBaseUrl, asaasConfigured, buildReference, parseReference, isValidWebhookToken,
@@ -18,6 +20,18 @@ import {
 } from './asaasCore.js';
 
 export { buildReference, parseReference };
+
+/** E-mail de plano ativo para o responsável + aviso à equipe. Nunca interrompe o webhook. */
+const notifyPlanActivated = async (userId: string, businessName: string | undefined, planName: string, endsAt: string) => {
+    try {
+        if (!mailConfigured()) return;
+        const u = (await adminDb().collection('users').doc(userId).get()).data() || {};
+        const site = siteUrl();
+        const name = businessName || 'sua empresa';
+        if (isEmail(u.email)) await sendMail({ to: u.email, ...planActivated({ site, name: u.name, businessName: name, planName, endsAt }), tags: [{ name: 'type', value: 'plan_activated' }] });
+        await sendMail({ to: adminRecipients(), ...adminAlert({ site, title: 'Pagamento confirmado', lines: [['Empresa', name], ['Plano', planName], ['Responsável', u.email || userId]] }), tags: [{ name: 'type', value: 'admin_alert' }] });
+    } catch (e) { console.warn('[mail] plano ativado: falha ao enviar', e); }
+};
 export const paymentsEnabled = () => asaasConfigured();
 export const paymentsProvider = 'asaas';
 
@@ -172,6 +186,7 @@ export const handleWebhook = async (req: Req, res: Res) => {
         batch.set(db.collection('users').doc(ref.userId), { plan: plan.name, paymentSubscriptionStatus: 'active' }, { merge: true });
         batch.set(db.collection('payment_intents').doc(paymentId), { status: p.data.status, paidAt: new Date().toISOString() }, { merge: true });
         await batch.commit();
+        await notifyPlanActivated(ref.userId, biz.name, plan.name, ends);
         return sendJson(res, 200, { received: true, processed: true });
     } catch (error) {
         console.error('[webhook] erro ao processar:', error);

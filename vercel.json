@@ -3,7 +3,10 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "crons": [{ "path": "/api/expire-plans", "schedule": "0 7 * * *" }],
+  "crons": [
+    { "path": "/api/expire-plans", "schedule": "0 7 * * *" },
+    { "path": "/api/email?action=cron-newsletter", "schedule": "0 12 * * 5" }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
