@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarDays, CalendarPlus, Clock, ExternalLink, Info, MapPin, Share2, Store, Ticket, Link2, AlertTriangle } from 'lucide-react';
 import { AppEvent, User } from '../types';
 import { getEventById } from '../services/eventService';
-import { buildICS, androidCalendarIntent, googleCalendarUrl, eventTimes, categoryLabel, cityLabel, eventEnd, eventPhase, formatEventDates, formatEventTime, whenLabel } from '../services/eventRules';
+import { buildICS, googleCalendarUrl, categoryLabel, cityLabel, eventEnd, eventPhase, formatEventDates, formatEventTime, whenLabel } from '../services/eventRules';
 import { catStyle, DateBadge } from '../components/EventCards';
 import { PageHeader, LoadingState, EmptyState } from '../components/ui/States';
 import { useNotification } from '../components/NotificationSystem';
@@ -66,12 +66,9 @@ export const EventDetail: React.FC<Props> = ({ eventId, currentUser, onNavigate 
   };
 
   const addToCalendar = () => {
-    // Android: abre direto o app de agenda (sem baixar arquivo). iPhone e computador: arquivo .ics, que o sistema já abre na agenda.
-    const ua = navigator.userAgent || '';
-    if (/Android/i.test(ua)) {
-      const inApp = /FBAN|FBAV|Instagram|; wv\)|Line\//i.test(ua);
-      const chrome = /Chrome\//i.test(ua) && !/SamsungBrowser|OPR\/|EdgA|Firefox/i.test(ua) && !inApp;
-      window.location.href = chrome ? androidCalendarIntent(ev) : googleCalendarUrl(ev);
+    // Android: abre o Google Agenda (app, se instalado) com o evento preenchido. iPhone e computador: arquivo .ics, que o sistema já abre na agenda.
+    if (/Android/i.test(navigator.userAgent || '')) {
+      window.location.href = googleCalendarUrl(ev);
       return;
     }
     try {
