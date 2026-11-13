@@ -3,6 +3,7 @@
   "short_name": "Lagos GO",
   "description": "Guia, cupons, trabalhos e colaborações da Região dos Lagos.",
   "lang": "pt-BR",
+  "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
