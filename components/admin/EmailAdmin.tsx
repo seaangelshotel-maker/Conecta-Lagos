@@ -3,7 +3,7 @@ import { Mail, Loader2, Send, Eye, RefreshCw } from 'lucide-react';
 import { adminEmail } from '../../services/emailService';
 import { useNotification } from '../NotificationSystem';
 
-interface Status { configured: boolean; from: string; admins: string[]; autoNewsletter: boolean; subscribers: { pending: number; active: number; unsubscribed: number } }
+interface Status { configured: boolean; from: string; admins: string[]; autoNewsletter: boolean; subscribers: { pending: number; active: number; unsubscribed: number }; database?: boolean }
 interface Preview { subject: string; html: string; hasContent: boolean; counts: { events: number; coupons: number; posts: number } }
 
 /** Admin: situação do e-mail, envio de teste e newsletter (prévia, teste e envio). */
@@ -69,6 +69,9 @@ export const EmailAdmin: React.FC = () => {
       )}
       {status && !status.configured && (
         <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3">O envio está desligado: falta a chave RESEND_API_KEY na Vercel (veja docs/EMAIL.md). Até lá, o app usa o e-mail padrão do Firebase para senha.</p>
+      )}
+      {status && status.database === false && (
+        <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3">O servidor ainda não tem acesso ao banco (falta FIREBASE_SERVICE_ACCOUNT na Vercel). Os e-mails de teste funcionam; inscritos da newsletter, envio em massa e limites só funcionam depois disso.</p>
       )}
       {status && <p className="text-xs text-slate-500">Remetente: <b>{status.from}</b> · Avisos da equipe para: <b>{status.admins.join(', ') || 'ninguém'}</b> · Envio automático de sexta: <b>{status.autoNewsletter ? 'ligado' : 'desligado'}</b></p>}
 

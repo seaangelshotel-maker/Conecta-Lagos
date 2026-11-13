@@ -178,9 +178,13 @@ export default async function emailHandler(req: Req, res: Res) {
         if (!(await isAdminToken(user))) return sendJson(res, 403, { error: 'Apenas administradores.' });
 
         if (action === 'status') {
+            // Sem a conta de serviço do Firebase no servidor, o Firestore fica inacessível: o envio de e-mail funciona, a lista de inscritos não.
+            let subscribers = { pending: 0, active: 0, unsubscribed: 0 };
+            let database = true;
+            try { subscribers = await N.countByStatus(); } catch { database = false; }
             return sendJson(res, 200, {
                 configured: mailConfigured(env), from: mailFrom(env), admins: adminRecipients(env),
-                autoNewsletter: env.NEWSLETTER_AUTO !== 'false', subscribers: await N.countByStatus(),
+                autoNewsletter: env.NEWSLETTER_AUTO !== 'false', subscribers, database,
             });
         }
         if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
