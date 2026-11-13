@@ -48,6 +48,7 @@ import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PrivacyRequestsAdmin } from '../components/admin/PrivacyRequestsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
+import { EmailAdmin } from '../components/admin/EmailAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
 import { ClaimReleaseCard } from '../components/admin/ClaimReleaseCard';
@@ -3138,6 +3139,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               <LegalSettingsAdmin />
               <PrivacyRequestsAdmin />
               <PushAdmin />
+              <EmailAdmin />
           </div>
       )}
 

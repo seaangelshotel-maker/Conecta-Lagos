@@ -98,7 +98,8 @@ export default async function emailHandler(req: Req, res: Res) {
             const body = await readJsonBody<{ email?: string }>(req);
             const email = normalizeEmail(body.email);
             if (!isEmail(email)) return sendJson(res, 400, { error: 'Informe um e-mail válido.' });
-            if (mailConfigured(env) && await allow(`reset_${email}`, 60_000)) {
+            if (!mailConfigured(env)) return sendJson(res, 200, { ok: true, via: 'none' }); // o app usa o e-mail padrão do Firebase
+            if (await allow(`reset_${email}`, 60_000)) {
                 try {
                     const user = await adminAuth().getUserByEmail(email);
                     const link = await adminAuth().generatePasswordResetLink(email, { url: `${site}/login` });
@@ -107,7 +108,7 @@ export default async function emailHandler(req: Req, res: Res) {
                     await log('password_reset', email, r.ok);
                 } catch { /* e-mail sem conta: mesma resposta */ }
             }
-            return sendJson(res, 200, { ok: true });
+            return sendJson(res, 200, { ok: true, via: 'lagosgo' });
         }
 
         // ───── Cron

@@ -205,6 +205,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     }
     _isAuthInitialized = true;
     notifyListeners();
+    if (firebaseUser) import('./emailService').then(m => m.sendWelcomeOnce()).catch(() => undefined);
 });
 
 export const isAuthInitialized = () => _isAuthInitialized;
@@ -451,6 +452,9 @@ export const loginWithGoogle = async (): Promise<User | null> => {
 };
 
 export const resetUserPassword = async (email: string) => {
+    // E-mail com a marca Lagos GO (Resend). Se não estiver configurado ou falhar, usa o e-mail padrão do Firebase.
+    const { requestPasswordResetEmail } = await import('./emailService');
+    if (await requestPasswordResetEmail(email)) return;
     await sendPasswordResetEmail(auth, email);
 };
 
@@ -2586,6 +2590,7 @@ export const submitClaim = async (business: BusinessProfile, form: ClaimForm): P
         claimerRole: form.role, companyPhone: business.phone || '', document: '',
         description: `${form.role} de ${business.name}`,
     }));
+    import('./emailService').then(m => m.notifyTeam('claim', { businessName: business.name, contact: form.whatsapp.trim(), message: `${form.ownerName.trim()} (${form.role})` })).catch(() => undefined);
 };
 
 export const rejectCompanyRequest = async (requestId: string) => {
