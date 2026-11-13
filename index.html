@@ -33,65 +33,6 @@
     <meta name="format-detection" content="telephone=no">
 
     <!-- Leaflet Map CSS & JS (OpenSource Maps) -->
-
-    <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ocean: {
-                50: '#f0f9ff',
-                100: '#e0f2fe',
-                200: '#bae6fd',
-                300: '#7dd3fc',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                600: '#0284c7',
-                700: '#0369a1',
-                800: '#075985',
-                900: '#0c4a6e',
-                950: '#082f49',
-              },
-              gold: {
-                400: '#fbbf24',
-                500: '#f59e0b',
-                600: '#d97706',
-              }
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            }
-          },
-        },
-      }
-    </script>
-    <style>
-      html, body {
-        height: 100%;
-        overflow-x: hidden;
-        background-color: #f8fafc;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .hide-scrollbar::-webkit-scrollbar { display: none; }
-      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      html { scroll-behavior: smooth; }
-      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-      /* Barras de ação fixas ficam acima das abas inferiores no celular */
-      .above-bottom-nav { bottom: calc(4rem + env(safe-area-inset-bottom)); }
-      @media (min-width: 768px) { .above-bottom-nav { bottom: 0; } }
-      /* Folhas (modais de baixo para cima) respeitam a área segura do iPhone */
-      .sheet-safe-bottom.sheet-safe-bottom { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
-      /* Teclado aberto: some a barra de abas fixa para não cobrir o campo */
-      .kb-open nav[aria-label="Navegação principal"] { display: none; }
-      .leaflet-pane { z-index: 10 !important; }
-      /* Experiência de app: sem seleção acidental em botões e rolagem suave no iOS */
-      button { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
-      @media (display-mode: standalone) { body { overscroll-behavior-y: none; } }
-      /* Evita o zoom automático do iOS ao focar campos, sem bloquear o zoom do usuário */
-      @media (max-width: 767px) { input, select, textarea { font-size: 16px !important; } }
-    </style>
 </head>
   <body class="bg-slate-50 text-ocean-950 font-sans antialiased pb-safe">
     <div id="root"></div>
