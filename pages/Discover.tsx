@@ -6,6 +6,7 @@ import { BlogPost, BusinessProfile, City, AppAmenity, DEFAULT_AMENITIES } from '
 import { getAllBusinesses, getCities, getAmenities } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
 import { getGuideArticles } from '../services/guideService';
+import { findNeed, needMatch } from '../services/needNow';
 import {
   CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
 } from '../services/discoverLogic';
@@ -28,7 +29,7 @@ const pathCity = () => cityLandingBySlug((typeof window !== 'undefined' ? window
 
 const readUrl = (initialCity?: string) => {
   const p = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || pathCity()?.cityId || initialCity || '', am: (p.get('am') || '').split(',').filter(Boolean) };
+  return { cat: p.get('cat') || '', f: p.get('f') || '', q: p.get('q') || '', city: p.get('city') || pathCity()?.cityId || initialCity || '', am: (p.get('am') || '').split(',').filter(Boolean), n: p.get('n') || '' };
 };
 
 export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
@@ -47,6 +48,7 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
   const [flt, setFlt] = useState(init.f);
   const [q, setQ] = useState(init.q);
   const [city, setCity] = useState(init.city);
+  const [need, setNeed] = useState(init.n);
   const loc = useRegionLocation();
   const where = loc.where;
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -72,15 +74,15 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
 
   useEffect(() => {
     const p = new URLSearchParams();
-    if (cat) p.set('cat', cat); if (flt) p.set('f', flt); if (q) p.set('q', q); if (city) p.set('city', city); if (am.length) p.set('am', am.join(','));
+    if (cat) p.set('cat', cat); if (flt) p.set('f', flt); if (q) p.set('q', q); if (city) p.set('city', city); if (am.length) p.set('am', am.join(',')); if (need) p.set('n', need);
     // Só a cidade escolhida → endereço da cidade (/cabo-frio); qualquer outro filtro → /descubra?…
     const landing = city ? cityLandingByCityId(city) : undefined;
-    const onlyCity = !!landing && !cat && !flt && !q && !am.length;
+    const onlyCity = !!landing && !cat && !flt && !q && !am.length && !need;
     if (onlyCity) p.delete('city');
     const qs = p.toString();
     const base = onlyCity ? `/${landing!.slug}` : (pathCity() ? '/descubra' : window.location.pathname);
     try { window.history.replaceState({}, '', base + (qs ? `?${qs}` : '')); } catch { /* ignora */ }
-  }, [cat, flt, q, city, am]);
+  }, [cat, flt, q, city, am, need]);
 
   const pickFilter = (id: string) => {
     if (flt === id) { setFlt(''); return; }
@@ -88,22 +90,26 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
   };
 
   const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
-  const active = !!(cat || flt || q.trim() || am.length);
+  const active = !!(cat || flt || q.trim() || am.length || need);
   const amCounts = useMemo(() => countByAmenity(businesses, amenityDefs), [businesses, amenityDefs]);
   const amList = useMemo(() => [...amenityDefs].sort((a, b) => (amCounts[b.id] || 0) - (amCounts[a.id] || 0)), [amenityDefs, amCounts]);
   const toggleAm = (id: string) => setAm(cur => (cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]));
-  const results = useMemo(() => filterBusinesses(businesses, { categories, categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs }), [businesses, categories, cat, flt, city, q, where, am, amenityDefs]);
+  const needItem = findNeed(need);
+  const results = useMemo(() => {
+    const list = filterBusinesses(businesses, { categories, categoryId: cat, filterId: flt, cityId: city, query: q, where, amenities: am, amenityDefs });
+    return needItem ? list.filter(b => needMatch(b, needItem)) : list;
+  }, [businesses, categories, cat, flt, city, q, where, am, amenityDefs, needItem]);
   const matchedArticles = useMemo(() => (q.trim() ? searchArticles(articles, q) : []), [articles, q]);
   const filterInfo = CONTEXT_FILTERS.find(f => f.id === flt);
   // Página da cidade (só quando a cidade é o único filtro): título e texto próprios.
-  const landingInfo = city && !cat && !flt && !q.trim() && !am.length ? cityLandingByCityId(city) : undefined;
+  const landingInfo = city && !cat && !flt && !q.trim() && !am.length && !need ? cityLandingByCityId(city) : undefined;
 
   const openArticle = (a: BlogPost) => onNavigate('guide-article', { slug: a.slug || a.id });
   const openBusiness = (b: BusinessProfile) => onNavigate('business-detail', { businessId: b.id });
 
 
-  useEffect(() => { setShown(24); }, [cat, flt, q, city, am]);
-  const clearAll = () => { setCat(''); setFlt(''); setQ(''); setCity(''); setAm([]); };
+  useEffect(() => { setShown(24); }, [cat, flt, q, city, am, need]);
+  const clearAll = () => { setCat(''); setFlt(''); setQ(''); setCity(''); setAm([]); setNeed(''); };
 
   return (
     <div className="bg-slate-50 min-h-screen pb-28 font-sans">
@@ -132,6 +138,11 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mt-1">{landingInfo ? landingInfo.title : 'Todos os lugares da região'}</h1>
           <p className="text-sm text-white/80 mt-1 max-w-xl">{landingInfo ? landingInfo.intro : 'Praias, restaurantes, passeios, hospedagens e serviços, com filtros e comodidades.'}</p>
           <SearchBar className="mt-5" value={q} onChange={setQ} onFilters={openFilters} filterCount={countFilters({ cat, f: flt, city })} />
+          {needItem && (
+            <button onClick={() => setNeed('')} data-testid="need-chip" className="mt-3 inline-flex items-center gap-2 h-9 px-3.5 rounded-full bg-white/15 border border-white/30 text-[13px] font-bold">
+              Mostrando: {needItem.label} <span aria-hidden>✕</span><span className="sr-only">Remover filtro</span>
+            </button>
+          )}
           {cities.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar" role="group" aria-label="Cidade">
               {[{ id: '', name: 'Toda a região' }, ...cities].map(c => (

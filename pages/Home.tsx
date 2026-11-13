@@ -187,7 +187,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
           </div>}
         </section>
 
-        <NeedNow items={needNow} onOpen={query => onNavigate('discover', { q: query })} />
+        <NeedNow items={needNow} onOpen={id => onNavigate('discover', { n: id })} />
 
         {/* B. Banner de destaque (restaurado; conteúdo vem do admin) */}
         <section className="px-4" aria-label="Destaques" data-testid="home-banner">

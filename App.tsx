@@ -121,9 +121,9 @@ const buildUrl = (page: string, params?: any): string => {
     case 'discover': {
       // Só a cidade escolhida: usa o endereço da página da cidade (melhor para o Google e para compartilhar).
       const landing = params?.citySlug ? { slug: params.citySlug } : (params?.city ? cityLandingByCityId(params.city) : undefined);
-      if (landing && !['q', 'cat', 'f', 'am'].some(k => params?.[k])) return `/${landing.slug}`;
+      if (landing && !['q', 'cat', 'f', 'am', 'n'].some(k => params?.[k])) return `/${landing.slug}`;
       const qs = new URLSearchParams();
-      ['q', 'cat', 'f', 'city'].forEach(k => { if (params?.[k]) qs.set(k, params[k]); });
+      ['q', 'cat', 'f', 'city', 'n'].forEach(k => { if (params?.[k]) qs.set(k, params[k]); });
       const str = qs.toString();
       return '/descubra' + (str ? `?${str}` : '');
     }

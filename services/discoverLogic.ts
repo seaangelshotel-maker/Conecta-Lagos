@@ -8,13 +8,13 @@ import { BusinessProfile, BlogPost, GuideRelated, AMENITIES_LABELS, DEFAULT_AMEN
 export const norm = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 const has = (hay: string | undefined, words: string[]) => { const h = norm(hay); return words.some(w => h.includes(norm(w))); };
-const subIs = (b: BusinessProfile, subs: string[]) => subs.some(s => norm(b.subcategory) === norm(s));
+export const subIs = (b: BusinessProfile, subs: string[]) => subs.some(s => norm(b.subcategory) === norm(s));
 /** Palavra inteira (sem acento): "açaí" não casa com "Graçainha". */
-const hasWord = (hay: string | undefined, words: string[]) => {
+export const hasWord = (hay: string | undefined, words: string[]) => {
   const h = norm(hay);
   return words.some(w => { const k = norm(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); return !!k && new RegExp(`(^|[^a-z0-9])${k}([^a-z0-9]|$)`).test(h); });
 };
-const catIs = (b: BusinessProfile, cats: string[]) => cats.some(c => norm(b.category) === norm(c));
+export const catIs = (b: BusinessProfile, cats: string[]) => cats.some(c => norm(b.category) === norm(c));
 
 export interface MainCategory { id: string; label: string; icon: string; match: (b: BusinessProfile) => boolean; }
 
