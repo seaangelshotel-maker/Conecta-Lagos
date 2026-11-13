@@ -4,7 +4,7 @@
  * - CDNs de estilo/mapa/fontes: usa o cache e atualiza em segundo plano.
  * - Nunca guarda /api/*, Firebase/Firestore ou métodos diferentes de GET.
  */
-const VERSION = 'lagosgo-v3';
+const VERSION = 'lagosgo-v4';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const CDN_CACHE = `${VERSION}-cdn`;
