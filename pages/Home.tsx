@@ -25,6 +25,8 @@ import { EventsShelf } from '../components/EventCards';
 import { WalletCard } from '../components/WalletCard';
 import { useWallet } from '../services/walletService';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
+import { needNowCounts } from '../services/needNow';
+import { NeedNow } from '../components/NeedNow';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
 import { useCoupons } from '../hooks/useFirestore';
@@ -92,6 +94,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
   const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
   const places = useMemo(() => (cat ? filterBusinesses(businesses, { categories, categoryId: cat, filterId: 'populares' }) : []), [businesses, categories, cat]);
   const catLabel = categories.find(c => c.id === cat)?.label || '';
+  const needNow = useMemo(() => needNowCounts(businesses), [businesses]);
 
   const uniqueCoupons = useMemo(() => { const s = new Set<string>(); return (coupons || []).filter(c => c?.id && !s.has(c.id) && s.add(c.id)); }, [coupons]);
   const roteiros = useMemo(() => guides.filter(g => (g.collections || []).includes(C.roteiros)), [guides]);
@@ -183,6 +186,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             )}
           </div>}
         </section>
+
+        <NeedNow items={needNow} onOpen={query => onNavigate('discover', { q: query })} />
 
         {/* B. Banner de destaque (restaurado; conteúdo vem do admin) */}
         <section className="px-4" aria-label="Destaques" data-testid="home-banner">
