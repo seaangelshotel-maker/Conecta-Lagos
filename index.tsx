@@ -2,6 +2,9 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { AppErrorBoundary, installChunkErrorRecovery } from './components/AppErrorBoundary';
+
+installChunkErrorRecovery();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,7 +14,9 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </React.StrictMode>
 );
 
