@@ -41,6 +41,7 @@ import { EcosystemSettings } from '../components/admin/EcosystemSettings';
 import { SeoDashboard } from '../components/admin/SeoDashboard';
 import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
+import { PublicServicesImport } from '../components/admin/PublicServicesImport';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
@@ -3155,6 +3156,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               <EcosystemSettings />
               <PublicPlacesImport />
               <FeaturedBusinessesImport />
+              <PublicServicesImport />
               <GuideContentAdmin />
               <LegalSettingsAdmin />
               <PrivacyRequestsAdmin />

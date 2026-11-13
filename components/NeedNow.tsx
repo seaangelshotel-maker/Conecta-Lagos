@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Pill, ShoppingCart, Fuel, Car, KeyRound, Smile, Stethoscope, PawPrint, Zap, Phone, Siren, ChevronDown, type LucideIcon } from 'lucide-react';
+import { Pill, ShoppingCart, Fuel, Car, KeyRound, Smile, Stethoscope, PawPrint, ShieldCheck, Zap, Phone, Siren, ChevronDown, type LucideIcon } from 'lucide-react';
 import { NeedCount, EMERGENCY_MAIN, EMERGENCY_MORE } from '../services/needNow';
 
-const ICONS: Record<string, LucideIcon> = { Pill, ShoppingCart, Fuel, Car, KeyRound, Smile, Stethoscope, PawPrint };
+const ICONS: Record<string, LucideIcon> = { Pill, ShoppingCart, Fuel, Car, KeyRound, Smile, Stethoscope, PawPrint, ShieldCheck };
 
 /** Emergência: sempre visível (não depende de cadastro), com ligação direta. */
 const Emergency: React.FC = () => {

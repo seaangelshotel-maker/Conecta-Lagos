@@ -27,3 +27,18 @@ test('posto não casa com posto de salva-vidas', () => {
 });
 
 test('sem lugares, nenhum atalho', () => { assert.equal(needNowCounts([]).length, 0); });
+
+import { PUBLIC_SERVICES } from '../data/publicServices';
+test('serviços públicos: dados válidos e casam com os atalhos Saúde e Polícia e Bombeiros', () => {
+  const names = new Set<string>();
+  for (const s of PUBLIC_SERVICES) {
+    assert.ok(s.address.trim(), `${s.name}: endereço`);
+    assert.ok(s.sources.length > 0 && s.sources.every(u => { try { return !!new URL(u); } catch { return false; } }), `${s.name}: fontes`);
+    assert.ok(!s.phone || /^\(\d{2}\) \d{4}-\d{4}$/.test(s.phone), `${s.name}: telefone fixo no formato`);
+    assert.ok(!names.has(s.name), `${s.name}: duplicado`); names.add(s.name);
+    const b: any = { ...s, id: s.name, status: 'approved' };
+    const target = s.category === 'Saúde' ? 'saude' : 'seguranca';
+    assert.equal(needMatch(b, item(target)), true, `${s.name} deve casar com ${target}`);
+    assert.equal(needMatch(b, item(target === 'saude' ? 'seguranca' : 'saude')), false, `${s.name} não deve casar com o outro`);
+  }
+});
