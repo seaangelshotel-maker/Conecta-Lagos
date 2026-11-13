@@ -321,9 +321,6 @@ function AppContent() {
         }
         return <JournalistDashboard currentUser={user!} onNavigate={handleNavigate} onLogout={handleLogout} />;
       case 'create-business':
-        if (!user!.permissions?.canCreateBusiness && user!.role !== UserRole.COMPANY && user!.role !== UserRole.SUPER_ADMIN) {
-            return <Redirect to="pricing-plans" onNavigate={handleNavigate} />;
-        }
         return <CreateBusiness currentUser={user!} onNavigate={handleNavigate} />;
       case 'pricing-plans':
         return <PricingPlans currentUser={user} onNavigate={handleNavigate} />;

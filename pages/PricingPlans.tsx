@@ -10,6 +10,7 @@ import { useNotification } from '../components/NotificationSystem';
 import { auth } from '../services/firebase';
 
 import { SEO } from '../components/SEO';
+export const PENDING_PLAN_KEY = 'lagosgo:pendingPlan';
 interface PricingPlansProps {
     currentUser: User | null;
     onNavigate: (page: string) => void;
@@ -36,6 +37,18 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         return () => window.removeEventListener('dataUpdated', handleUpdate);
     }, []);
 
+    // Voltou do cadastro da empresa: retoma a assinatura do plano escolhido.
+    useEffect(() => {
+        if (loading || !plans.length || !currentUser) return;
+        let id: string | null = null;
+        try { id = sessionStorage.getItem(PENDING_PLAN_KEY); } catch { /* ignore */ }
+        if (!id) return;
+        try { sessionStorage.removeItem(PENDING_PLAN_KEY); } catch { /* ignore */ }
+        const plan = plans.find(p => p.id === id);
+        if (plan) handleSelectPlan(plan, false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading, plans, currentUser]);
+
     const handleSelectPlan = async (plan: PricingPlan, isTrial: boolean = false) => {
         if (!currentUser) {
             onNavigate('login');
@@ -51,8 +64,11 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                 if (health?.paymentsEnabled && fbUser) {
                     const mine = await getMyBusinesses(fbUser.uid).catch(() => []);
                     if (!mine.length) {
-                        notify('warning', 'Cadastre ou reivindique sua empresa antes de assinar um plano.');
+                        // Sem empresa ainda: leva para o cadastro e volta aqui para concluir a assinatura.
+                        try { sessionStorage.setItem(PENDING_PLAN_KEY, plan.id); } catch { /* ignore */ }
+                        notify('info', 'Primeiro cadastre sua empresa. Em seguida você volta para concluir a assinatura.');
                         setLoading(false);
+                        onNavigate('create-business');
                         return;
                     }
                     const businessId = mine[0].id;

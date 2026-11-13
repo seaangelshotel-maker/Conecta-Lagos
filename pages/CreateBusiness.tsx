@@ -132,9 +132,11 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
 
             notify('success', "Sua empresa foi cadastrada com sucesso! Ela será analisada por nossa equipe antes de ser publicada no guia.");
             setSuccess(true);
+            let backToPlan = false;
+            try { backToPlan = !!sessionStorage.getItem('lagosgo:pendingPlan'); } catch { /* ignore */ }
             setTimeout(() => {
-                onNavigate('admin-dashboard');
-            }, 3000);
+                onNavigate(backToPlan ? 'pricing-plans' : 'admin-dashboard');
+            }, backToPlan ? 1500 : 3000);
         } catch (error: any) {
             console.error("Erro ao criar empresa:", error);
             let message = "Erro ao criar empresa. Tente novamente.";
@@ -197,6 +199,11 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                     style={{ width: `${(step / totalSteps) * 100}%` }}
                 />
             </div>
+            {(() => { try { return !!sessionStorage.getItem('lagosgo:pendingPlan'); } catch { return false; } })() && (
+                <div className="bg-ocean-50 border-b border-ocean-100 px-6 py-3 text-center text-xs font-bold text-ocean-800">
+                    Falta só cadastrar sua empresa. Ao terminar, você volta direto para concluir a assinatura do plano.
+                </div>
+            )}
 
             <div className="flex-1 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-12 p-6 md:p-12">
                 <div className="lg:col-span-2">
