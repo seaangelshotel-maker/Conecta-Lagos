@@ -175,7 +175,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigate }) => {
             {config.loginLogoUrl || config.logoUrl ? (
                 <img src={config.loginLogoUrl || config.logoUrl} className="w-full h-full object-contain" />
             ) : (
-                <Building2 size={36} />
+                <img src="/brand/simbolo.svg" className="w-full h-full object-contain" alt="Lagos GO" />
             )}
           </div>
           <h1 className="text-3xl font-black text-ocean-950 tracking-tight">{config.appName.toUpperCase()} <span className="text-gold-500">{config.appNameHighlight.toUpperCase()}</span></h1>

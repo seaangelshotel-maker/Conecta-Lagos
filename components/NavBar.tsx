@@ -119,17 +119,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         {config.logoUrl ? (
             <img src={config.logoUrl} className="w-8 h-8 object-contain" alt="Logo" />
         ) : (
-            <div className="text-gold-500 w-8 h-8">
-                {/* Default Christ Icon */}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-                    <path d="M12 2v2" />
-                    <path d="M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                    <path d="M2 10h20" />
-                    <path d="M12 10v12" />
-                    <path d="M12 22c-5 0-6-7-6-12" />
-                    <path d="M12 22c5 0 6-7 6-12" />
-                </svg>
-            </div>
+            <img src="/brand/simbolo.svg" className="w-8 h-8 object-contain" alt="Lagos GO" />
         )}
         <span className="text-xl font-bold text-ocean-950 tracking-wide">
           {config.appName.toUpperCase()} <span className="text-gold-500">{config.appNameHighlight.toUpperCase()}</span>

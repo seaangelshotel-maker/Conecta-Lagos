@@ -9,7 +9,6 @@ import {
   Navigation,
   Loader2,
   Crown,
-  Compass,
   Map as MapIcon,
   X,
   ChevronDown,
@@ -74,10 +73,7 @@ const GuideSplash = () => {
       <div className="relative mb-8 text-center">
         <div className="absolute inset-0 bg-ocean-200 rounded-full animate-ping opacity-15 duration-1000"></div>
         <div className="relative w-28 h-28 bg-white rounded-3xl shadow-xl border-4 border-ocean-50/50 flex items-center justify-center mx-auto">
-          <Compass
-            size={56}
-            className="text-ocean-600 animate-[spin_5s_linear_infinite]"
-          />
+          <img src="/brand/simbolo.svg" alt="Lagos GO" className="w-16 h-16 animate-pulse" />
         </div>
         <h2 className="text-2xl font-black text-ocean-950 mt-8 tracking-tight animate-pulse">
           {t("Explorando os Lagos...")}
