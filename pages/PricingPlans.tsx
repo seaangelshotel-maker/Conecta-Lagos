@@ -7,6 +7,7 @@ import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCar
 import { brl, periodLabel, planTotal } from '../services/planRules';
 import { waLink } from '../services/claimRules';
 import { useNotification } from '../components/NotificationSystem';
+import { auth } from '../services/firebase';
 
 import { SEO } from '../components/SEO';
 interface PricingPlansProps {
@@ -42,6 +43,38 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         }
 
         setLoading(true);
+        // Pagamento online (Asaas) quando ativo; qualquer falha cai no WhatsApp.
+        if (!isTrial) {
+            try {
+                const health = await fetch('/api/health').then(r => r.json()).catch(() => ({}));
+                const fbUser = auth.currentUser;
+                if (health?.paymentsEnabled && fbUser) {
+                    const idToken = await fbUser.getIdToken();
+                    const call = async (cpfCnpj?: string) => {
+                        const r = await fetch('/api/create-checkout-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                            body: JSON.stringify({ planId: plan.id, businessId: fbUser.uid, cpfCnpj }),
+                        });
+                        return { ok: r.ok, data: await r.json().catch(() => ({})) as any };
+                    };
+                    let res = await call();
+                    if (!res.ok && res.data?.needCpfCnpj) {
+                        const doc = window.prompt('Informe o CPF ou CNPJ do responsável para emitir a cobrança:');
+                        if (doc) res = await call(doc);
+                    }
+                    if (res.ok && res.data?.url) {
+                        notify('success', 'Abrindo a fatura de pagamento...');
+                        setLoading(false);
+                        window.location.href = res.data.url;
+                        return;
+                    }
+                    if (res.data?.error) notify('warning', res.data.error);
+                }
+            } catch (e) {
+                console.error('Checkout error:', e);
+            }
+        }
         try {
             const settings = await getGlobalSettings();
             const whatsapp = (settings.salesWhatsapp || '').replace(/\D/g, '');
@@ -237,7 +270,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                     className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${plan.id === recommendedId ? 'bg-ocean-600 text-white shadow-2xl shadow-ocean-600/30 hover:bg-ocean-700' : 'bg-slate-100 text-ocean-950 hover:bg-slate-200'}`}
                                 >
                                     <MessageCircle size={18} />
-                                    Assinar Via WhatsApp
+                                    Assinar
                                 </button>
                                 {plan.hasFreeTrial && (
                                     <button 
