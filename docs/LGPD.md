@@ -14,12 +14,14 @@
 | Pedidos de empresa | `companyRequests` | Contrato | Titular e admin | Pendentes/recusados apagados na exclusão |
 | Token de push | `push_tokens` | Consentimento | Servidor | Removido ao desligar notificações ou excluir conta |
 | Pedidos de privacidade | `privacyRequests` | Obrigação legal | Titular e admin | 5 anos (prova de atendimento) |
+| Newsletter (e-mail, datas de pedido, confirmação e cancelamento) | Firestore `newsletter_subscribers` | Consentimento (dupla confirmação) | Servidor e admin | Até o cancelamento |
+| Registro de envios de e-mail (tipo, destinatário, data, resultado) | Firestore `mail_log` / `mail_limits` | Contrato / legítimo interesse | Servidor e admin | Revisar e limpar periodicamente |
 | Analytics | Google Analytics | Consentimento | Equipe | Só liga com aceite |
 | IP e logs de acesso | Vercel / Firebase | Obrigação legal (Marco Civil) | Infra | 6 meses |
 | CPF/CNPJ para cobrança | Asaas (quando ativo) | Contrato / obrigação fiscal | Processador | Prazo fiscal |
 
 ## 2. Operadores e transferência internacional
-Google (Firebase, Analytics), Vercel, Asaas (pagamentos), OpenStreetMap (mapa), Google AI (uso só do admin, sem dados de usuários). Google e Vercel processam fora do Brasil (LGPD art. 33): manter os termos de tratamento de dados (DPA) aceitos nos consoles de cada um.
+Google (Firebase, Analytics), Vercel, Resend (e-mails), HostGator (caixa de contato), Asaas (pagamentos), OpenStreetMap (mapa), Google AI (uso só do admin, sem dados de usuários). Google e Vercel processam fora do Brasil (LGPD art. 33): manter os termos de tratamento de dados (DPA) aceitos nos consoles de cada um.
 
 ## 3. Atendimento a titulares (prazo: 15 dias)
 1. A pessoa abre o pedido em /privacidade (painel "Exerça seus direitos") ou baixa o JSON com seus dados.
