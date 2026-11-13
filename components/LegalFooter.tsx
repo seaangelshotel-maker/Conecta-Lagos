@@ -6,6 +6,7 @@ export const LegalFooter: React.FC<{ onNavigate: (page: string) => void }> = ({ 
     <button onClick={() => onNavigate('privacy')}>Privacidade</button>
     <button onClick={() => onNavigate('terms')}>Termos de uso</button>
     <button onClick={() => onNavigate('delete-account')}>Excluir conta</button>
+    <a href="mailto:comercial@lagosgo.com.br">Anuncie: comercial@lagosgo.com.br</a>
     <span>© {new Date().getFullYear()} Lagos GO</span>
   </footer>
 );

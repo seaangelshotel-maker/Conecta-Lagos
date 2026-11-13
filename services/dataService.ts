@@ -781,30 +781,27 @@ Além das paradas tradicionais, essas embarcações conseguem adentrar de forma 
     },
     {
         id: 'melhores-frutos-mar',
-        title: 'Top 5 Restaurantes de Frutos do Mar que Você Precisa Conhecer',
-        excerpt: 'Da tradicional moqueca praiana ao polvo grelhado na brasa, listamos os verdadeiros tesouros gastronômicos que valorizam a pesca local da Região dos Lagos.',
-        content: `A culinária de Arraial do Cabo é intrinsecamente ligada à sua história pesqueira. Pratos frescos, peixe pescado no dia e o afeto da cozinha litorânea criam vivências gastronômicas memoráveis após um dia dourado de sol.
+        title: 'Onde comer em Arraial do Cabo: 4 endereços para começar',
+        excerpt: 'Do almoço farto na Praça do Cova ao casarão à beira da praia, quatro restaurantes conferidos pela equipe do Lagos GO para planejar a sua mesa.',
+        content: `Depois de um dia de passeio de barco e praia, a vontade de uma boa mesa vem rápido. Esta seleção reúne endereços que a equipe do Lagos GO conferiu em fontes públicas. A lista cresce à medida que novos restaurantes passam pela nossa curadoria.
 
-### 1. Restaurante Flutuante (Praia do Forno)
-Alcançar o restaurante flutuante já é metade da diversão. Você pode saborear ostras frescas que são cultivadas logo abaixo da sua mesa com uma cerveja gelada enquanto aprecia a calma baía do Forno.
+### 1. Saint Tropez (Praia dos Anjos)
+Em uma esquina da Praça do Cova desde 1981, reúne a cozinha francesa do chef Guy e a mesa farta do litoral brasileiro. O cardápio é longo, e as porções costumam servir bem mais de uma pessoa: combine o pedido com a mesa.
 
-### 2. Saint Tropez (Orla da Praia dos Anjos)
-Especialista em moquecas e caldeiradas fartas, este restaurante tem o ambiente ideal para um almoço longo em família. A moqueca de peixe com camarão servida na panela de barro é inigualável.
+### 2. Casa da Piedra (Praia dos Anjos)
+Casarão histórico à beira da praia que funciona como restaurante, bar e centro cultural, com exposições de arte local e música ao vivo nos fins de semana. Tem seção vegetariana e vegana no cardápio.
 
-### 3. Bacalhau do Tuga (Orla da Prainha)
-Uma combinação perfeita de sabores portugueses tradicionais e frutos do mar locais. Sob a batuta do amigável chef luso, o polvo cozido de forma impecável e regado com azeite extravirgem é um prato obrigatório.
+### 3. Pimenta Rosa (Praia dos Anjos)
+Numa casa de clima sossegado perto de onde os barcos de passeio atracam, com cozinha de jeito caseiro: massas, carnes e pratos de peixe, sem foco em uma só especialidade.
 
-### 4. Meu Querido Cabofriense (Rua Principal)
-Conhecido por suas generosidades de camarão à milanesa e arroz de frutos do mar bem temperado.
-
-### 5. Cantinho do Pescador (Centro)
-Um local rústico e amado pelos moradores locais onde o cardápio secreto do chef varia dependendo do peixe fresco recolhido nas redes dos barcos pesqueiros pela manhã.`,
+### 4. Restaurante Flutuante (Praia do Forno)
+Para quem quer uma experiência diferente: o acesso é de barco, na Praia do Forno, o que já transforma a refeição em parte do passeio.`,
         imageUrl: 'https://images.unsplash.com/photo-1534080391025-a77b068740e4?auto=format&fit=crop&w=800&q=80',
         category: 'Gastronomia',
         date: '2026-05-25',
         author: 'Daniela Chef',
         authorId: 'auth_daniela',
-        tags: ['Gastronomia', 'Frutos do Mar', 'Restaurantes'],
+        tags: ['Gastronomia', 'Restaurantes', 'Praia dos Anjos'],
         status: 'published'
     },
     {
