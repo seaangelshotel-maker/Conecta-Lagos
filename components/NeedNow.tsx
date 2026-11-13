@@ -16,14 +16,14 @@ export const NeedNow: React.FC<{ items: NeedCount[]; onOpen: (id: string) => voi
           <p className="text-xs text-slate-500">Resolva rápido, sem sair procurando</p>
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2 mt-3" data-testid="emergency">
+      <div className="flex gap-1 mt-2 -mx-4 px-4 overflow-x-auto snap-x snap-proximity pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="emergency">
         {EMERGENCY_MAIN.map(e => {
           const Icon = SOS_ICONS[e.number] || PhoneCall;
           return (
             <a key={e.number} href={`tel:${e.number}`} data-testid={`sos-${e.number}`} aria-label={`Ligar ${e.number}, ${e.label}`}
-              className="flex flex-col items-center gap-1.5 py-2 rounded-2xl active:scale-95 transition-transform">
-              <span className="w-12 h-12 rounded-2xl bg-ocean-50 text-ocean-600 flex items-center justify-center"><Icon size={22} strokeWidth={2.2} /></span>
-              <span className="text-[11px] font-bold text-ocean-950 leading-tight text-center">{e.label}</span>
+              className="flex flex-col items-center gap-1 py-1.5 w-[62px] shrink-0 snap-start rounded-2xl active:scale-95 transition-transform">
+              <span className="w-10 h-10 rounded-xl bg-ocean-50 text-ocean-600 flex items-center justify-center"><Icon size={18} strokeWidth={2} /></span>
+              <span className="text-[10px] font-semibold text-ocean-950 leading-tight text-center">{e.label}</span>
             </a>
           );
         })}
@@ -31,9 +31,9 @@ export const NeedNow: React.FC<{ items: NeedCount[]; onOpen: (id: string) => voi
           const Icon = ICONS[i.icon] || Zap;
           return (
             <button key={i.id} onClick={() => onOpen(i.id)} data-testid={`need-${i.id}`}
-              className="flex flex-col items-center gap-1.5 py-2 rounded-2xl active:scale-95 transition-transform">
-              <span className="w-12 h-12 rounded-2xl bg-ocean-50 text-ocean-600 flex items-center justify-center"><Icon size={22} strokeWidth={2.2} /></span>
-              <span className="text-[11px] font-bold text-ocean-950 leading-tight text-center">{i.label}</span>
+              className="flex flex-col items-center gap-1 py-1.5 w-[62px] shrink-0 snap-start rounded-2xl active:scale-95 transition-transform">
+              <span className="w-10 h-10 rounded-xl bg-ocean-50 text-ocean-600 flex items-center justify-center"><Icon size={18} strokeWidth={2} /></span>
+              <span className="text-[10px] font-semibold text-ocean-950 leading-tight text-center">{i.label}</span>
             </button>
           );
         })}
