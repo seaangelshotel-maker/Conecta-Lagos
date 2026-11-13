@@ -2,7 +2,7 @@
 import { canOrder } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
-import { getPricingPlans, getGlobalSettings } from '../services/dataService';
+import { getPricingPlans, getGlobalSettings, getMyBusinesses } from '../services/dataService';
 import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass } from 'lucide-react';
 import { brl, periodLabel, planTotal } from '../services/planRules';
 import { waLink } from '../services/claimRules';
@@ -49,12 +49,19 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                 const health = await fetch('/api/health').then(r => r.json()).catch(() => ({}));
                 const fbUser = auth.currentUser;
                 if (health?.paymentsEnabled && fbUser) {
+                    const mine = await getMyBusinesses(fbUser.uid).catch(() => []);
+                    if (!mine.length) {
+                        notify('warning', 'Cadastre ou reivindique sua empresa antes de assinar um plano.');
+                        setLoading(false);
+                        return;
+                    }
+                    const businessId = mine[0].id;
                     const idToken = await fbUser.getIdToken();
                     const call = async (cpfCnpj?: string) => {
                         const r = await fetch('/api/create-checkout-session', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-                            body: JSON.stringify({ planId: plan.id, businessId: fbUser.uid, cpfCnpj }),
+                            body: JSON.stringify({ planId: plan.id, businessId, cpfCnpj }),
                         });
                         return { ok: r.ok, data: await r.json().catch(() => ({})) as any };
                     };
