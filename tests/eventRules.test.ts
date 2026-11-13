@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import type { AppEvent, PricingPlan } from '../types';
 import {
   eventPhase, whenLabel, formatEventDates, orderEvents, filterEvents, groupByMonth, periodRange, cityTier,
-  eventQuota, activeEventCount, quotaState, resolvePlan, validateEvent, needsReapproval, buildICS, addDays, sortByDate,
+  eventQuota, activeEventCount, quotaState, resolvePlan, validateEvent, needsReapproval, buildICS, androidCalendarIntent, googleCalendarUrl, eventTimes, addDays, sortByDate,
 } from '../services/eventRules';
 import { OFFICIAL_EVENTS_2026 } from '../data/officialEvents2026';
 
@@ -191,4 +191,22 @@ test('calendário oficial: datas-chave conferem com a fonte', () => {
   const restantes = orderEvents(OFFICIAL_EVENTS_2026, 'arraial-do-cabo', TODAY).map(e => e.title);
   assert.equal(restantes.length, 10);
   assert.ok(restantes.includes('Réveillon 2027'));
+});
+
+test('agenda direto no celular: horário de Brasília, dia inteiro e links', () => {
+  const t = eventTimes(ev({ startDate: '2026-11-20', startTime: '19:30', endTime: '22:00' }));
+  assert.equal(new Date(t.start).toISOString(), '2026-11-20T22:30:00.000Z');
+  assert.equal(new Date(t.end).toISOString(), '2026-11-21T01:00:00.000Z');
+  assert.equal(t.allDay, false);
+  const day = eventTimes(ev({ startDate: '2026-11-13', endDate: '2026-11-15' }));
+  assert.equal(day.allDay, true);
+  assert.equal(new Date(day.end).toISOString(), '2026-11-16T00:00:00.000Z');
+  const intent = androidCalendarIntent(ev({ title: 'Festa; com, vírgula', startDate: '2026-11-13', endDate: '2026-11-15' }));
+  assert.ok(intent.startsWith('intent:#Intent;action=android.intent.action.INSERT;'));
+  assert.ok(intent.endsWith(';end'));
+  assert.ok(intent.includes('B.allDay=true'));
+  assert.ok(!intent.slice(0, -4).includes('Festa;')); // ponto e vírgula do título vem codificado
+  const g = googleCalendarUrl(ev({ title: 'Show', startDate: '2026-11-13', endDate: '2026-11-15' }));
+  assert.ok(g.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE'));
+  assert.ok(g.includes('dates=20261113%2F20261116'));
 });

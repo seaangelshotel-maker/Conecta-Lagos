@@ -289,3 +289,45 @@ export const buildICS = (e: AppEvent, now = new Date()): string => {
   lines.push('END:VEVENT', 'END:VCALENDAR');
   return lines.join('\r\n') + '\r\n';
 };
+
+// ---------------------------------------------------------------------------
+// "Adicionar à agenda" direto no celular (sem baixar arquivo)
+// ---------------------------------------------------------------------------
+
+const eventWhere = (e: AppEvent) => [e.locationName, e.address, cityLabel(e.cityId)].filter(Boolean).join(' - ');
+
+/** Início/fim do evento em milissegundos (horário de Brasília, UTC-3). Sem horário = dia inteiro (fim exclusivo, em UTC). */
+export const eventTimes = (e: AppEvent): { start: number; end: number; allDay: boolean } => {
+  const end = eventEnd(e);
+  if (e.startTime && HHMM.test(e.startTime)) {
+    const endTime = e.endTime && HHMM.test(e.endTime) ? e.endTime : e.startTime;
+    return { start: Date.parse(`${e.startDate}T${e.startTime}:00-03:00`), end: Date.parse(`${end}T${endTime}:00-03:00`), allDay: false };
+  }
+  return { start: Date.parse(`${e.startDate}T00:00:00Z`), end: Date.parse(`${addDays(end, 1)}T00:00:00Z`), allDay: true };
+};
+
+/** Android (Chrome): abre o app de agenda do aparelho, seja qual for (Google, Samsung...), com o evento preenchido. */
+export const androidCalendarIntent = (e: AppEvent): string => {
+  const t = eventTimes(e);
+  const parts = [
+    'action=android.intent.action.INSERT', 'type=vnd.android.cursor.dir/event',
+    `S.title=${encodeURIComponent(e.title)}`, `l.beginTime=${t.start}`, `l.endTime=${t.end}`,
+  ];
+  if (t.allDay) parts.push('B.allDay=true');
+  const where = eventWhere(e); if (where) parts.push(`S.eventLocation=${encodeURIComponent(where)}`);
+  if (e.description) parts.push(`S.description=${encodeURIComponent(e.description.slice(0, 800))}`);
+  return `intent:#Intent;${parts.join(';')};end`;
+};
+
+/** Link do Google Agenda (abre o app se estiver instalado, senão o site). Serve para outros navegadores no Android. */
+export const googleCalendarUrl = (e: AppEvent): string => {
+  const t = eventTimes(e);
+  const fmt = (ms: number, allDay: boolean) => {
+    const iso = new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    return allDay ? iso.slice(0, 8) : iso;
+  };
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: e.title, dates: `${fmt(t.start, t.allDay)}/${fmt(t.end, t.allDay)}` });
+  const where = eventWhere(e); if (where) q.set('location', where);
+  if (e.description) q.set('details', e.description.slice(0, 1500));
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
+};
