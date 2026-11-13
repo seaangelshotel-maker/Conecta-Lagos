@@ -3,6 +3,7 @@ import { sendJson } from '../server/http.js';
 import { adminDb } from '../server/firebaseAdmin.js';
 import { adminAlert, planExpired, planExpiring } from '../server/mailTemplates.js';
 import { adminRecipients, isEmail, mailConfigured, sendMail, siteUrl } from '../server/mail.js';
+import { processRedemptions } from '../server/redemptions.js';
 import { needsDowngrade, downgradeFields, FREE_PLAN_ID } from '../services/planRules.js';
 
 /**
@@ -36,7 +37,9 @@ export default async function handler(req: Req, res: Res) {
             downgraded++;
         }
         const warned = await warnExpiring(db, nowIso);
-        return sendJson(res, 200, { checked: snap.size, downgraded, warned });
+        // Cupons: lembrete com 48h e confirmação automática com 72h. Falha aqui não derruba a rotina de planos.
+        const redemptions = await processRedemptions(db).catch(e => { console.error('[redemptions] erro:', e); return { error: true }; });
+        return sendJson(res, 200, { checked: snap.size, downgraded, warned, redemptions });
     } catch (error) {
         console.error('[expire-plans] erro:', error);
         return sendJson(res, 500, { error: 'Erro ao rebaixar planos vencidos.' });

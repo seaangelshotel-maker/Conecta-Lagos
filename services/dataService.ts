@@ -2396,9 +2396,48 @@ export const validateRedemption = async (redemptionId: string, typedCode: string
 
     await updateDoc(doc(db, 'redemptions', redemptionId), {
         status: 'USED',
-        validatedAt: new Date().toISOString()
+        validatedAt: new Date().toISOString(),
+        confirmedBy: 'company'
     });
 
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('walletUpdated'));
+    notifyListeners();
+};
+
+/**
+ * Cliente avisa "já usei": começa a contagem de 72h para a empresa confirmar.
+ * Depois disso o servidor manda o aviso com botões para a empresa (falha de e-mail não desfaz o aviso).
+ */
+export const markRedemptionUsed = async (redemptionId: string) => {
+    const me = getCurrentUser();
+    if (!me) throw new Error("Faça login para continuar.");
+    try {
+        await updateDoc(doc(db, 'redemptions', redemptionId), { usedClaimedAt: new Date().toISOString() });
+    } catch (e) {
+        console.error("Falha ao marcar cupom como usado:", e);
+        throw new Error("Não foi possível registrar agora. Tente novamente.");
+    }
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        if (token) {
+            await fetch('/api/email?action=redemption-used', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ id: redemptionId }),
+            });
+        }
+    } catch { /* o aviso por e-mail é complementar; a contagem de 72h já começou */ }
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('walletUpdated'));
+};
+
+/** Empresa decide um resgate que o cliente disse ter usado, sem digitar código: confirmar ou "não foi usado". */
+export const decideRedemption = async (redemptionId: string, decision: 'confirm' | 'refuse', reason = '') => {
+    const me = getCurrentUser();
+    if (!me) throw new Error("Faça login para continuar.");
+    const now = new Date().toISOString();
+    await updateDoc(doc(db, 'redemptions', redemptionId), decision === 'confirm'
+        ? { status: 'USED', validatedAt: now, confirmedBy: 'company' }
+        : { status: 'REFUSED', refusedAt: now, refusedReason: reason.trim().slice(0, 200) });
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('walletUpdated'));
     notifyListeners();
 };

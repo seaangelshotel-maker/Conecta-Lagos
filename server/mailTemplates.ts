@@ -214,3 +214,60 @@ export function statusPage(o: { site: string; title: string; message: string; ok
 <a href="${esc(o.site)}" style="display:inline-block;background:${OCEAN_600};color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:12px">Ir para o Lagos GO</a>
 </div></body></html>`;
 }
+
+// ───────── Cupons: confirmação de uso (empresa)
+
+const brlText = (n: number) => `R$ ${(Math.round((Number(n) || 0) * 100) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+interface RedemptionMailOpts {
+    site: string; name?: string; businessName: string; customerName?: string; couponTitle: string; amount: number;
+    confirmUrl: string; refuseUrl: string; deadline?: string;
+}
+
+/** Aviso (e lembrete) para a empresa: o cliente diz que usou o cupom. Dois botões, sem login. */
+export function redemptionAwaiting(o: RedemptionMailOpts & { reminder?: boolean }): Rendered {
+    const who = firstName(o.customerName) || 'Um cliente';
+    const lead = o.reminder
+        ? p(`${esc(greet(o.name))} Lembrete: ${b(who)} disse que usou o cupom ${b(o.couponTitle)} em ${b(o.businessName)} e ainda não recebemos a sua resposta.`)
+        : p(`${esc(greet(o.name))} ${b(who)} disse que usou o cupom ${b(o.couponTitle)} em ${b(o.businessName)}.`);
+    const body = lead + rows([['Desconto dado', brlText(o.amount)], ['Prazo para responder', o.deadline ? formatDatePt(o.deadline) : '72 horas']]) +
+        p('Se foi usado mesmo, é só tocar em <strong>Confirmar</strong>. Se a pessoa não apareceu, toque em <em>Não foi usado</em>. Se não responder até o prazo, confirmamos automaticamente para o cliente não ficar no prejuízo.');
+    const note = `Não foi usado? <a href="${esc(o.refuseUrl)}" style="color:${OCEAN_600};font-weight:700">Avisar que não foi usado</a>`;
+    return {
+        subject: `${o.reminder ? 'Lembrete: ' : ''}${who} usou o cupom “${o.couponTitle}”?`,
+        html: layout({ site: o.site, preheader: `Confirme em um toque: ${o.couponTitle}`, heading: o.reminder ? 'Falta a sua confirmação' : 'Confirme o uso do cupom', body, cta: { label: 'Confirmar uso', url: o.confirmUrl }, note, footerReason: 'Você recebeu este e-mail porque sua empresa tem cupons no Lagos GO.' }),
+        text: `${greet(o.name)} ${who} disse que usou o cupom "${o.couponTitle}" em ${o.businessName} (desconto de ${brlText(o.amount)}).\n\nConfirmar: ${o.confirmUrl}\nNão foi usado: ${o.refuseUrl}\n\nSem resposta até o prazo, confirmamos automaticamente.\n`,
+    };
+}
+
+/** Depois dos 72h sem resposta: avisa que confirmamos e que ainda dá para contestar. */
+export function redemptionAutoConfirmed(o: Omit<RedemptionMailOpts, 'confirmUrl'> & { contestUntil: string }): Rendered {
+    const who = firstName(o.customerName) || 'o cliente';
+    const body = p(`${esc(greet(o.name))} Como não recebemos resposta em 72 horas, confirmamos automaticamente o uso do cupom ${b(o.couponTitle)} por ${b(who)} em ${b(o.businessName)}.`) +
+        rows([['Desconto dado', brlText(o.amount)], ['Pode contestar até', formatDatePt(o.contestUntil)]]) +
+        p('Se isso não aconteceu, você ainda pode avisar pelo botão abaixo.');
+    return {
+        subject: `Confirmamos o cupom “${o.couponTitle}” automaticamente`,
+        html: layout({ site: o.site, preheader: 'Se não foi usado, você ainda pode avisar.', heading: 'Cupom confirmado automaticamente', body, cta: { label: 'Não foi usado', url: o.refuseUrl }, footerReason: 'Você recebeu este e-mail porque sua empresa tem cupons no Lagos GO.' }),
+        text: `${greet(o.name)} Confirmamos automaticamente o uso do cupom "${o.couponTitle}" por ${who} em ${o.businessName}.\nSe não foi usado, avise até ${formatDatePt(o.contestUntil)}: ${o.refuseUrl}\n`,
+    };
+}
+
+/** Página de decisão aberta pelo botão do e-mail. O clique só mostra a página; a decisão vem do botão (POST), para robôs de e-mail não decidirem sozinhos. */
+export function decisionPage(o: { site: string; action: 'confirm' | 'refuse'; action_url: string; couponTitle: string; customerName?: string; amount: number; businessName: string; note?: string }): string {
+    const who = firstName(o.customerName) || 'O cliente';
+    const refuse = o.action === 'refuse';
+    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${refuse ? 'Não foi usado' : 'Confirmar uso'} · Lagos GO</title></head>
+<body style="margin:0;background:${OCEAN_50};font-family:${FONT};min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+<div style="max-width:460px;width:100%;background:#fff;border:1px solid ${OCEAN_100};border-radius:20px;padding:32px;text-align:center">
+<div style="font-size:20px;font-weight:800;letter-spacing:1px;color:${OCEAN_900}">LAGOS <span style="color:${GOLD}">GO</span></div>
+<h1 style="font-size:21px;color:${OCEAN_950};margin:20px 0 8px">${refuse ? 'Este cupom não foi usado?' : 'Confirmar o uso do cupom?'}</h1>
+<p style="color:${SLATE};line-height:1.6;margin:0 0 6px"><strong>${esc(who)}</strong> · ${esc(o.couponTitle)}</p>
+<p style="color:${SLATE};line-height:1.6;margin:0 0 18px">${esc(o.businessName)} · desconto de ${esc(brlText(o.amount))}</p>
+${o.note ? `<p style="color:${SLATE_LIGHT};font-size:13px;margin:0 0 16px">${esc(o.note)}</p>` : ''}
+<form method="POST" action="${esc(o.action_url)}">
+${refuse ? `<textarea name="reason" maxlength="200" placeholder="Motivo (opcional), ex.: a pessoa não apareceu" style="width:100%;box-sizing:border-box;border:1px solid ${OCEAN_100};border-radius:12px;padding:12px;font:inherit;margin-bottom:14px;min-height:70px"></textarea>` : ''}
+<button type="submit" style="width:100%;background:${refuse ? '#b91c1c' : OCEAN_600};color:#fff;border:0;font:inherit;font-weight:700;padding:14px;border-radius:12px;cursor:pointer">${refuse ? 'Sim, não foi usado' : 'Sim, foi usado'}</button>
+</form>
+</div></body></html>`;
+}

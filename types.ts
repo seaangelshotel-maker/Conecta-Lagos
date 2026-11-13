@@ -209,8 +209,15 @@ export interface CouponRedemption {
   couponTitle: string;
   amountSaved: number;
   redeemedAt: string;
-  status: 'PENDING' | 'USED' | 'EXPIRED';
+  status: 'PENDING' | 'USED' | 'EXPIRED' | 'REFUSED';
   verificationCode: string;
+  /** Quando o cliente marcou "já usei" (inicia a contagem de 72h para a empresa confirmar). */
+  usedClaimedAt?: string;
+  /** Quem confirmou: a empresa (código ou link) ou o sistema, após 72h sem resposta. */
+  confirmedBy?: 'company' | 'auto';
+  autoConfirmedAt?: string;
+  refusedAt?: string;
+  refusedReason?: string;
   /** Nome do estabelecimento no momento do resgate (para o comprovante). */
   companyName?: string;
   /** Validade do cupom (AAAA-MM-DD): o resgate reservado vale até o fim desse dia. */

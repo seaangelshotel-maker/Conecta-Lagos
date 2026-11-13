@@ -1,8 +1,9 @@
 /**
  * Roteador único de e-mail (uma função só, por causa do limite de 12 funções do plano gratuito da Vercel).
  * Ações via ?action=:
- *  público ........ subscribe (POST), confirm (GET), unsubscribe (GET/POST), password-reset (POST)
- *  usuário logado . welcome, verify-email, notify-admin (POST)
+ *  público ........ subscribe (POST), confirm (GET), unsubscribe (GET/POST), password-reset (POST),
+ *                    redemption-decide (GET mostra a página, POST aplica; vem do botão do e-mail)
+ *  usuário logado . welcome, verify-email, notify-admin, redemption-used (POST)
  *  admin .......... status, test, newsletter-preview, newsletter-send (POST)
  *  cron ........... cron-newsletter (GET, Bearer CRON_SECRET)
  */
@@ -11,6 +12,8 @@ import { methodNotAllowed, readJsonBody, sendJson, type Req, type Res } from './
 import { adminRecipients, isEmail, mailConfigured, mailFrom, normalizeEmail, sendMail, siteUrl } from './mail.js';
 import * as T from './mailTemplates.js';
 import * as N from './newsletter.js';
+import * as R from './redemptions.js';
+import { readRawBody } from './http.js';
 
 const query = (req: Req, key: string): string => {
     const u = new URL(req.url || '/', 'http://x');
@@ -118,6 +121,27 @@ export default async function emailHandler(req: Req, res: Res) {
             return sendJson(res, 200, { ok: true, via: 'lagosgo' });
         }
 
+        // Botão do e-mail da empresa: GET só mostra a página (robôs de e-mail abrem links), o POST decide.
+        if (action === 'redemption-decide') {
+            const id = R.readDecisionToken(query(req, 't'), env);
+            const decision = query(req, 'd') === 'refuse' ? 'refuse' : 'confirm';
+            if (!id) return html(res, 400, T.statusPage({ site, ok: false, title: 'Link inválido ou vencido', message: 'Peça um novo aviso ou fale com a gente respondendo qualquer e-mail do Lagos GO.' }));
+            if (req.method === 'POST') {
+                let reason = '';
+                try { reason = new URLSearchParams(await readRawBody(req)).get('reason') || ''; } catch { /* sem motivo */ }
+                const out = await R.applyDecision(id, decision, reason);
+                return html(res, out.ok ? 200 : 400, T.statusPage({ site, ok: out.ok, title: out.title, message: out.message }));
+            }
+            if (req.method !== 'GET') return methodNotAllowed(res, ['GET', 'POST']);
+            const r = await R.loadForDecision(id);
+            if (!r) return html(res, 404, T.statusPage({ site, ok: false, title: 'Resgate não encontrado', message: 'O link pode estar errado.' }));
+            return html(res, 200, T.decisionPage({
+                site, action: decision, action_url: `${site}/api/email?action=redemption-decide&d=${decision}&t=${encodeURIComponent(query(req, 't'))}`,
+                couponTitle: r.couponTitle, customerName: r.userName, amount: Number(r.amountSaved) || 0, businessName: r.companyName || 'sua empresa',
+                note: r.status === 'USED' && r.confirmedBy === 'auto' ? 'Este cupom foi confirmado automaticamente. Se não foi usado, você ainda pode avisar.' : undefined,
+            }));
+        }
+
         // ───── Cron
         if (action === 'cron-newsletter') {
             const secret = env.CRON_SECRET;
@@ -160,6 +184,14 @@ export default async function emailHandler(req: Req, res: Res) {
             const r = await sendMail({ to: email, ...T.verifyEmail({ site, name, link }), tags: [{ name: 'type', value: 'verify_email' }] }, env);
             await log('verify_email', email, r.ok);
             return sendJson(res, 200, { ok: r.ok });
+        }
+
+        if (action === 'redemption-used') {
+            if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
+            const body = await readJsonBody<{ id?: string }>(req);
+            if (!body.id) return sendJson(res, 400, { error: 'Resgate inválido.' });
+            const out = await R.notifyCompanyOfUse(String(body.id), user.uid, env);
+            return sendJson(res, out.status, out.ok ? { ok: true } : { error: out.error });
         }
 
         if (action === 'notify-admin') {

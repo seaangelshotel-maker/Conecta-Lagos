@@ -8,13 +8,16 @@
 import type { Coupon, CouponRedemption, PricingPlan, User } from '../types';
 import { resolvePlan } from './eventRules.js';
 
-export type WalletStatus = 'used' | 'reserved' | 'expired';
+export type WalletStatus = 'used' | 'awaiting' | 'reserved' | 'expired' | 'refused';
 
 /** Campos de um resgate que a carteira usa (o documento guarda mais coisas). */
 export type RedemptionView = Pick<CouponRedemption, 'id' | 'couponId' | 'couponTitle' | 'companyId' | 'amountSaved' | 'redeemedAt' | 'status' | 'verificationCode'> & {
   companyName?: string;
   expiryDate?: string;
   validatedAt?: string;
+  usedClaimedAt?: string;
+  confirmedBy?: 'company' | 'auto';
+  refusedReason?: string;
 };
 
 const cents = (n: number) => Math.round(n * 100) / 100;
@@ -42,16 +45,21 @@ const endOfDay = (d: string): number => {
 export const isExpired = (expiryDate: string | undefined, now: number = Date.now()): boolean =>
   !!expiryDate && endOfDay(expiryDate) < now;
 
-export const walletStatus = (r: Pick<RedemptionView, 'status' | 'expiryDate'>, now: number = Date.now()): WalletStatus => {
+export const walletStatus = (r: Pick<RedemptionView, 'status' | 'expiryDate'> & { usedClaimedAt?: string }, now: number = Date.now()): WalletStatus => {
   if (r.status === 'USED') return 'used';
+  if (r.status === 'REFUSED') return 'refused';
+  // O cliente já usou e avisou: aguarda a empresa (ou os 72h). Não expira por validade nesse meio tempo.
+  if (r.status === 'PENDING' && r.usedClaimedAt) return 'awaiting';
   if (r.status === 'EXPIRED' || isExpired(r.expiryDate, now)) return 'expired';
   return 'reserved';
 };
 
 export const WALLET_STATUS_LABEL: Record<WalletStatus, string> = {
   used: 'Usado',
+  awaiting: 'Aguardando confirmação',
   reserved: 'Aguardando uso',
   expired: 'Expirou',
+  refused: 'Não confirmado',
 };
 
 export interface WalletSummary {
@@ -62,19 +70,24 @@ export interface WalletSummary {
   usedCount: number;
   reservedCount: number;
   expiredCount: number;
+  /** Já usados pelo cliente, aguardando a empresa confirmar (ou os 72h). */
+  awaiting: number;
+  awaitingCount: number;
 }
 
 export const walletSummary = (items: RedemptionView[], now: number = Date.now()): WalletSummary => {
-  const s: WalletSummary = { saved: 0, reserved: 0, usedCount: 0, reservedCount: 0, expiredCount: 0 };
+  const s: WalletSummary = { saved: 0, reserved: 0, usedCount: 0, reservedCount: 0, expiredCount: 0, awaiting: 0, awaitingCount: 0 };
   for (const r of items) {
     const amount = Math.max(0, safeNumber(r.amountSaved));
     const st = walletStatus(r, now);
     if (st === 'used') { s.saved += amount; s.usedCount++; }
+    else if (st === 'awaiting') { s.awaiting += amount; s.awaitingCount++; }
     else if (st === 'reserved') { s.reserved += amount; s.reservedCount++; }
-    else s.expiredCount++;
+    else if (st === 'expired') s.expiredCount++;
   }
   s.saved = cents(s.saved);
   s.reserved = cents(s.reserved);
+  s.awaiting = cents(s.awaiting);
   return s;
 };
 
@@ -119,18 +132,24 @@ export interface MerchantImpact {
   customers: number;
   pendingCount: number;
   pendingValue: number;
+  /** Quantos dos confirmados foram automáticos (a empresa não respondeu em 72h). */
+  autoCount: number;
+  /** Cliente avisou que usou e a empresa ainda não decidiu. */
+  awaitingCount: number;
+  awaitingValue: number;
 }
 
 export const merchantImpact = (items: (RedemptionView & { userId?: string })[], now: number = Date.now()): MerchantImpact => {
-  let given = 0, pendingValue = 0, usedCount = 0, pendingCount = 0;
+  let given = 0, pendingValue = 0, usedCount = 0, pendingCount = 0, autoCount = 0, awaitingCount = 0, awaitingValue = 0;
   const who = new Set<string>();
   for (const r of items) {
     const amount = Math.max(0, safeNumber(r.amountSaved));
     const st = walletStatus(r, now);
-    if (st === 'used') { given += amount; usedCount++; if (r.userId) who.add(r.userId); }
+    if (st === 'used') { given += amount; usedCount++; if (r.confirmedBy === 'auto') autoCount++; if (r.userId) who.add(r.userId); }
+    else if (st === 'awaiting') { awaitingValue += amount; awaitingCount++; }
     else if (st === 'reserved') { pendingValue += amount; pendingCount++; }
   }
-  return { given: cents(given), usedCount, customers: who.size, pendingCount, pendingValue: cents(pendingValue) };
+  return { given: cents(given), usedCount, customers: who.size, pendingCount, pendingValue: cents(pendingValue), autoCount, awaitingCount, awaitingValue: cents(awaitingValue) };
 };
 
 // ---------- cota de cupons por plano ----------

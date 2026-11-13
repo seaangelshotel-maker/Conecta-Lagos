@@ -6,7 +6,7 @@ import { User, Coupon, BusinessProfile, UserRole } from '../types';
 import { Tag, LogOut, ChevronRight, HelpCircle, Trophy, TrendingUp, Wallet, Star, Heart, Store, Ticket, Send, Camera, Loader2, ShieldCheck, Zap, Bell, Clock, ShoppingBag, Settings, PenTool } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 // Fix: Removed non-existent export 'sendSupportMessage' from dataService
-import { getCoupons, getBusinesses, getBusinessById, updateUser, logout, redeemCoupon, changeCurrentUserPassword } from '../services/dataService';
+import { getCoupons, getBusinesses, getBusinessById, updateUser, logout, redeemCoupon, changeCurrentUserPassword, markRedemptionUsed } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
 import { ParticipationHub } from '../components/ParticipationHub';
 import { CouponModal } from '../components/CouponModal';
@@ -25,6 +25,18 @@ interface CouponReceiptModalProps {
 
 const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose }) => {
     const st = walletStatus(record);
+    const { notify } = useNotification();
+    const [marking, setMarking] = useState(false);
+    const handleUsed = async () => {
+        setMarking(true);
+        try {
+            await markRedemptionUsed(record.id);
+            notify('success', 'Avisamos a empresa. Se ela não responder em 72 horas, confirmamos para você.');
+            onClose();
+        } catch (e: any) {
+            notify('error', e?.message || 'Não foi possível registrar agora.');
+        } finally { setMarking(false); }
+    };
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
@@ -67,24 +79,44 @@ const CouponReceiptModal: React.FC<CouponReceiptModalProps> = ({ record, onClose
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-slate-500 font-bold">Situação:</span>
-                            <span className={`font-black ${st === 'used' ? 'text-green-600' : st === 'expired' ? 'text-slate-400' : 'text-amber-600'}`}>{WALLET_STATUS_LABEL[st]}</span>
+                            <span className={`font-black ${st === 'used' ? 'text-green-600' : (st === 'expired' || st === 'refused') ? 'text-slate-400' : 'text-amber-600'}`}>{WALLET_STATUS_LABEL[st]}</span>
                         </div>
                     </div>
 
                     {st === 'used' ? (
                         <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl text-[10px] font-bold text-emerald-700 leading-relaxed">
-                            Confirmado pelo estabelecimento{record.validatedAt ? ` em ${new Date(record.validatedAt).toLocaleString('pt-BR')}` : ''}. Esse valor já está na sua Carteira de Economia.
+                            {record.confirmedBy === 'auto'
+                                ? `Confirmado automaticamente${record.validatedAt ? ` em ${new Date(record.validatedAt).toLocaleString('pt-BR')}` : ''}, porque a empresa não respondeu em 72 horas. `
+                                : `Confirmado pelo estabelecimento${record.validatedAt ? ` em ${new Date(record.validatedAt).toLocaleString('pt-BR')}` : ''}. `}
+                            Esse valor já está na sua Carteira de Economia.
+                        </div>
+                    ) : st === 'awaiting' ? (
+                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl text-[10px] font-bold text-amber-700 leading-relaxed">
+                            Você avisou que usou{record.usedClaimedAt ? ` em ${new Date(record.usedClaimedAt).toLocaleString('pt-BR')}` : ''}. Estamos aguardando a empresa confirmar. Se ela não responder em 72 horas, confirmamos automaticamente e o valor entra na sua carteira.
+                        </div>
+                    ) : st === 'refused' ? (
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[10px] font-bold text-slate-500 leading-relaxed">
+                            A empresa informou que este cupom não foi usado, então ele não entrou na sua carteira. Se houve engano, fale com o suporte do Lagos GO.
                         </div>
                     ) : st === 'expired' ? (
                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[10px] font-bold text-slate-500 leading-relaxed">
                             Este cupom expirou sem ser usado, então não entrou na sua carteira.
                         </div>
                     ) : (
-                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
-                            <AlertTriangle size={20} className="text-amber-500 shrink-0" />
-                            <p className="text-[10px] font-bold text-amber-700 leading-relaxed">
-                                <strong>Mostre este código no estabelecimento.</strong> A economia entra na sua carteira quando ele confirmar. Uso único e pessoal.
-                            </p>
+                        <div className="space-y-3">
+                            <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
+                                <AlertTriangle size={20} className="text-amber-500 shrink-0" />
+                                <p className="text-[10px] font-bold text-amber-700 leading-relaxed">
+                                    <strong>Mostre este código no estabelecimento.</strong> Depois de usar, toque em "Já usei": a empresa confirma e a economia entra na sua carteira. Uso único e pessoal.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleUsed}
+                                disabled={marking}
+                                className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all disabled:opacity-60"
+                            >
+                                {marking ? 'REGISTRANDO...' : 'JÁ USEI ESTE CUPOM'}
+                            </button>
                         </div>
                     )}
 
@@ -299,7 +331,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                           </div>
                                       </div>
                                       <div className="text-right shrink-0">
-                                          <p className={`text-sm md:text-lg font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : walletStatus(record) === 'expired' ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
+                                          <p className={`text-sm md:text-lg font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : (walletStatus(record) === 'expired' || walletStatus(record) === 'refused') ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
                                           <p className="text-[9px] md:text-[10px] text-slate-400 font-bold">{WALLET_STATUS_LABEL[walletStatus(record)]} · {new Date(record.redeemedAt).toLocaleDateString('pt-BR')}</p>
                                       </div>
                                   </div>
@@ -353,7 +385,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
                                       </div>
                                   </div>
                                   <div className="text-right shrink-0 flex flex-col items-end">
-                                      <p className={`text-sm md:text-xl font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : walletStatus(record) === 'expired' ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
+                                      <p className={`text-sm md:text-xl font-black ${walletStatus(record) === 'used' ? 'text-emerald-600' : (walletStatus(record) === 'expired' || walletStatus(record) === 'refused') ? 'text-slate-300 line-through' : 'text-amber-500'}`}>{walletStatus(record) === 'used' ? '- ' : ''}{formatBRL(record.amountSaved)}</p>
                                       <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-0.5 text-slate-400">{WALLET_STATUS_LABEL[walletStatus(record)]}</p>
                                       <p className="hidden sm:block text-[9px] md:text-[10px] font-black text-ocean-400 uppercase tracking-widest mt-1">Ver Comprovante</p>
                                       <ChevronRight className="text-slate-300 group-hover:text-ocean-600 group-hover:translate-x-1 transition-all sm:hidden" />

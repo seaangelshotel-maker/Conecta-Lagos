@@ -60,7 +60,7 @@ test('só o que o estabelecimento confirmou conta como economizado', () => {
 });
 
 test('carteira vazia e valores inválidos não quebram', () => {
-  assert.deepEqual(walletSummary([], NOW), { saved: 0, reserved: 0, usedCount: 0, reservedCount: 0, expiredCount: 0 });
+  assert.deepEqual(walletSummary([], NOW), { saved: 0, reserved: 0, usedCount: 0, reservedCount: 0, expiredCount: 0, awaiting: 0, awaitingCount: 0 });
   const s = walletSummary([red({ status: 'USED', amountSaved: -5 }), red({ status: 'USED', amountSaved: 'x' as any })], NOW);
   assert.equal(s.saved, 0);
 });
@@ -99,7 +99,7 @@ test('painel do comerciante: valor entregue, clientes e pendentes', () => {
     red({ id: '4', status: 'PENDING', amountSaved: 15, userId: 'u3' }),
     red({ id: '5', status: 'PENDING', amountSaved: 99, userId: 'u4', expiryDate: '2026-11-01' }),
   ], NOW);
-  assert.deepEqual(m, { given: 60, usedCount: 3, customers: 2, pendingCount: 1, pendingValue: 15 });
+  assert.deepEqual(m, { given: 60, usedCount: 3, customers: 2, pendingCount: 1, pendingValue: 15, autoCount: 0, awaitingCount: 0, awaitingValue: 0 });
 });
 
 const plans = [

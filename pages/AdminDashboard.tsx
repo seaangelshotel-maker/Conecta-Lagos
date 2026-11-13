@@ -14,7 +14,7 @@ import {
   deleteCity, deleteNeighborhood, updateBusinessPlan, getCollections, 
   saveCollection, deleteCollection, getPendingReviews, approveReview, 
   rejectReview, updateUser, getPaymentSettings, savePaymentSettings, 
-  getRedemptionsByBusiness, validateRedemption, getAmenities, saveAmenity, ensureSubcategory,
+  getRedemptionsByBusiness, validateRedemption, decideRedemption, getAmenities, saveAmenity, ensureSubcategory,
   getBlogAds, saveBlogAd, deleteBlogAd, getBlogPosts, saveBlogPost, deleteBlogPost,
   getDicasCategories, saveDicasCategory, deleteDicasCategory, deleteDicasSubcategory, saveDicasSubcategory
 } from '../services/dataService';
@@ -342,6 +342,26 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
         }
     } catch (error: any) {
         notify('error', error.message || "Erro ao validar cupom.");
+    } finally {
+        setIsValidatingRedemption(false);
+    }
+  };
+
+  const handleDecideRedemption = async (redemptionId: string, decision: 'confirm' | 'refuse') => {
+    let reason = '';
+    if (decision === 'refuse') {
+        const typed = window.prompt('Motivo (opcional), ex.: a pessoa não apareceu:');
+        if (typed === null) return;
+        reason = typed;
+    }
+    setIsValidatingRedemption(true);
+    try {
+        await decideRedemption(redemptionId, decision, reason);
+        notify('success', decision === 'confirm' ? 'Uso confirmado!' : 'Registrado: não foi usado.');
+        const busId = myBusiness?.id || (currentUser.role === UserRole.COMPANY ? currentUser.id : '');
+        if (busId) setRedemptions(await getRedemptionsByBusiness(busId));
+    } catch (error: any) {
+        notify('error', error.message || 'Não foi possível registrar agora.');
     } finally {
         setIsValidatingRedemption(false);
     }
@@ -3175,7 +3195,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                           <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6">
                               <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-1">Descontos entregues</p>
                               <p className="text-3xl font-black text-emerald-600" data-testid="impact-given">{formatBRL(impact.given)}</p>
-                              <p className="text-[11px] text-emerald-700/80 font-bold mt-1">{impact.usedCount} cupom(ns) confirmado(s)</p>
+                              <p className="text-[11px] text-emerald-700/80 font-bold mt-1">{impact.usedCount} cupom(ns) confirmado(s){impact.autoCount > 0 ? ` · ${impact.autoCount} automático(s) após 72h` : ''}</p>
                           </div>
                           <div className="bg-white border border-slate-100 rounded-3xl p-6">
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clientes que usaram</p>
@@ -3185,7 +3205,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                           <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6">
                               <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Aguardando uso</p>
                               <p className="text-3xl font-black text-amber-600" data-testid="impact-pending">{impact.pendingCount}</p>
-                              <p className="text-[11px] text-amber-700/80 font-bold mt-1">{formatBRL(impact.pendingValue)} a confirmar</p>
+                              <p className="text-[11px] text-amber-700/80 font-bold mt-1">{formatBRL(impact.pendingValue)} a usar{impact.awaitingCount > 0 ? ` · ${impact.awaitingCount} aguardando a sua confirmação` : ''}</p>
                           </div>
                       </div>
                   );
@@ -3231,11 +3251,23 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       </div>
                                       <div className="flex justify-between items-center text-xs pb-4 border-b border-slate-50">
                                           <span className="text-slate-400 font-bold uppercase tracking-wider">Status</span>
-                                          <span className={`font-black uppercase tracking-widest px-2 py-1 rounded-lg text-[9px] ${redemption.status === 'USED' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
-                                              {redemption.status === 'USED' ? 'Utilizado' : 'Pendente'}
+                                          <span className={`font-black uppercase tracking-widest px-2 py-1 rounded-lg text-[9px] ${redemption.status === 'USED' ? 'bg-green-100 text-green-600' : redemption.status === 'REFUSED' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-600'}`}>
+                                              {redemption.status === 'USED' ? (redemption.confirmedBy === 'auto' ? 'Confirmado (automático)' : 'Utilizado') : redemption.status === 'REFUSED' ? 'Não usado' : redemption.usedClaimedAt ? 'Aguardando você' : 'Pendente'}
                                           </span>
                                       </div>
                                       
+                                      {redemption.status === 'PENDING' && redemption.usedClaimedAt && (
+                                          <div className="pt-2 space-y-3">
+                                              <p className="text-[11px] font-bold text-amber-700 leading-relaxed">
+                                                  O cliente disse que usou em {new Date(redemption.usedClaimedAt).toLocaleString('pt-BR')}. Se você não responder em 72 horas, confirmamos automaticamente.
+                                              </p>
+                                              <div className="grid grid-cols-2 gap-2">
+                                                  <button onClick={() => handleDecideRedemption(redemption.id, 'confirm')} disabled={isValidatingRedemption} className="bg-ocean-600 text-white font-black py-3.5 rounded-xl text-[11px] uppercase tracking-widest disabled:opacity-50">Confirmar</button>
+                                                  <button onClick={() => handleDecideRedemption(redemption.id, 'refuse')} disabled={isValidatingRedemption} className="bg-slate-100 text-slate-600 font-black py-3.5 rounded-xl text-[11px] uppercase tracking-widest disabled:opacity-50">Não foi usado</button>
+                                              </div>
+                                          </div>
+                                      )}
+
                                       {redemption.status === 'PENDING' && (
                                           <div className="pt-2">
                                               <p className="text-[10px] font-black text-ocean-400 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -3270,7 +3302,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       {redemption.status === 'USED' && redemption.validatedAt && (
                                           <div className="pt-2 text-[10px] text-slate-400 font-bold flex items-center gap-2">
                                               <CheckCircle2 size={12} className="text-green-500" />
-                                              <span>Validado em {new Date(redemption.validatedAt).toLocaleString('pt-BR')}</span>
+                                              <span>{redemption.confirmedBy === 'auto' ? 'Confirmado automaticamente' : 'Validado'} em {new Date(redemption.validatedAt).toLocaleString('pt-BR')}</span>
                                           </div>
                                       )}
                                   </div>

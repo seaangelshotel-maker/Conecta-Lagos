@@ -254,12 +254,32 @@ service cloud.firestore {
         && math.abs(request.resource.data.amountSaved - (
               get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.originalPrice
               - get(/databases/$(database)/documents/coupons/$(request.resource.data.couponId)).data.discountedPrice)) < 0.01;
-      allow update: if isAdmin() || (
-        isBusinessOwner(resource.data.companyId)
-        && resource.data.status == 'PENDING'
-        && changedKeys().hasOnly(['status', 'validatedAt'])
-        && request.resource.data.status == 'USED'
-      );
+      allow update: if isAdmin()
+        // Empresa confirma o uso (pelo código ou pelo aviso "já usei" do cliente) ...
+        || (
+          isBusinessOwner(resource.data.companyId)
+          && resource.data.status == 'PENDING'
+          && changedKeys().hasOnly(['status', 'validatedAt', 'confirmedBy'])
+          && request.resource.data.status == 'USED'
+          && request.resource.data.get('confirmedBy', 'company') == 'company'
+        )
+        // ... ou diz que não foi usado (precisa de motivo curto).
+        || (
+          isBusinessOwner(resource.data.companyId)
+          && resource.data.status == 'PENDING'
+          && changedKeys().hasOnly(['status', 'refusedAt', 'refusedReason'])
+          && request.resource.data.status == 'REFUSED'
+          && isShortString(request.resource.data.get('refusedReason', ''), 200)
+        )
+        // Cliente avisa "já usei": só marca a data, uma única vez, e a contagem de 72h começa.
+        || (
+          isAuthenticated() && isNotBlocked()
+          && uid() == resource.data.userId
+          && resource.data.status == 'PENDING'
+          && !('usedClaimedAt' in resource.data)
+          && changedKeys().hasOnly(['usedClaimedAt'])
+          && request.resource.data.usedClaimedAt is string
+        );
       allow delete: if isAdmin();
     }
 

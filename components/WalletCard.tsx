@@ -10,10 +10,12 @@ interface Props {
   onOpen?: () => void;
 }
 
-const reservedLine = (s: WalletSummary) =>
-  s.reservedCount > 0
-    ? `${formatBRL(s.reserved)} em ${s.reservedCount} cupom${s.reservedCount > 1 ? 's' : ''} para usar`
-    : null;
+const reservedLine = (s: WalletSummary) => {
+  const parts: string[] = [];
+  if (s.awaitingCount > 0) parts.push(`${formatBRL(s.awaiting)} aguardando confirmação`);
+  if (s.reservedCount > 0) parts.push(`${formatBRL(s.reserved)} em ${s.reservedCount} cupom${s.reservedCount > 1 ? 's' : ''} para usar`);
+  return parts.length ? parts.join(' · ') : null;
+};
 
 export const WalletCard: React.FC<Props> = ({ summary, loading, variant = 'full', onOpen }) => {
   const reserved = reservedLine(summary);
