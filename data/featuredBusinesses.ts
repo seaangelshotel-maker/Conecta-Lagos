@@ -306,4 +306,14 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     description: 'Num casarão histórico à beira da praia, a Casa da Piedra é ao mesmo tempo restaurante, bar e centro cultural. O visitante vê exposições de arte local e, nos fins de semana, encontra música ao vivo. A cozinha tem frutos do mar, drinques e uma seção vegetariana e vegana no cardápio, e o terraço convida a ficar além do jantar. É endereço certo para unir boa mesa e um pouco de história da cidade, em dupla, em família ou em grupo.',
     sources: ['https://www.instagram.com/casadapiedra_/', 'https://www.google.com/maps/place/Restaurante+Casa+da+Piedra/@-22.9691536,-42.0191739,17z', 'https://wanderlog.com/place/details/1409109', 'https://www.happycow.net/reviews/casa-da-piedra-arraial-do-cabo-359986'], checkedAt: '2026-11-12',
   },
+  {
+    name: 'Pimenta Rosa Gastronomia', cityId: AC, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'Travessa Damaceno Barreto, 9, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
+    phone: '(22) 2622-3073',
+    website: 'https://www.facebook.com/gastronomiapimentarosa',
+    hours: { Domingo: '12:00 - 23:00', Segunda: 'Fechado', 'Terça': 'Fechado', Quarta: '16:00 - 23:00', Quinta: '16:00 - 23:00', Sexta: '16:00 - 23:00', 'Sábado': '12:00 - 23:00' },
+    amenities: ['access', 'kids', 'card'],
+    description: 'Numa casa de ambiente sossegado na Travessa Damaceno Barreto, perto de onde os barcos de passeio atracam, o Pimenta Rosa é um respiro longe do vaivém dos restaurantes de beira-mar. A cozinha tem jeito caseiro e não se prende a uma só especialidade: há massas, carnes e pratos de peixe, entre eles massas com camarão e a pimenta-rosa que dá nome ao lugar. Funciona bem para jantar com calma na Praia dos Anjos depois do passeio e para quem prefere um clima mais íntimo e familiar.',
+    sources: ['https://www.facebook.com/gastronomiapimentarosa', 'https://www.google.com/maps/search/Pimenta+Rosa+Gastronomia+Arraial+do+Cabo', 'https://wanderlog.com/place/details/1180783', 'https://tasteatlas.com/PimentaRosaGastronomia', 'https://guia.melhoresdestinos.com.br/pimenta-rosa-190-5140-l.html'], checkedAt: '2026-11-13',
+  },
 ];
