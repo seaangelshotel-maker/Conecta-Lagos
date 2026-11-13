@@ -17,7 +17,7 @@ export const NEED_NOW_ITEMS: NeedItem[] = [
   { id: 'carro', label: 'Alugar carro', icon: 'KeyRound', subs: ['Aluguel de Carros', 'Locadoras'], words: ['locadora de veículos', 'locadora de carros', 'aluguel de carros'] },
   { id: 'dentista', label: 'Dentista', icon: 'Smile', subs: ['Dentistas', 'Dentista', 'Odontologia'], words: ['dentista', 'odontologia', 'odontológica', 'odonto'] },
   { id: 'saude', label: 'Saúde', icon: 'Stethoscope', subs: ['Saúde', 'Clínicas', 'Hospitais', 'Postos de Saúde', 'Pronto Atendimento', 'Pronto Atendimento e UPAs', 'UPA'], cats: ['Saúde'], words: ['hospital', 'clínica', 'pronto socorro', 'pronto-socorro', 'pronto atendimento', 'upa', 'posto de saúde', 'unidade de saúde'] },
-  { id: 'seguranca', label: 'Polícia e Bombeiros', icon: 'ShieldCheck', subs: ['Delegacias', 'Bombeiros', 'Guarda Municipal', 'Defesa Civil'], cats: ['Segurança e Emergência'], words: ['delegacia', 'bombeiros', 'guarda civil municipal', 'guarda municipal', 'defesa civil'] },
+  { id: 'seguranca', label: 'Delegacias', icon: 'ShieldCheck', subs: ['Delegacias', 'Bombeiros', 'Guarda Municipal', 'Defesa Civil'], cats: ['Segurança e Emergência'], words: ['delegacia', 'bombeiros', 'guarda civil municipal', 'guarda municipal', 'defesa civil'] },
   { id: 'pet', label: 'Pet', icon: 'PawPrint', subs: ['Veterinário', 'Veterinária', 'Pet Shop', 'Petshop'], words: ['veterinário', 'veterinária', 'pet shop', 'petshop'] },
 ];
 
@@ -37,7 +37,7 @@ export const needNowCounts = (businesses: BusinessProfile[], items: NeedItem[] =
 export const EMERGENCY_MAIN = [
   { number: '192', label: 'SAMU', hint: 'Emergência médica' },
   { number: '193', label: 'Bombeiros', hint: 'Incêndio e resgate, inclusive no mar' },
-  { number: '190', label: 'Polícia Militar', hint: 'Crime e perigo' },
+  { number: '190', label: 'Polícia', hint: 'Crime e perigo' },
 ];
 export const EMERGENCY_MORE = [
   { number: '199', label: 'Defesa Civil' },
