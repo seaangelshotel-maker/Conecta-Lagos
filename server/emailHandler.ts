@@ -26,6 +26,7 @@ const html = (res: Res, status: number, body: string) => {
 
 /** Limita repetições por chave (uid/e-mail/ação) usando um documento em mail_limits. */
 export async function allow(key: string, windowMs: number): Promise<boolean> {
+  try {
     const ref = adminDb().collection('mail_limits').doc(key.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 200));
     return adminDb().runTransaction(async tx => {
         const s = await tx.get(ref);
@@ -34,10 +35,16 @@ export async function allow(key: string, windowMs: number): Promise<boolean> {
         tx.set(ref, { at: Date.now() });
         return true;
     });
+  } catch { return true; } // sem acesso ao banco não há como limitar; o envio segue
 }
 
-const log = (type: string, to: string | string[], ok: boolean, extra: Record<string, unknown> = {}) =>
-    adminDb().collection('mail_log').add({ type, to: Array.isArray(to) ? to.join(',') : to, ok, at: new Date().toISOString(), ...extra }).catch(() => undefined);
+/** Registro de envios. Se o banco estiver inacessível, o e-mail já foi enviado e o resto segue. */
+const log = async (type: string, to: string | string[], ok: boolean, extra: Record<string, unknown> = {}) => {
+    try {
+        const clean = JSON.parse(JSON.stringify({ type, to: Array.isArray(to) ? to.join(',') : to, ok, at: new Date().toISOString(), ...extra }));
+        await adminDb().collection('mail_log').add(clean);
+    } catch { /* sem acesso ao banco: ignora */ }
+};
 
 /** Aviso à equipe. Falha em silêncio (nunca derruba a ação do usuário). */
 export async function notifyAdmins(title: string, lines: [string, string][], link?: string, env = process.env) {
