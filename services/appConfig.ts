@@ -1,4 +1,4 @@
-import { OFFICIAL_SITE_URL } from './seoRoutes';
+import { OFFICIAL_SITE_URL } from './seoRoutes.js';
 
 /**
  * Endereço público do app (usado em textos de WhatsApp, avisos etc.).

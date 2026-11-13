@@ -7,8 +7,8 @@
  * - Comerciante cria; o admin aprova. A cota vem do plano e o admin pode sobrepor por comerciante.
  */
 import type { AppEvent, EventCategory, PricingPlan, User } from '../types';
-import { REGION_MUNICIPALITIES, NEIGHBOR_IDS } from './regionGeo';
-import { todayISO } from './opportunityRules';
+import { REGION_MUNICIPALITIES, NEIGHBOR_IDS } from './regionGeo.js';
+import { todayISO } from './opportunityRules.js';
 
 export { todayISO };
 

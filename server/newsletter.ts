@@ -79,7 +79,7 @@ export async function subscribe(rawEmail: string, source = 'site', env: NodeJS.P
     await ref.set({
         email, status: 'pending', source: cur?.source || String(source).slice(0, 40),
         createdAt: cur?.createdAt || nowIso, lastConfirmSentAt: nowIso,
-    } satisfies Subscriber, { merge: true });
+    } as Subscriber, { merge: true });
     const t = newsletterConfirm({ site: siteUrl(env), confirmUrl: confirmUrl(email, env) });
     const r = await sendMail({ to: email, ...t, tags: [{ name: 'type', value: 'newsletter_confirm' }] }, env);
     return r.ok ? 'sent' : 'unavailable';
@@ -89,7 +89,7 @@ export async function confirm(token: string, env: NodeJS.ProcessEnv = process.en
     const email = readToken(token, 'confirm', env);
     if (!email) return false;
     const ref = adminDb().collection(COLLECTION).doc(subscriberId(email));
-    await ref.set({ email, status: 'active', confirmedAt: new Date().toISOString() } satisfies Partial<Subscriber>, { merge: true });
+    await ref.set({ email, status: 'active', confirmedAt: new Date().toISOString() } as Partial<Subscriber>, { merge: true });
     return true;
 }
 
@@ -97,7 +97,7 @@ export async function unsubscribe(token: string, env: NodeJS.ProcessEnv = proces
     const email = readToken(token, 'unsub', env);
     if (!email) return false;
     const ref = adminDb().collection(COLLECTION).doc(subscriberId(email));
-    await ref.set({ email, status: 'unsubscribed', unsubscribedAt: new Date().toISOString() } satisfies Partial<Subscriber>, { merge: true });
+    await ref.set({ email, status: 'unsubscribed', unsubscribedAt: new Date().toISOString() } as Partial<Subscriber>, { merge: true });
     return true;
 }
 

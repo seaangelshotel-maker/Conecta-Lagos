@@ -4,10 +4,10 @@
  * e o título/corpo do push. Nada é inventado: só entra o que existe no app e ainda vale.
  */
 import type { AppEvent, Coupon } from '../types';
-import { cityLabel, filterEvents, formatEventDates, formatEventTime, isPublic, sortByDate, periodRange } from './eventRules';
-import { couponSaving, formatBRL, isExpired, percentOff } from './walletRules';
-import { todayISO } from './opportunityRules';
-import { APP_URL } from './appConfig';
+import { cityLabel, filterEvents, formatEventDates, formatEventTime, isPublic, sortByDate, periodRange } from './eventRules.js';
+import { couponSaving, formatBRL, isExpired, percentOff } from './walletRules.js';
+import { todayISO } from './opportunityRules.js';
+import { APP_URL } from './appConfig.js';
 
 
 export interface DigestInput {

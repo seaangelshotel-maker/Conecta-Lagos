@@ -6,7 +6,7 @@
  * Tudo é derivado dos resgates, que são a fonte de verdade: o usuário não consegue escrever o próprio saldo.
  */
 import type { Coupon, CouponRedemption, PricingPlan, User } from '../types';
-import { resolvePlan } from './eventRules';
+import { resolvePlan } from './eventRules.js';
 
 export type WalletStatus = 'used' | 'reserved' | 'expired';
 
