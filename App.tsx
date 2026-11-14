@@ -6,6 +6,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { NavBar } from './components/NavBar';
+import { AppDrawer } from './components/AppDrawer';
+import { AppSplash, PullToRefresh } from './components/AppExtras';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { getCurrentUser, logout, getAppConfig, isAuthInitialized } from './services/dataService';
@@ -365,6 +367,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen font-sans text-ocean-950 bg-slate-50 selection:bg-ocean-200">
+      <AppSplash />
+      <PullToRefresh />
       <OfflineBanner />
       <ConsentBanner onNavigate={handleNavigate} />
       {showChrome && (
@@ -375,6 +379,7 @@ function AppContent() {
             onLogout={handleLogout}
           />
       )}
+      {showChrome && <AppDrawer currentUser={user} currentPage={page} onNavigate={handleNavigate} onLogout={handleLogout} />}
       <main className={`animate-in fade-in duration-300 ${showChrome ? 'md:pt-16' : ''}`}>
         {content}
       </main>

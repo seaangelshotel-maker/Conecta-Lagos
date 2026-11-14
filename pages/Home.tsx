@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Gem, ArrowRight } from 'lucide-react';
+import { Sparkles, Gem, ArrowRight, Menu } from 'lucide-react';
 import { CategoryIcon } from '../components/categoryIcons';
 import { useHomeConfig } from '../services/homeConfigService';
 import { BlogPost, BusinessProfile, Collection, Coupon, HomeHighlight, User } from '../types';
@@ -22,6 +22,7 @@ import { orderFeedByGeo } from '../services/regionGeo';
 import { pickEditorial } from '../services/editorialPick';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 import { RegionChip } from '../components/RegionChip';
+import { openAppDrawer } from '../components/AppDrawer';
 import { EventsShelf } from '../components/EventCards';
 import { WalletCard } from '../components/WalletCard';
 import { useWallet } from '../services/walletService';
@@ -128,7 +129,10 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
       <header className="bg-gradient-to-br from-ocean-600 to-ocean-950 text-white pt-8 pb-7">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex items-start justify-between gap-3">
-            <RegionChip loc={loc} compact />
+            <div className="flex items-center gap-2 min-w-0">
+              <button onClick={openAppDrawer} aria-label="Abrir menu" data-testid="home-menu-btn" className="md:hidden shrink-0 w-9 h-9 rounded-full bg-white/15 border border-white/30 flex items-center justify-center"><Menu size={18} /></button>
+              <RegionChip loc={loc} compact />
+            </div>
             <div className="relative shrink-0">
               <button onClick={() => setShowFlags(v => !v)} aria-label="Alterar idioma" aria-expanded={showFlags} data-testid="lang-btn" className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-lg flex items-center justify-center">{language}</button>
               {showFlags && (

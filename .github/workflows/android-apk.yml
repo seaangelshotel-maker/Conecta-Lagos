@@ -1,0 +1,60 @@
+# Gera o APK nativo do Lagos GO (Capacitor, sem barra do Chrome) e publica na Release "android-latest".
+# Assinatura: se existirem os segredos KEYSTORE_B64 e KEYSTORE_PASSWORD, usa a chave de produção;
+# senão usa a chave de teste (android-app/debug.keystore), boa só para instalar e testar.
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths: ['android-app/**', '.github/workflows/android-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm install --no-audit --no-fund
+      - name: Projeto Android + ícones/splash
+        run: |
+          npx cap add android
+          npx capacitor-assets generate --android --assetPath assets
+          npx cap sync android
+      - name: Compilar
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon
+      - name: Assinar
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+          KS_PW: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > release.keystore; KS=release.keystore; ALIAS=lagosgo; PW="$KS_PW"; KIND=producao
+          else KS=debug.keystore; ALIAS=androiddebugkey; PW=android; KIND=teste; fi
+          mkdir -p out
+          $BT/zipalign -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk out/aligned.apk
+          $BT/apksigner sign --ks $KS --ks-key-alias $ALIAS --ks-pass pass:$PW --key-pass pass:$PW --out out/LagosGO-$KIND.apk out/aligned.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab out/LagosGO-$KIND.aab
+          jarsigner -keystore $KS -storepass $PW -keypass $PW out/LagosGO-$KIND.aab $ALIAS >/dev/null
+          rm out/aligned.apk
+          $BT/apksigner verify --print-certs out/LagosGO-$KIND.apk | head -3
+          keytool -list -v -keystore $KS -alias $ALIAS -storepass $PW | grep SHA256 > out/sha256.txt
+          cat out/sha256.txt
+      - name: Publicar na Release android-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete android-latest --yes --cleanup-tag -R "$GITHUB_REPOSITORY" || true
+          gh release create android-latest out/* -R "$GITHUB_REPOSITORY" --title "Android (build ${{ github.run_number }})" --notes "APK/AAB gerados automaticamente."

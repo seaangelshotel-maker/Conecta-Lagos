@@ -1,0 +1,22 @@
+{
+  "appId": "org.lagosgo.app",
+  "appName": "Lagos GO",
+  "webDir": "www",
+  "server": {
+    "url": "https://lagosgo.com.br",
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowNavigation": ["lagosgo.com.br", "*.lagosgo.com.br", "*.firebaseapp.com", "*.googleapis.com", "accounts.google.com"]
+  },
+  "android": { "allowMixedContent": false, "backgroundColor": "#0A2242" },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0A2242",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#0A2242", "overlaysWebView": false }
+  }
+}
