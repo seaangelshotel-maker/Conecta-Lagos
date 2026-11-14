@@ -42,6 +42,7 @@ import { SeoDashboard } from '../components/admin/SeoDashboard';
 import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
 import { PublicServicesImport } from '../components/admin/PublicServicesImport';
+import { PlanPreview } from '../components/PlanPreview';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
@@ -81,6 +82,7 @@ const PLAN_BLANK: Partial<PricingPlan> = {
 
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
+  const [showPlanPreview, setShowPlanPreview] = useState(false);
   const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS'>(() => {
     try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
   });
@@ -586,6 +588,12 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <Star size={8} className="md:w-[10px] md:h-[10px]" /> {myBusiness?.plan || currentUser.plan}
                           </span>
                       )}
+                      {currentUser.role === UserRole.COMPANY && (
+                          <button onClick={() => setShowPlanPreview(true)} data-testid="plan-preview-open" className="bg-ocean-600 text-white px-2.5 py-0.5 rounded-md text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1 active:scale-95">
+                              <Sparkles size={9} /> Ver versão completa
+                          </button>
+                      )}
+                      {showPlanPreview && <PlanPreview onClose={() => setShowPlanPreview(false)} onChoose={() => { setShowPlanPreview(false); onNavigate('pricing-plans'); }} />}
                   </div>
               </div>
           </div>
