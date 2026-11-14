@@ -4,14 +4,17 @@
   "version": "1.0.0",
   "description": "Casca Android nativa (Capacitor) do Lagos GO: carrega https://lagosgo.com.br, então o conteúdo atualiza sem novo APK.",
   "dependencies": {
-    "@capacitor/android": "^6.1.2",
-    "@capacitor/app": "^6.0.1",
-    "@capacitor/core": "^6.1.2",
-    "@capacitor/splash-screen": "^6.0.2",
-    "@capacitor/status-bar": "^6.0.1"
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/push-notifications": "^8.1.0",
+    "@capacitor/share": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.1.2"
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.0"
   }
 }

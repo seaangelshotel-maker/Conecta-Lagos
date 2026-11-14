@@ -1,0 +1,19 @@
+{
+  "project_info": {
+    "project_number": "733864820546",
+    "project_id": "conectario-dd04b",
+    "storage_bucket": "conectario-dd04b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733864820546:android:884064ef423b88772cd2db",
+        "android_client_info": { "package_name": "org.lagosgo.app" }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "AIzaSyCLyaiF_RVOd4BXNE9sZ4sGNsjlqu6ihdQ" }],
+      "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+    }
+  ],
+  "configuration_version": "1"
+}
