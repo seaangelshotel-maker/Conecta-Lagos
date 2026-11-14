@@ -82,7 +82,8 @@ export const Collections: React.FC<CollectionsProps> = ({ onNavigate }) => {
               placeholder="Buscar coleção (ex.: noite, praia, casal)"
               aria-label="Buscar coleção"
               data-testid="collections-search"
-              className="flex-1 bg-transparent outline-none text-sm text-ocean-950 placeholder:text-slate-400"
+              style={{ outline: 'none', boxShadow: 'none' }}
+              className="flex-1 min-w-0 bg-transparent border-0 focus:ring-0 text-sm text-ocean-950 placeholder:text-slate-400"
             />
           </label>
         </div>

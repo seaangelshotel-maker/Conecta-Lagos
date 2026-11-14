@@ -114,9 +114,8 @@ export const AppDrawer: React.FC<Props> = ({ currentUser, currentPage, onNavigat
           onClick={() => setOpen(true)}
           aria-label="Abrir menu"
           data-testid="drawer-handle"
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 w-5 h-16 rounded-r-xl bg-ocean-700/80 text-white flex items-center justify-center shadow-lg active:scale-95"
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 w-2 h-14 rounded-r-full bg-ocean-700/35 active:bg-ocean-700/70"
         >
-          <Menu size={12} />
         </button>
       )}
 
