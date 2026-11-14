@@ -3,17 +3,17 @@
 Atualizado em 13/nov/2026. Decisão: **TWA** (o app abre o próprio lagosgo.com.br em tela cheia pelo Chrome). Atualiza sozinho com o site, o login com Google funciona e não precisa de código nativo. O Capacitor fica para o iPhone.
 
 - Pacote: `org.lagosgo.app`
-- Conta Google Play: **pessoal** → antes de publicar é obrigatório um **teste fechado com pelo menos 12 testadores por 14 dias seguidos**.
+- Conta Google Play: **pessoal, criada há mais de 10 anos** → **não precisa** do teste fechado de 12 testadores/14 dias (a exigência vale só para contas pessoais novas). Publica direto em produção; confirme no Play Console, em Painel, se ele pedir o teste.
 - Já pronto no site: manifesto com `id`, ícones (192, 512 e maskable), service worker, página offline, política de privacidade (`/privacidade`) e exclusão de conta (`/excluir-conta`, exigida pelo Google).
 
 ## Passo a passo
 1. **Play Console → Criar app**: nome "Lagos GO", idioma português (Brasil), tipo "App", gratuito.
 2. **Gerar o pacote**: pwabuilder.com → site `https://lagosgo.com.br` → "Package for stores" → Android. Package ID `org.lagosgo.app`, "Signing key: new". Baixar o zip e **guardar a chave de assinatura e a senha** (sem ela não dá para atualizar o app).
-3. **Enviar o `.aab`** em Teste → Teste fechado → Criar versão. Ativar "Play App Signing" quando perguntar.
+3. **Enviar o `.aab`** em Produção → Criar versão (ou em Teste interno primeiro, para você testar no seu celular). Ativar "Play App Signing" quando perguntar.
 4. **Link verificado (some a barra do Chrome)**: no Play Console, Configuração → Integridade do app → copiar a impressão digital SHA-256 do certificado de assinatura. Mandar para o time técnico, que publica `/.well-known/assetlinks.json`.
-5. **Testadores**: criar uma lista com 12 e-mails (Gmail) e ativar o teste fechado; eles instalam pelo link e ficam 14 dias.
+5. **Teste interno (recomendado)**: adicione o seu Gmail como testador e instale pelo link antes de mandar para produção.
 6. **Ficha da loja** (textos abaixo), classificação de conteúdo, público-alvo (18+ é o mais simples), segurança dos dados e URL da política de privacidade.
-7. Passados os 14 dias, **Pedir acesso à produção**.
+7. **Enviar para análise** em Produção. A primeira análise do Google costuma levar de 1 a 7 dias.
 
 ## Textos da ficha
 **Nome:** Lagos GO
