@@ -35,6 +35,8 @@ import { BusinessHoursEditor } from '../components/BusinessHoursEditor';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
 import { GoogleDriveManager } from '../components/GoogleDriveManager';
 import { BlogAdsManager } from '../components/admin/BlogAdsManager';
+import { AdminFilterBar } from '../components/admin/AdminFilterBar';
+import { BizFilter, CouponFilter, UserFilter, EMPTY_BIZ_FILTER, EMPTY_COUPON_FILTER, EMPTY_USER_FILTER, filterBusinesses, filterCoupons, filterUsers, distinct } from '../services/adminFilters';
 import { BlogPostsManager } from '../components/admin/BlogPostsManager';
 import { ModerationPanel } from '../components/admin/ModerationPanel';
 import { EcosystemSettings } from '../components/admin/EcosystemSettings';
@@ -145,6 +147,9 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   
   const [allBusinesses, setAllBusinesses] = useState<BusinessProfile[]>([]);
+  const [bizFilter, setBizFilter] = useState<BizFilter>(EMPTY_BIZ_FILTER);
+  const [userFilter, setUserFilter] = useState<UserFilter>(EMPTY_USER_FILTER);
+  const [couponFilter, setCouponFilter] = useState<CouponFilter>(EMPTY_COUPON_FILTER);
   
   const [newPlace, setNewPlace] = useState<Partial<BusinessProfile>>({
     name: '',
@@ -519,6 +524,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   };
 
   if (loading && !stats) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-ocean-600" size={48} /></div>;
+
+  const filteredBusinesses = filterBusinesses(allBusinesses, bizFilter);
+  const filteredUsers = filterUsers(users, userFilter);
+  const filteredCoupons = filterCoupons(coupons, couponFilter);
 
   if (view === 'AGENT_TEAM' && currentUser.role === UserRole.SUPER_ADMIN) {
       return <AIAgentTeam onBack={() => setView('HOME')} />;
@@ -1079,6 +1088,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </form>
               </div>
 
+              <AdminFilterBar
+                  testId="filters-users"
+                  search={userFilter.q}
+                  onSearch={q => setUserFilter({ ...userFilter, q })}
+                  placeholder="Buscar nome ou e-mail…"
+                  shown={filteredUsers.length}
+                  total={users.length}
+                  onClear={() => setUserFilter(EMPTY_USER_FILTER)}
+                  selects={[{ key: 'role', label: 'Cargo', value: userFilter.role, onChange: role => setUserFilter({ ...userFilter, role }),
+                      options: distinct(users.map(u => String(u.role))).map(r => ({ value: r, label: r })) }]}
+              />
+
               <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
                   {/* Desktop Table View */}
                   <div className="hidden md:block overflow-x-auto">
@@ -1091,7 +1112,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-50">
-                              {users.map(u => (
+                              {filteredUsers.map(u => (
                                   <tr key={u.id} className="hover:bg-slate-50/50">
                                       <td className="px-6 py-5">
                                           <div className="flex items-center gap-3">
@@ -1217,7 +1238,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
                   {/* Mobile Card View */}
                   <div className="md:hidden divide-y divide-slate-50">
-                      {users.map(u => (
+                      {filteredUsers.map(u => (
                           <div key={u.id} className="p-5 space-y-4">
                               <div className="flex items-center gap-4">
                                   <div className="w-12 h-12 rounded-full bg-ocean-50 text-ocean-600 flex items-center justify-center font-black text-lg shrink-0">
@@ -2156,11 +2177,35 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
             </button>
           </div>
 
+          <AdminFilterBar
+            testId="filters-businesses"
+            search={bizFilter.q}
+            onSearch={q => setBizFilter({ ...bizFilter, q })}
+            placeholder="Buscar empresa, categoria ou telefone…"
+            shown={filteredBusinesses.length}
+            total={allBusinesses.length}
+            onClear={() => setBizFilter(EMPTY_BIZ_FILTER)}
+            selects={[
+              { key: 'kind', label: 'Tipo', value: bizFilter.kind, onChange: kind => setBizFilter({ ...bizFilter, kind }),
+                options: [{ value: 'paid', label: 'Pagantes (Pro/Premium)' }, { value: 'free', label: 'Gratuitas' }, { value: 'public', label: 'Serviços públicos' }, { value: 'unclaimed', label: 'Lugares sem dono' }, { value: 'claimed', label: 'Reivindicadas' }] },
+              { key: 'category', label: 'Categoria', value: bizFilter.category, onChange: category => setBizFilter({ ...bizFilter, category }),
+                options: distinct(allBusinesses.map(b => b.category)).map(c => ({ value: c, label: c })) },
+              { key: 'city', label: 'Cidade', value: bizFilter.cityId, onChange: cityId => setBizFilter({ ...bizFilter, cityId }),
+                options: cities.filter(c => allBusinesses.some(b => b.cityId === c.id)).map(c => ({ value: c.id, label: c.name })) },
+              { key: 'plan', label: 'Plano', value: bizFilter.plan, onChange: plan => setBizFilter({ ...bizFilter, plan }),
+                options: [{ value: 'free', label: 'Free' }, { value: 'pro', label: 'Pro' }, { value: 'premium', label: 'Premium' }] },
+              { key: 'status', label: 'Situação', value: bizFilter.status, onChange: status => setBizFilter({ ...bizFilter, status }),
+                options: [{ value: 'active', label: 'Ativas' }, { value: 'blocked', label: 'Inativas' }, { value: 'pending', label: 'Pendentes' }] },
+            ]}
+          />
+
           <div className="space-y-4">
             {allBusinesses.length === 0 ? (
               <p className="text-slate-500 text-center py-10">Nenhuma empresa cadastrada.</p>
+            ) : filteredBusinesses.length === 0 ? (
+              <p className="text-slate-500 text-center py-10">Nenhuma empresa com esses filtros.</p>
             ) : (
-              allBusinesses.map(biz => {
+              filteredBusinesses.map(biz => {
                 const owner = users.find(u => u.id === biz.id);
                 return (
                   <div key={biz.id} className={`p-6 rounded-[2rem] border transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6 ${biz.isBlocked ? 'bg-red-50 border-red-100 opacity-80' : 'bg-slate-50 border-slate-100'}`}>
@@ -3036,11 +3081,29 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </div>
               </div>
 
+              <AdminFilterBar
+                  testId="filters-coupons"
+                  search={couponFilter.q}
+                  onSearch={q => setCouponFilter({ ...couponFilter, q })}
+                  placeholder="Buscar cupom ou empresa…"
+                  shown={filteredCoupons.length}
+                  total={coupons.length}
+                  onClear={() => setCouponFilter(EMPTY_COUPON_FILTER)}
+                  selects={[
+                      { key: 'category', label: 'Categoria', value: couponFilter.category, onChange: category => setCouponFilter({ ...couponFilter, category }),
+                          options: distinct(coupons.map(c => c.category)).map(c => ({ value: c, label: c })) },
+                      { key: 'status', label: 'Situação', value: couponFilter.status, onChange: status => setCouponFilter({ ...couponFilter, status }),
+                          options: [{ value: 'active', label: 'Ativos' }, { value: 'pending', label: 'Pendentes' }, { value: 'expired', label: 'Expirados' }, { value: 'rejected', label: 'Rejeitados' }] },
+                  ]}
+              />
+
               <div className="grid grid-cols-1 gap-4">
                   {coupons.length === 0 ? (
                       <p className="text-slate-500 text-center py-10">Nenhum cupom encontrado.</p>
+                  ) : filteredCoupons.length === 0 ? (
+                      <p className="text-slate-500 text-center py-10">Nenhum cupom com esses filtros.</p>
                   ) : (
-                      coupons.map(coupon => (
+                      filteredCoupons.map(coupon => (
                           <div key={coupon.id} className="p-6 rounded-[2rem] border bg-slate-50 border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                               <div className="flex items-center gap-4 flex-1">
                                   <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-200 shrink-0">

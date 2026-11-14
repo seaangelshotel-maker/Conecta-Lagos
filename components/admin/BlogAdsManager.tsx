@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BlogAd } from '../../types';
 import { saveBlogAd, deleteBlogAd } from '../../services/dataService';
 import { ImageUpload } from '../ImageUpload';
+import { AdminFilterBar } from './AdminFilterBar';
+import { norm } from '../../services/adminFilters';
 import { 
   Plus, Trash2, Edit2, ChevronLeft, Save, 
   Check, X, Eye, EyeOff, Sparkles, Navigation, Image as ImageIcon
@@ -20,6 +22,9 @@ export const BlogAdsManager: React.FC<BlogAdsManagerProps> = ({
 }) => {
   const [editingAd, setEditingAd] = useState<Partial<BlogAd> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [adQuery, setAdQuery] = useState('');
+  const [adStatus, setAdStatus] = useState('');
+  const shownAds = blogAds.filter(a => (!adQuery || norm(`${a.title} ${a.subtitle} ${a.tag}`).includes(norm(adQuery))) && (!adStatus || (adStatus === 'on' ? a.active : !a.active)));
 
   // Default color presets for slide badge bg
   const BADGE_COLOR_PRESETS = [
@@ -301,6 +306,17 @@ export const BlogAdsManager: React.FC<BlogAdsManagerProps> = ({
           </div>
         </div>
       ) : (
+        <div className="space-y-4">
+        <AdminFilterBar
+          testId="filters-ads"
+          search={adQuery}
+          onSearch={setAdQuery}
+          placeholder="Buscar anúncio…"
+          shown={shownAds.length}
+          total={blogAds.length}
+          onClear={() => { setAdQuery(''); setAdStatus(''); }}
+          selects={[{ key: 'status', label: 'Situação', value: adStatus, onChange: setAdStatus, options: [{ value: 'on', label: 'Ativos' }, { value: 'off', label: 'Inativos' }] }]}
+        />
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
           {blogAds.length === 0 ? (
             <div className="p-12 md:p-20 text-center">
@@ -327,7 +343,7 @@ export const BlogAdsManager: React.FC<BlogAdsManagerProps> = ({
               </div>
 
               {/* Rows */}
-              {blogAds.map(ad => (
+              {shownAds.map(ad => (
                 <div key={ad.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 p-6 hover:bg-slate-50/50 transition-all">
                   
                   {/* Thumbnail / Aspect Ratio Frame */}
@@ -403,6 +419,7 @@ export const BlogAdsManager: React.FC<BlogAdsManagerProps> = ({
               ))}
             </div>
           )}
+        </div>
         </div>
       )}
     </div>

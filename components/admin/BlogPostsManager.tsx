@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { BlogPost, AppCategory } from '../../types';
+import { AdminFilterBar } from './AdminFilterBar';
+import { PostFilter, EMPTY_POST_FILTER, filterPosts, distinct } from '../../services/adminFilters';
 import { 
   saveDicasCategory, deleteDicasCategory, 
   saveDicasSubcategory, deleteDicasSubcategory,
@@ -25,14 +27,11 @@ export const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   blogPosts, dicasCategories, onBack, onRefresh, notify, confirm
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('POSTS');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [postFilter, setPostFilter] = useState<PostFilter>(EMPTY_POST_FILTER);
   const [newCatName, setNewCatName] = useState('');
   const [newSubNames, setNewSubNames] = useState<{ [key: string]: string }>({});
 
-  const filteredPosts = blogPosts.filter(p => 
-    p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPosts = filterPosts(blogPosts, postFilter);
 
   const handleCreateCategory = async () => {
     if (!newCatName.trim()) {
@@ -169,25 +168,21 @@ export const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
       {activeTab === 'POSTS' ? (
         <div className="space-y-4">
           
-          {/* Controls bar */}
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full md:max-w-md">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                <Search size={16} />
-              </span>
-              <input 
-                type="text"
-                placeholder="Buscar por título, autor, tags ou categoria..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-xl font-medium text-sm outline-none focus:ring-2 focus:ring-ocean-500/20 shadow-sm transition-all"
-              />
-            </div>
-
-            <div className="text-xs text-slate-400 font-black uppercase tracking-widest self-end md:self-auto shrink-0 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-              Total de postagens: <span className="text-slate-800 font-extrabold">{blogPosts.length}</span>
-            </div>
-          </div>
+          <AdminFilterBar
+            testId="filters-posts"
+            search={postFilter.q}
+            onSearch={q => setPostFilter({ ...postFilter, q })}
+            placeholder="Buscar por título, autor ou categoria..."
+            shown={filteredPosts.length}
+            total={blogPosts.length}
+            onClear={() => setPostFilter(EMPTY_POST_FILTER)}
+            selects={[
+              { key: 'category', label: 'Categoria', value: postFilter.category, onChange: category => setPostFilter({ ...postFilter, category }),
+                options: distinct(blogPosts.map(p => p.category)).map(c => ({ value: c, label: c })) },
+              { key: 'status', label: 'Situação', value: postFilter.status, onChange: status => setPostFilter({ ...postFilter, status }),
+                options: [{ value: 'published', label: 'Publicadas' }, { value: 'draft', label: 'Rascunhos' }] },
+            ]}
+          />
 
           {/* Posts grid / table */}
           {filteredPosts.length === 0 ? (
