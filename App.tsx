@@ -1,6 +1,7 @@
 import { bindNativeEvents, watchKeyboard } from './services/native';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ConsentBanner } from './components/ConsentBanner';
+import { PushOptIn } from './components/PushOptIn';
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
@@ -371,6 +372,7 @@ function AppContent() {
       <PullToRefresh />
       <OfflineBanner />
       <ConsentBanner onNavigate={handleNavigate} />
+      <PushOptIn uid={user?.id} />
       {showChrome && (
           <NavBar
             currentUser={user}
