@@ -17,9 +17,9 @@ export const PartnerBanners: React.FC = () => {
       <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 snap-x snap-proximity">
         {list.map(b => (
           <a key={b.id} href={b.url} target="_blank" rel="sponsored noopener noreferrer" data-testid="partner-link"
-            className="snap-start shrink-0 w-44 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden active:scale-95 transition-transform">
-            <div className="h-20 bg-slate-50 flex items-center justify-center p-3 relative">
-              {b.imageUrl ? <img src={b.imageUrl} alt={b.name} referrerPolicy="no-referrer" loading="lazy" className="max-h-full max-w-full object-contain" /> : <span className="text-lg font-black text-ocean-950 text-center leading-tight">{b.name}</span>}
+            className="snap-start shrink-0 w-60 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden active:scale-95 transition-transform">
+            <div className="aspect-[11/6] bg-slate-50 flex items-center justify-center relative">
+              {b.imageUrl ? <img src={b.imageUrl} alt={b.name} referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" /> : <span className="text-lg font-black text-ocean-950 text-center leading-tight">{b.name}</span>}
               <span className="absolute top-1.5 left-1.5 bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">Parceiro</span>
             </div>
             <div className="p-3">

@@ -14,7 +14,11 @@ export const PartnerBannersAdmin: React.FC = () => {
   useEffect(() => { getGlobalSettings(true).then(s => setList(s.partnerBanners || [])); }, []);
 
   const patch = (id: string, p: Partial<PartnerBanner>) => setList(l => l.map(b => (b.id === id ? { ...b, ...p } : b)));
-  const add = () => setList(l => [...l, { id: `p_${Date.now()}`, name: '', url: '', active: true }]);
+  const add = (preset?: Partial<PartnerBanner>) => setList(l => [...l, { id: `p_${Date.now()}`, name: '', url: '', active: true, ...preset }]);
+  const PRESETS: { label: string; preset: Partial<PartnerBanner> }[] = [
+    { label: 'Mercado Livre', preset: { name: 'Mercado Livre', text: 'Leve na mala: protetor solar, snorkel e mais', imageUrl: 'https://lagosgo.com.br/brand/parceiros/leve-na-mala.png' } },
+    { label: 'Magazine Luiza', preset: { name: 'Magazine Luiza', text: 'Ofertas para a sua viagem', imageUrl: 'https://lagosgo.com.br/brand/parceiros/ofertas-viagem.png' } },
+  ];
   const save = async () => {
     const valid = sanitizePartnerBanners(list);
     if (valid.length !== list.length) { notify('error', 'Cada parceiro precisa de nome e link que comece com https:// (e imagem com https://, se houver).'); return; }
@@ -47,8 +51,11 @@ export const PartnerBannersAdmin: React.FC = () => {
           </div>
         </div>
       ))}
-      <div className="flex gap-2">
-        <button onClick={add} className="h-10 px-4 rounded-xl bg-slate-100 text-slate-700 text-xs font-black flex items-center gap-1.5"><Plus size={14} /> Adicionar parceiro</button>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => add()} className="h-10 px-4 rounded-xl bg-slate-100 text-slate-700 text-xs font-black flex items-center gap-1.5"><Plus size={14} /> Adicionar parceiro</button>
+        {PRESETS.filter(p => !list.some(b => b.name === p.preset.name)).map(p => (
+          <button key={p.label} onClick={() => add(p.preset)} className="h-10 px-4 rounded-xl bg-ocean-50 text-ocean-600 text-xs font-black flex items-center gap-1.5"><Plus size={14} /> {p.label}</button>
+        ))}
         <button onClick={save} disabled={saving} className="h-10 px-5 rounded-xl bg-ocean-600 text-white text-xs font-black flex items-center gap-2 disabled:opacity-60">{saving && <Loader2 size={14} className="animate-spin" />} Salvar</button>
       </div>
     </div>
