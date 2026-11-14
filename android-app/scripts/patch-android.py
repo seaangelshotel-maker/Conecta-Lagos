@@ -45,3 +45,4 @@ t = re.sub(r'versionCode \d+', f'versionCode {code}', t)
 t = re.sub(r'versionName "[^"]*"', 'versionName "1.0.' + code + '"', t)
 open(g, 'w').write(t)
 print('patch ok, versionCode', code)
+
