@@ -26,6 +26,7 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithCredential,
     sendPasswordResetEmail,
     updatePassword,
     // (login anônimo removido: resgate exige conta)
@@ -426,10 +427,21 @@ const createBaseProfile = async (uid: string, name: string, email: string, avata
 };
 
 export const loginWithGoogle = async (): Promise<User | null> => {
-    const provider = new GoogleAuthProvider();
-    // Force account selection to avoid automatic login with wrong account
-    provider.setCustomParameters({ prompt: 'select_account' });
-    const res = await signInWithPopup(auth, provider);
+    // No app Android (casca Capacitor) o Google bloqueia login em navegador embutido (erro 400):
+    // usa o seletor de contas nativo do Android e entrega o token ao Firebase Web.
+    const cap = (typeof window !== 'undefined' ? (window as any).Capacitor : undefined);
+    let res;
+    if (cap?.isNativePlatform?.() && cap?.nativePromise) {
+        const native = await cap.nativePromise('FirebaseAuthentication', 'signInWithGoogle', { skipNativeAuth: true });
+        const idToken = native?.credential?.idToken;
+        if (!idToken) throw new Error('Não foi possível entrar com o Google. Tente novamente.');
+        res = await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+    } else {
+        const provider = new GoogleAuthProvider();
+        // Force account selection to avoid automatic login with wrong account
+        provider.setCustomParameters({ prompt: 'select_account' });
+        res = await signInWithPopup(auth, provider);
+    }
     const userDoc = await getDoc(doc(db, 'users', res.user.uid));
     let userData: User;
     if (userDoc.exists()) {

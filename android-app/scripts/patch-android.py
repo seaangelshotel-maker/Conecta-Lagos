@@ -37,6 +37,9 @@ open(os.path.join(res, 'drawable', 'ic_stat_lagosgo.xml'), 'w').write('''<vector
 ''')
 open(os.path.join(res, 'values', 'lagosgo_colors.xml'), 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="lagosgo_notification">#1D5FA8</color></resources>\n')
 
+# Login nativo com Google: ID do cliente Web do projeto Firebase (identificador público).
+open(os.path.join(res, 'values', 'lagosgo_auth.xml'), 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources><string name="default_web_client_id" translatable="false">733864820546-j7jd0iolq1lmoh0he4s9delepfg95ohe.apps.googleusercontent.com</string></resources>\n')
+
 # Versão: versionCode cresce a cada build (Play exige)
 code = os.environ.get('VERSION_CODE', '1')
 g = os.path.join(root, 'build.gradle')
