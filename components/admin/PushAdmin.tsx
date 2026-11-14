@@ -55,7 +55,7 @@ export const PushAdmin: React.FC = () => {
       const r = await fetch('/api/push-send', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...f, dryRun }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Falha no envio.');
-      setResult(dryRun ? `${j.recipients} aparelho(s) receberiam esta notificação.` : `Enviada para ${j.sent} de ${j.recipients} aparelho(s). ${j.removed ? `${j.removed} aparelho(s) inativo(s) removido(s).` : ''}`);
+      setResult(dryRun ? `${j.recipients} aparelho(s) receberiam esta notificação.` : j.recipients === 0 ? 'Nenhum aparelho cadastrado ainda. Abra o app, toque em "Quero" no convite de avisos e tente de novo.' : `Enviada para ${j.sent} de ${j.recipients} aparelho(s). ${j.removed ? `${j.removed} aparelho(s) inativo(s) removido(s).` : ''}`);
     } catch (e: any) { setResult(e?.message || 'Falha no envio.'); }
     finally { setBusy(false); }
   };

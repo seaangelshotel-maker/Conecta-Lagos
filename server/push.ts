@@ -32,6 +32,7 @@ export const handlePushSend = async (req: Req, res: Res) => {
     const snap = await q.get();
     const tokens = snap.docs.map(d => d.id);
     if (body.dryRun) return sendJson(res, 200, { recipients: tokens.length });
+    if (!tokens.length) return sendJson(res, 200, { recipients: 0, sent: 0, failed: 0, removed: 0 });
 
     let sent = 0, failed = 0; const dead: string[] = [];
     for (let i = 0; i < tokens.length; i += 500) {
@@ -51,6 +52,8 @@ export const handlePushSend = async (req: Req, res: Res) => {
     await db.collection('push_campaigns').add({ title, body: text, link, topic, sent, failed, removed: dead.length, by: token.uid, at: new Date().toISOString() });
     return sendJson(res, 200, { recipients: tokens.length, sent, failed, removed: dead.length });
   } catch (e: any) {
-    return sendJson(res, 500, { error: 'Falha ao enviar. Confira as credenciais do Firebase na Vercel.' });
+    const code = String(e?.code || e?.errorInfo?.code || 'desconhecido');
+    console.error('[push-send] falha:', code, String(e?.message || e).slice(0, 300));
+    return sendJson(res, 500, { error: `Falha ao enviar (${code}). Confira as credenciais do Firebase na Vercel.` });
   }
 };
