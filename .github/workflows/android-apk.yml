@@ -30,7 +30,7 @@ jobs:
           npx cap add android
           cp google-services.json android/app/google-services.json
           npx capacitor-assets generate --android --assetPath assets
-          VERSION_CODE=${{ github.run_number }} python3 scripts/patch-android.py
+          VERSION_CODE=$(( ${{ github.run_number }} + 10 )) python3 scripts/patch-android.py
           npx cap sync android
       - name: Compilar
         run: |
