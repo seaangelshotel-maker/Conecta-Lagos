@@ -15,6 +15,7 @@ import { SearchBar, HScroller } from '../components/DiscoverUI';
 import { FilterSheet, EMPTY_FILTERS, countFilters, type HomeFilters } from '../components/FilterSheet';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { LeadCard, CompactCard, openContent } from '../components/FeedCards';
+import { PARTNER_DISCLOSURE } from '../services/partnerBanners';
 import { getAllBusinesses, getBlogPosts, getCollections, getHomeHighlights, redeemCoupon } from '../services/dataService';
 import { getGuideArticles } from '../services/guideService';
 import { orderFeedByGeo } from '../services/regionGeo';
@@ -198,7 +199,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
                 className={`absolute inset-0 transition-opacity duration-700 cursor-pointer ${idx === slide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
                 <img src={h.imageUrl} className="w-full h-full object-cover" alt={h.title} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/30 to-transparent flex flex-col justify-end p-5 md:p-10">
-                  <span className="bg-red-600 text-white text-[10px] font-black uppercase px-2 py-1 rounded w-fit mb-2">Novo</span>
+                  <span className={`${h.partner ? 'bg-slate-900/80' : 'bg-red-600'} text-white text-[10px] font-black uppercase px-2 py-1 rounded w-fit mb-2`}>{h.partner ? 'Parceiro' : 'Novo'}</span>
                   <h2 className="text-white text-xl md:text-4xl font-black mb-1 drop-shadow-md leading-tight">{h.title}</h2>
                   <p className="text-slate-200 text-xs md:text-sm font-medium line-clamp-1">{h.description}</p>
                 </div>
@@ -218,6 +219,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
               </div>
             )}
           </div>
+          {highlights[slide]?.partner && <p className="text-[10px] text-slate-400 mt-1.5 leading-snug" data-testid="highlight-partner-note">{PARTNER_DISCLOSURE}</p>}
         </section>
 
         {/* B2. Agenda: o que está acontecendo (cidade da pessoa primeiro; a região toda segue à vista) */}

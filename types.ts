@@ -370,6 +370,8 @@ export interface HomeHighlight {
   buttonLink: string;
   order: number;
   active: boolean;
+  /** Destaque de parceiro com link de afiliado: mostra a etiqueta "Parceiro" e o aviso de comissão. */
+  partner?: boolean;
 }
 
 export interface FeaturedConfig {

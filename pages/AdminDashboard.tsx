@@ -3459,12 +3459,24 @@ const HighlightsManager: React.FC<{ highlights: HomeHighlight[]; onBack: () => v
                 <button onClick={onBack} className="flex items-center gap-2 text-ocean-600 font-black text-xs uppercase">
                     <ChevronLeft size={16} /> Voltar
                 </button>
-                <button 
-                    onClick={() => setEditingHighlight({ title: '', description: '', imageUrl: '', buttonText: '', buttonLink: '', order: highlights.length, active: true })}
-                    className="bg-ocean-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg flex items-center gap-2"
-                >
-                    <Plus size={18} /> NOVO DESTAQUE
-                </button>
+                <div className="flex flex-wrap gap-2 justify-end">
+                    {[
+                        { title: 'Mercado Livre', description: 'Leve na mala: protetor solar, snorkel e mais', imageUrl: 'https://lagosgo.com.br/brand/parceiros/leve-na-mala.png' },
+                        { title: 'Magazine Luiza', description: 'Ofertas para a sua viagem', imageUrl: 'https://lagosgo.com.br/brand/parceiros/ofertas-viagem.png' },
+                    ].filter(p => !highlights.some(h => h.title === p.title)).map(p => (
+                        <button key={p.title} data-testid={`highlight-preset-${p.title}`}
+                            onClick={() => setEditingHighlight({ ...p, buttonText: 'Ver ofertas', buttonLink: 'https://lagosgo.com.br/#parceiro', order: highlights.length, active: true, partner: true })}
+                            className="bg-ocean-50 text-ocean-600 px-5 py-3 rounded-2xl font-black text-xs flex items-center gap-2">
+                            <Plus size={16} /> {p.title.toUpperCase()}
+                        </button>
+                    ))}
+                    <button 
+                        onClick={() => setEditingHighlight({ title: '', description: '', imageUrl: '', buttonText: '', buttonLink: '', order: highlights.length, active: true })}
+                        className="bg-ocean-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg flex items-center gap-2"
+                    >
+                        <Plus size={18} /> NOVO DESTAQUE
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-6">
