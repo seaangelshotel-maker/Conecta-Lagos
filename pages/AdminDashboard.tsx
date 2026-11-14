@@ -43,6 +43,7 @@ import { PublicPlacesImport } from '../components/admin/PublicPlacesImport';
 import { FeaturedBusinessesImport } from '../components/admin/FeaturedBusinessesImport';
 import { PublicServicesImport } from '../components/admin/PublicServicesImport';
 import { PlanPreview } from '../components/PlanPreview';
+import { PartnerBannersAdmin } from '../components/admin/PartnerBannersAdmin';
 import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
@@ -3162,6 +3163,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </button>
               </div>
               <EcosystemSettings />
+              <PartnerBannersAdmin />
               <PublicPlacesImport />
               <FeaturedBusinessesImport />
               <PublicServicesImport />

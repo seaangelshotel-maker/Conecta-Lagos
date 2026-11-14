@@ -388,6 +388,8 @@ export interface AppGlobalSettings {
   defaultMaxEvents?: number | null;
   /** Atendimento especializado (Guida Trips ou outra operação configurada). */
   specialistReferral?: SpecialistReferralSettings;
+  /** Banners de parceiros com link de afiliado (aparecem na Home com a etiqueta "Parceiro"). */
+  partnerBanners?: import('./services/partnerBanners').PartnerBanner[];
 }
 
 export interface PaymentSettings {

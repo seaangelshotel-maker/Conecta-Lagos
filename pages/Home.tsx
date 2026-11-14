@@ -27,6 +27,7 @@ import { useWallet } from '../services/walletService';
 import { countByCategory, filterBusinesses } from '../services/discoverLogic';
 import { needNowCounts } from '../services/needNow';
 import { NeedNow } from '../components/NeedNow';
+import { PartnerBanners } from '../components/PartnerBanners';
 import { C } from '../data/guideArticles';
 import { openExternal } from '../services/native';
 import { useCoupons } from '../hooks/useFirestore';
@@ -287,6 +288,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
             </div>
           </section>
         )}
+
+        <PartnerBanners />
 
         <div className="px-4"><SpecialistReferral source="home" /></div>
       </div>

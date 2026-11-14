@@ -43,6 +43,7 @@ import { claimApprovalCheck, siblingClaims, pendingClaimFor, validateClaim, rele
 import { needsDowngrade, downgradeFields, FREE_PLAN_ID, addPlanPeriod } from './planRules';
 import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
+import { PartnerBanner, sanitizePartnerBanners } from './partnerBanners';
 export type { AppGlobalSettings };
 
 const SESSION_KEY = 'lagos_go_session_v1';
@@ -2891,6 +2892,14 @@ export const saveDefaultLimits = async (defaultMaxCoupons: number | null, defaul
     if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
     const clean = (n: number | null) => n === null ? deleteField() : Math.max(0, Math.floor(n));
     await setDoc(doc(db, 'app_settings', 'global'), { defaultMaxCoupons: clean(defaultMaxCoupons), defaultMaxEvents: clean(defaultMaxEvents) }, { merge: true });
+    _globalSettings = null;
+    notifyListeners();
+};
+
+/** Admin: salva os banners de parceiros (só https; nome obrigatório). Não mexe nos outros campos. */
+export const savePartnerBanners = async (list: PartnerBanner[]) => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode fazer isso.');
+    await setDoc(doc(db, 'app_settings', 'global'), { partnerBanners: sanitizePartnerBanners(list).map(b => cleanObject(b)) }, { merge: true });
     _globalSettings = null;
     notifyListeners();
 };
