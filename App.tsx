@@ -24,6 +24,7 @@ const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.S
 const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
 const PrivacyPolicy = lazy(() => import('./pages/Legal').then(m => ({ default: m.PrivacyPolicy })));
 const TermsOfUse = lazy(() => import('./pages/Legal').then(m => ({ default: m.TermsOfUse })));
+const InstallPage = lazy(() => import('./pages/Install').then(m => ({ default: m.InstallPage })));
 const DeleteAccountPage = lazy(() => import('./pages/Legal').then(m => ({ default: m.DeleteAccountPage })));
 const BusinessDetail = lazy(() => import('./pages/BusinessDetail').then(m => ({ default: m.BusinessDetail })));
 const Discover = lazy(() => import('./pages/Discover').then(m => ({ default: m.Discover })));
@@ -89,6 +90,7 @@ const parseUrl = (): Route => {
     case '/privacidade': return { page: 'privacy', params: null };
     case '/termos': return { page: 'terms', params: null };
     case '/excluir-conta': return { page: 'delete-account', params: null };
+    case '/instalar': return { page: 'install', params: null };
     case '/blog': return { page: 'blog', params: null };
     case '/collections': return { page: 'collections', params: null };
     case '/map': return { page: 'map', params: null };
@@ -132,6 +134,7 @@ const buildUrl = (page: string, params?: any): string => {
     case 'privacy': return '/privacidade';
     case 'terms': return '/termos';
     case 'delete-account': return '/excluir-conta';
+    case 'install': return '/instalar';
     case 'map': return '/map';
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
@@ -290,6 +293,8 @@ function AppContent() {
         return <PrivacyPolicy onNavigate={handleNavigate} currentUser={user} />;
       case 'terms':
         return <TermsOfUse onNavigate={handleNavigate} />;
+      case 'install':
+        return <InstallPage onNavigate={handleNavigate} />;
       case 'delete-account':
         return <DeleteAccountPage onNavigate={handleNavigate} currentUser={user} />;
       case 'discover':

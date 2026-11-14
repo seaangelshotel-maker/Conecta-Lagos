@@ -50,7 +50,7 @@ export const PUBLIC_STATIC_PATHS = [
 ];
 
 /** Áreas privadas ou de ação: existem, mas não entram no Google. */
-export const PRIVATE_PATH_RE = /^\/(admin-dashboard|super-admin-dashboard|user-dashboard|journalist-dashboard|login|create-business|subscribe|search|ajuda\/(editar|gerenciar|minhas|interesses|publicar))(\/|$)/;
+export const PRIVATE_PATH_RE = /^\/(admin-dashboard|super-admin-dashboard|user-dashboard|journalist-dashboard|login|create-business|subscribe|search|instalar|ajuda\/(editar|gerenciar|minhas|interesses|publicar))(\/|$)/;
 
 /** Padrões de página de conteúdo (um por tipo). */
 export const CONTENT_PATH_RE = /^\/(business|blog|guia|journalist|collection|eventos|ajuda)\/[^/]+$/;

@@ -144,6 +144,7 @@ test('endereço inexistente é 404 e sem índice; páginas reais não', async ()
   assert.equal((await pageMeta('/eventos', 'https://x.com')).notFound, undefined);
   assert.equal(isKnownPath('/pricing-plans'), true);
   assert.equal(isKnownPath('/login'), true);
+  assert.equal(isKnownPath('/instalar'), true);
   assert.equal(isKnownPath('/nada'), false);
   assert.equal((await pageMeta('/login', 'https://x.com')).noindex, true);
 });
