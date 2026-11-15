@@ -11,6 +11,7 @@ import { db } from './firebase';
 import { getCurrentUser, getCategories } from './dataService';
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
+import { bumpContentVersion } from './contentVersion';
 import {
     FEATURED_BUSINESSES, FEATURED_BATCH, FEATURED_TAXONOMY, FREE_TRIAL_DAYS, FREE_TRIAL_PLAN, FeaturedBusiness,
 } from '../data/featuredBusinesses';
@@ -132,5 +133,6 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
         onProgress?.(done, preview.toCreate.length);
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
+    if (published + drafts > 0) await bumpContentVersion();
     return { published, drafts };
 };

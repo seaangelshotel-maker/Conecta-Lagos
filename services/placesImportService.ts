@@ -12,6 +12,7 @@ import { getCurrentUser, getCategories, saveCity, getCities } from './dataServic
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
 import { PUBLIC_PLACES, PUBLIC_PLACES_BATCH, NEW_CITIES, PublicPlace } from '../data/publicPlaces';
+import { bumpContentVersion } from './contentVersion';
 
 const normalize = (s: string) => s
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -107,5 +108,6 @@ export const runPublicPlacesImport = async (onProgress?: (done: number, total: n
         onProgress?.(done, preview.toCreate.length);
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
+    if (done > 0) await bumpContentVersion();
     return done;
 };

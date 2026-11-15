@@ -32,7 +32,8 @@ import {
     // (login anônimo removido: resgate exige conta)
 } from 'firebase/auth';
 import { auth, db } from './firebase';
-import { cacheGet, cacheSet, cacheClear, TTL } from './readCache';
+import { cacheGet, cacheSet, cacheClear, cacheGetVersioned, cacheSetVersioned, TTL, TTL_VERSIONED } from './readCache';
+import { getRemoteContentVersion, bumpContentVersion } from './contentVersion';
 import {
     Coupon, User, UserRole, BusinessProfile, BlogPost, SavingsRecord,
     CompanyRequest, AppCategory, Subcategory, DEFAULT_CATEGORIES,
@@ -538,14 +539,27 @@ const canUseReadCache = () => {
     return !u || u.role === UserRole.CUSTOMER;
 };
 
-/** Lê todas as empresas: usa cache de 10 min no aparelho para quem só navega. */
+/** Lê todas as empresas. Visitante/cliente: cópia no aparelho, válida enquanto o carimbo de versão não mudar (até 3 h);
+ *  sem conseguir ler o carimbo, vale a cópia curta de 10 min. Admin/empresa leem sempre do banco. */
 const loadAllBusinesses = async (source: string) => {
-    const cached = canUseReadCache() ? cacheGet<BusinessProfile[]>('businesses', TTL.businesses) : null;
-    if (cached && cached.length) { _businesses = cached; return; }
+    const useCache = canUseReadCache();
+    const version = useCache ? await getRemoteContentVersion() : null;
+    if (useCache) {
+        if (version !== null) {
+            const c = cacheGetVersioned<BusinessProfile[]>('businesses2', version, TTL_VERSIONED);
+            if (c && c.length) { _businesses = c; return; }
+        } else {
+            const c = cacheGet<BusinessProfile[]>('businesses', TTL.businesses);
+            if (c && c.length) { _businesses = c; return; }
+        }
+    }
     const snap = await getDocs(collection(db, 'businesses'));
     trackRead('businesses', snap.size, source);
     _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
-    if (canUseReadCache()) cacheSet('businesses', _businesses);
+    if (useCache) {
+        if (version !== null) cacheSetVersioned('businesses2', version, _businesses);
+        else cacheSet('businesses', _businesses);
+    }
 };
 
 export const getAllBusinesses = async (includePending = false) => {
@@ -1344,6 +1358,7 @@ export const saveBusiness = async (b: BusinessProfile) => {
         const ref = doc(db, 'businesses', b.id);
         if (isCurrentUserAdmin()) {
             await setDoc(ref, cleanObject(b), { merge: true });
+            void bumpContentVersion();
         } else {
             const existing = await getDoc(ref);
             if (existing.exists()) {
@@ -1354,6 +1369,7 @@ export const saveBusiness = async (b: BusinessProfile) => {
                 });
                 editable.updatedAt = new Date().toISOString();
                 await setDoc(ref, cleanObject(editable), { merge: true });
+                void bumpContentVersion();
             } else {
                 const user = getCurrentUser();
                 const creation: any = { ...b };
@@ -1366,6 +1382,7 @@ export const saveBusiness = async (b: BusinessProfile) => {
                 else if (creation.plan !== 'free' && creation.plan !== user?.plan) creation.plan = 'free';
                 creation.createdAt = creation.createdAt || new Date().toISOString();
                 await setDoc(ref, cleanObject(creation));
+                void bumpContentVersion();
             }
         }
 
@@ -1407,6 +1424,7 @@ export const getMyBusinesses = async (userId: string): Promise<BusinessProfile[]
  */
 export const toggleBusinessStatus = async (businessId: string, isBlocked: boolean) => {
     await updateDoc(doc(db, 'businesses', businessId), { isBlocked });
+    void bumpContentVersion();
     const idx = _businesses.findIndex(b => b.id === businessId);
     if (idx >= 0) _businesses[idx] = { ..._businesses[idx], isBlocked };
     notifyListeners();
@@ -1424,6 +1442,7 @@ export const setUserBlocked = async (userId: string, isBlocked: boolean) => {
 export const deleteBusiness = async (businessId: string) => {
     try {
         await deleteDoc(doc(db, 'businesses', businessId));
+        void bumpContentVersion();
         // Delete their coupons
         const couponsQuery = query(collection(db, 'coupons'), where('companyId', '==', businessId));
         const couponsSnap = await getDocs(couponsQuery);
@@ -2478,6 +2497,7 @@ export const createAdminPlace = async (data: Partial<BusinessProfile>) => {
         ...data
     };
     await setDoc(doc(db, 'businesses', id), newPlace);
+    void bumpContentVersion();
     _businesses.push(newPlace);
     notifyListeners();
     return newPlace;
@@ -2485,6 +2505,7 @@ export const createAdminPlace = async (data: Partial<BusinessProfile>) => {
 
 export const updateClaimableStatus = async (id: string, canBeClaimed: boolean) => {
     await updateDoc(doc(db, 'businesses', id), { canBeClaimed });
+    void bumpContentVersion();
     const biz = _businesses.find(b => b.id === id);
     if (biz) biz.canBeClaimed = canBeClaimed;
     notifyListeners();
@@ -2511,6 +2532,7 @@ export const updateBusinessPlan = async (businessId: string, planId: string) => 
     };
     
     await updateDoc(doc(db, 'businesses', businessId), updates);
+    void bumpContentVersion();
     
     const biz = _businesses.find(b => b.id === businessId);
     if (biz) {
@@ -2601,6 +2623,7 @@ export const approveBusiness = async (businessId: string) => {
             active: true,
             updatedAt: new Date().toISOString()
         });
+        void bumpContentVersion();
         
         // Update local cache if needed
         const index = _businesses.findIndex(b => b.id === businessId);
@@ -2665,6 +2688,7 @@ export const approveCompanyRequest = async (requestId: string) => {
         await updateDoc(doc(db, 'businesses', request.companyId!), {
             isClaimed: true, canBeClaimed: false, ownerId: request.userId, updatedAt: new Date().toISOString()
         });
+        void bumpContentVersion();
         // Outros pedidos para a mesma empresa deixam de fazer sentido.
         const all = await getDocs(query(collection(db, 'companyRequests'), where('companyId', '==', request.companyId)));
         const others = siblingClaims(all.docs.map(d => ({ id: d.id, ...d.data() } as CompanyRequest)), request);

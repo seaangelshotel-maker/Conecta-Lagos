@@ -44,3 +44,13 @@ export const cacheClear = (key?: string, s: StorageLike | null = store()) => {
 
 /** Janelas de validade. Curtas o bastante para o Guia parecer "ao vivo". */
 export const TTL = { businesses: 10 * 60_000, profiles: 30 * 60_000 } as const;
+/** Com o carimbo de versão conferido, a cópia dos negócios vale até 3 h (o carimbo muda na hora em que algo é publicado). */
+export const TTL_VERSIONED = 3 * 60 * 60_000;
+
+/** Cópia versionada: só vale se o carimbo guardado for igual ao atual (e dentro da validade). */
+export const cacheGetVersioned = <T>(key: string, version: string, ttlMs: number, now = Date.now(), s: StorageLike | null = store()): T | null => {
+  const c = cacheGet<{ v: string; data: T }>(key, ttlMs, now, s);
+  return c && c.v === version ? c.data : null;
+};
+export const cacheSetVersioned = (key: string, version: string, data: unknown, now = Date.now(), s: StorageLike | null = store()): boolean =>
+  cacheSet(key, { v: version, data }, now, s);

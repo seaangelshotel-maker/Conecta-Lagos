@@ -7,6 +7,7 @@ import { db } from './firebase';
 import { getCurrentUser } from './dataService';
 import { BlogPost, BusinessProfile, UserRole } from '../types';
 import { GUIDE_ARTICLES, GUIDE_BATCH } from '../data/guideArticles';
+import { bumpContentVersion } from './contentVersion';
 
 let _articles: BlogPost[] | null = null;
 
@@ -81,6 +82,7 @@ export const runGuideImport = async (onProgress?: (done: number, total: number) 
 export const saveBusinessExperienceTags = async (b: BusinessProfile, tags: string[]) => {
   requireAdmin();
   await updateDoc(doc(db, 'businesses', b.id), { experienceTags: tags });
+  void bumpContentVersion();
   b.experienceTags = tags;
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
 };

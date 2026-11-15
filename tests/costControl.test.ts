@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cacheGet, cacheSet, cacheClear, MAX_CACHE_CHARS } from '../services/readCache';
+import { cacheGet, cacheSet, cacheClear, cacheGetVersioned, cacheSetVersioned, MAX_CACHE_CHARS } from '../services/readCache';
 import { createThrottle } from '../services/throttle';
 
 const memStore = () => {
@@ -45,4 +45,12 @@ test('freio: limite por janela e volta depois dela', () => {
   const t = createThrottle({ sameKeyMs: 0, maxPerWindow: 3, windowMs: 1000 });
   assert.deepEqual([1, 2, 3, 4].map(i => t.allow('k' + i, 10)), [true, true, true, false]);
   assert.equal(t.allow('z', 2000), true);
+});
+
+test('cópia versionada: vale com o mesmo carimbo, cai quando o carimbo muda ou a validade acaba', () => {
+  const s = memStore();
+  assert.ok(cacheSetVersioned('b', '100', [{ id: 'a' }], 1000, s));
+  assert.deepEqual(cacheGetVersioned('b', '100', 5000, 2000, s), [{ id: 'a' }]);
+  assert.equal(cacheGetVersioned('b', '101', 5000, 2000, s), null, 'carimbo novo = conteúdo publicado, lê de novo');
+  assert.equal(cacheGetVersioned('b', '100', 5000, 9000, s), null, 'passou da validade');
 });

@@ -418,6 +418,19 @@ service cloud.firestore {
     }
 
     // Configurações privadas (pagamentos).
+    // Carimbo de versão do conteúdo do Guia (o app só relê os negócios quando ele muda).
+    // Escrita: admin ou usuário logado, no máximo 1 vez por minuto e só com os campos v e t
+    // (impede que alguém force todo mundo a reler o banco em sequência).
+    match /meta/content_version {
+      allow read: if true;
+      allow write: if isAdmin() || (isAuthenticated() && isNotBlocked()
+        && request.resource.data.keys().hasOnly(['v', 't'])
+        && request.resource.data.v is string && request.resource.data.v.size() <= 20
+        && request.resource.data.t is number
+        && (!exists(/databases/$(database)/documents/meta/content_version)
+            || request.time.toMillis() > resource.data.get('t', 0) + 60000));
+    }
+
     // Aparelhos que aceitaram notificações. O id é o próprio token (segredo do aparelho).
     match /push_tokens/{token} {
       allow read: if isAdmin();

@@ -10,6 +10,7 @@ import { getCurrentUser, getCategories } from './dataService';
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
 import { PUBLIC_SERVICES, PUBLIC_SERVICES_BATCH, PublicService } from '../data/publicServices';
+import { bumpContentVersion } from './contentVersion';
 
 const normalize = (s: string) => s
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -63,5 +64,6 @@ export const runPublicServicesImport = async (onProgress?: (done: number, total:
         onProgress?.(done, preview.toCreate.length);
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
+    if (done > 0) await bumpContentVersion();
     return done;
 };
