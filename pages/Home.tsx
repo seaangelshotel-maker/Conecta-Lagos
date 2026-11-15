@@ -22,6 +22,7 @@ import { orderFeedByGeo } from '../services/regionGeo';
 import { pickEditorial } from '../services/editorialPick';
 import { useRegionLocation } from '../hooks/useRegionLocation';
 import { RegionChip } from '../components/RegionChip';
+import { BellButton } from '../components/NotificationBell';
 import { openAppDrawer } from '../components/AppDrawer';
 import { EventsShelf } from '../components/EventCards';
 import { WalletCard } from '../components/WalletCard';
@@ -133,7 +134,8 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
               <button onClick={openAppDrawer} aria-label="Abrir menu" data-testid="home-menu-btn" className="md:hidden shrink-0 w-9 h-9 rounded-full bg-white/15 border border-white/30 flex items-center justify-center"><Menu size={18} /></button>
               <RegionChip loc={loc} compact />
             </div>
-            <div className="relative shrink-0">
+            <div className="relative shrink-0 flex items-center gap-2">
+              <BellButton uid={currentUser?.id} onClick={() => onNavigate('notifications')} className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-white" />
               <button onClick={() => setShowFlags(v => !v)} aria-label="Alterar idioma" aria-expanded={showFlags} data-testid="lang-btn" className="w-9 h-9 rounded-full bg-white/15 border border-white/30 text-lg flex items-center justify-center">{language}</button>
               {showFlags && (
                 <>

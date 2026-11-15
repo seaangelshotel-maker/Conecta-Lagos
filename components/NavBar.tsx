@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { BellButton } from './NotificationBell';
 import { Home, Ticket, User, Compass, Sparkles, HandHeart } from 'lucide-react';
 import { User as UserType, UserRole, AppConfig } from '../types';
 import { getAppConfig, getCoupons } from '../services/dataService';
@@ -147,6 +148,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
           {t('Anuncie Conosco')}
         </button>
         
+        <BellButton uid={currentUser?.id} onClick={() => onNavigate('notifications')} className="w-9 h-9 rounded-full bg-ocean-50 border border-ocean-100 text-ocean-600" />
         {currentUser ? (
              <button onClick={() => onNavigate('user-dashboard')} className="flex items-center gap-2 text-ocean-600 font-bold border border-ocean-100 bg-ocean-50 px-4 py-1.5 rounded-full hover:bg-ocean-100">
                 <User size={18} />

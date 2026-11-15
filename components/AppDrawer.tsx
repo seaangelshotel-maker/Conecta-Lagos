@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
+import { Bell,
   Home, Compass, Ticket, Sparkles, HandHeart, CalendarDays, Map as MapIcon, Layers, Megaphone,
   User as UserIcon, LogIn, Share2, Star, Mail, ShieldCheck, FileText, X, ChevronRight, Menu, RefreshCw,
 } from 'lucide-react';
@@ -75,6 +75,7 @@ export const AppDrawer: React.FC<Props> = ({ currentUser, currentPage, onNavigat
     { label: 'Guia de lugares', icon: <Compass size={20} />, page: 'guide', active: ['guide'] },
     { label: 'Mapa', icon: <MapIcon size={20} />, page: 'map', active: ['map'] },
     { label: 'Cupons e ofertas', icon: <Ticket size={20} />, page: 'search', active: ['search'] },
+    { label: 'Avisos', icon: <Bell size={20} />, page: 'notifications', active: ['notifications'] },
     { label: 'Eventos', icon: <CalendarDays size={20} />, page: 'events', active: ['events', 'event-detail'] },
     { label: 'Feed e dicas', icon: <Sparkles size={20} />, page: 'blog', active: ['blog', 'blog-detail'] },
     { label: 'Coleções', icon: <Layers size={20} />, page: 'collections', active: ['collections', 'collection-detail'] },

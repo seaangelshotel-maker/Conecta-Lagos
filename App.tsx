@@ -7,7 +7,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { NavBar } from './components/NavBar';
-import { NotificationBell } from './components/NotificationBell';
+import { PushTapHandler } from './components/NotificationBell';
+import { NotificationsPage } from './pages/Notifications';
 import { AppDrawer } from './components/AppDrawer';
 import { AppSplash, PullToRefresh } from './components/AppExtras';
 import { Home } from './pages/Home';
@@ -95,6 +96,7 @@ const parseUrl = (): Route => {
     case '/termos': return { page: 'terms', params: null };
     case '/excluir-conta': return { page: 'delete-account', params: null };
     case '/instalar': return { page: 'install', params: null };
+    case '/avisos': return { page: 'notifications', params: null };
     case '/blog': return { page: 'blog', params: null };
     case '/collections': return { page: 'collections', params: null };
     case '/map': return { page: 'map', params: null };
@@ -139,6 +141,7 @@ const buildUrl = (page: string, params?: any): string => {
     case 'terms': return '/termos';
     case 'delete-account': return '/excluir-conta';
     case 'install': return '/instalar';
+    case 'notifications': return '/avisos';
     case 'map': return '/map';
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
@@ -168,7 +171,7 @@ const AUTH_PAGES = new Set([
 ]);
 
 /** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
-const FULLSCREEN_PAGES = new Set(['event-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
+const FULLSCREEN_PAGES = new Set(['notifications', 'event-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -299,6 +302,8 @@ function AppContent() {
         return <TermsOfUse onNavigate={handleNavigate} />;
       case 'install':
         return <InstallPage onNavigate={handleNavigate} />;
+      case 'notifications':
+        return <NotificationsPage currentUser={user} onNavigate={handleNavigate} />;
       case 'delete-account':
         return <DeleteAccountPage onNavigate={handleNavigate} currentUser={user} />;
       case 'discover':
@@ -374,7 +379,7 @@ function AppContent() {
       <OfflineBanner />
       <ConsentBanner onNavigate={handleNavigate} />
       <PushOptIn uid={user?.id} />
-      {showChrome && <NotificationBell uid={user?.id} />}
+      <PushTapHandler />
       {showChrome && (
           <NavBar
             currentUser={user}
