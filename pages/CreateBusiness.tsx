@@ -4,6 +4,8 @@ import { addPlanPeriod, brl, periodLabel, planTotal } from '../services/planRule
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, BusinessProfile, PricingPlan } from '../types';
 import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans } from '../services/dataService';
+import { LocationPicker, type LocationSource } from '../components/LocationPicker';
+import { buildAddressQuery, isValidLatLng } from '../services/geoRules';
 import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 import { ImageUpload } from '../components/ImageUpload';
@@ -61,9 +63,12 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
         coverImage: ''
     });
 
+    const [pin, setPin] = useState<{ lat: number; lng: number; source: LocationSource } | null>(null);
+
     const nextStep = () => {
         if (step === 1 && !formData.name.trim()) return notify('warning', "Por favor, insira o nome da empresa.");
         if (step === 2 && (!formData.cityId || !formData.neighborhoodId || !formData.address)) return notify('warning', "Por favor, preencha todos os dados de localização.");
+        if (step === 2 && !pin) return notify('warning', "Marque o local da empresa no mapa (use \"Estou aqui\" ou busque pelo endereço).");
         setStep(s => Math.min(s + 1, totalSteps));
         window.scrollTo(0, 0);
     };
@@ -107,15 +112,17 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 address: formData.address,
                 cityId: formData.cityId,
                 neighborhoodId: formData.neighborhoodId,
-                lat: selectedNeighborhood?.lat,
-                lng: selectedNeighborhood?.lng,
+                // Ponto marcado no mapa (GPS, endereço ou pino). Sem ele, o centro do bairro.
+                lat: pin?.lat ?? selectedNeighborhood?.lat,
+                lng: pin?.lng ?? selectedNeighborhood?.lng,
+                ...(pin ? { locationSource: pin.source, locationSetAt: new Date().toISOString() } : {}),
                 phone: formData.phone,
                 // O campo do cadastro é o WhatsApp: grava nos dois, senão o botão "WhatsApp" do perfil nasce sem número.
                 whatsapp: formData.phone,
                 ...(formData.instagram.trim() ? { instagram: formData.instagram.trim().replace(/^@/, '') } : {}),
                 amenities: [],
                 openingHours: {},
-                rating: 5,
+                rating: 0,
                 views: 0,
                 shares: 0,
                 isClaimed: true,
@@ -305,6 +312,20 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                             value={formData.address}
                                             onChange={e => setFormData({...formData, address: e.target.value})}
                                         />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Local no mapa</label>
+                                        <LocationPicker
+                                            initialLat={pin?.lat}
+                                            initialLng={pin?.lng}
+                                            addressHint={buildAddressQuery({
+                                                address: formData.address,
+                                                neighborhood: neighborhoods.find(n => n.id === formData.neighborhoodId)?.name,
+                                                city: cities.find(c => c.id === formData.cityId)?.name,
+                                            })}
+                                            onLocationSelect={(lat, lng, source) => setPin({ lat, lng, source: source || 'map' })}
+                                        />
+                                        {pin && isValidLatLng(pin) && <p className="mt-2 text-xs font-bold text-emerald-600">Local marcado ✓</p>}
                                     </div>
                                 </div>
                             </div>

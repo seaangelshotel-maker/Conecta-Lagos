@@ -47,6 +47,7 @@ import { needsDowngrade, downgradeFields, FREE_PLAN_ID, addPlanPeriod } from './
 import { couponSaving, isExpired, checkRedemptionCode, CODE_ERROR_MESSAGE, couponQuota, couponQuotaState, couponNeedsReapproval } from './walletRules';
 
 import { PartnerBanner, sanitizePartnerBanners } from './partnerBanners';
+import { businessPublicRating, computeStats, reviewDocId, cleanReply } from './reviewRules';
 export type { AppGlobalSettings };
 
 const SESSION_KEY = 'lagos_go_session_v1';
@@ -1360,7 +1361,7 @@ export const getPendingReviews = async () => {
 export const BUSINESS_PROTECTED_KEYS = [
     'isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
     'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
-    'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
+    'ownerId', 'rating', 'reviewCount', 'reviews', 'ratingStats', 'views', 'shares', 'actionCounts',
     'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags'
 ];
 
@@ -1565,33 +1566,52 @@ export const getCategories = async (forceRefresh = false) => {
     return _categories;
 };
 
-export const addReview = async (businessId: string, review: Omit<Review, 'id' | 'date'>) => {
-    const business = _businesses.find(b => b.id === businessId) || await getBusinessById(businessId);
-    if (!business) throw new Error('Empresa não encontrada.');
-    const user = getCurrentUser();
-    if (!user) throw new Error('Entre na sua conta para avaliar.');
+export interface ReviewPosition { lat: number; lng: number; accuracy?: number }
+export interface ReviewResult { reviewStatus: 'approved' | 'pending'; proof?: 'coupon' | 'checkin' }
 
-    const rating = Math.round(Number(review.rating));
-    if (!(rating >= 1 && rating <= 5)) throw new Error('Escolha uma nota de 1 a 5.');
-    const comment = (review.comment || '').trim();
-    if (comment.length > 2000) throw new Error('O comentário pode ter no máximo 2000 caracteres.');
-
-    const newReviewId = doc(collection(db, 'reviews')).id;
-    const newReview: Review = {
-        ...review,
-        rating,
-        comment,
-        userId: user.id,
-        id: newReviewId,
-        date: new Date().toISOString(),
-        status: 'pending',
-        businessId: businessId,
-        businessName: business.name
-    };
-
-    await setDoc(doc(db, 'reviews', newReviewId), cleanObject(newReview));
+/**
+ * Envia uma avaliação. O servidor confere a prova da visita (cupom usado ou check-in por GPS),
+ * o intervalo entre avaliações e o texto. Ver server/reviews.ts.
+ */
+export const addReview = async (
+    businessId: string,
+    review: { rating: number; comment: string },
+    position?: ReviewPosition | null,
+): Promise<ReviewResult> => {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error('Entre na sua conta para avaliar.');
+    const res = await fetch('/api/email?action=review-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ businessId, rating: review.rating, comment: review.comment, position: position || null }),
+    });
+    const data = await res.json().catch(() => ({} as any));
+    if (!res.ok) throw new Error(data?.error || 'Não foi possível enviar a avaliação agora.');
     notifyListeners();
-    return newReview;
+    return { reviewStatus: data.reviewStatus, proof: data.proof };
+};
+
+/** O usuário já usou (e a empresa confirmou) um cupom desta empresa? Libera avaliar sem check-in. */
+export const hasConfirmedCoupon = async (businessId: string): Promise<boolean> => {
+    const user = getCurrentUser();
+    if (!user) return false;
+    try {
+        const snap = await getDocs(query(
+            collection(db, 'redemptions'),
+            where('userId', '==', user.id), where('companyId', '==', businessId), where('status', '==', 'USED'), limit(1),
+        ));
+        return !snap.empty;
+    } catch { return false; }
+};
+
+/** A avaliação que este usuário já fez desta empresa (para mostrar "você já avaliou"). */
+export const getMyReview = async (businessId: string): Promise<Review | null> => {
+    const user = getCurrentUser();
+    if (!user) return null;
+    try {
+        const snap = await getDoc(doc(db, 'reviews', reviewDocId(user.id, businessId)));
+        return snap.exists() ? ({ id: snap.id, ...snap.data() } as Review) : null;
+    } catch { return null; }
 };
 
 /**
@@ -1620,63 +1640,90 @@ const fetchReview = async (reviewId: string): Promise<Review> => {
     return { id: snap.id, ...snap.data() } as Review;
 };
 
+const EMBEDDED_REVIEWS = 10;
+
+/** Admin: recalcula nota, total e últimas avaliações da empresa a partir das avaliações aprovadas. */
+export const recomputeBusinessRating = async (businessId: string) => {
+    const snap = await getDocs(query(collection(db, 'reviews'), where('businessId', '==', businessId), where('status', '==', 'approved')));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Review))
+        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+    const stats = computeStats(list);
+    await updateDoc(doc(db, 'businesses', businessId), {
+        ratingStats: stats, rating: stats.avg, reviewCount: stats.count,
+        reviews: cleanObject(list.slice(0, EMBEDDED_REVIEWS)),
+    });
+    const idx = _businesses.findIndex(b => b.id === businessId);
+    if (idx >= 0) _businesses[idx] = { ..._businesses[idx], ratingStats: stats, rating: stats.avg, reviewCount: stats.count, reviews: list.slice(0, EMBEDDED_REVIEWS) };
+    return stats;
+};
+
 export const approveReview = async (reviewId: string) => {
     const review = await fetchReview(reviewId);
     if (!review.businessId) throw new Error('Avaliação sem empresa vinculada.');
-
-    const bizSnap = await getDoc(doc(db, 'businesses', review.businessId));
-    if (!bizSnap.exists()) throw new Error('Empresa não encontrada.');
-    const business = { id: bizSnap.id, ...bizSnap.data() } as BusinessProfile;
-
-    review.status = 'approved';
-    await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
-
-    // Filter out the review if it already exists in the array (to avoid duplicates) and add the updated one
-    const existingReviews = business.reviews || [];
-    const filteredReviews = existingReviews.filter(r => r.id !== reviewId);
-    const updatedReviews = [review, ...filteredReviews];
-    
-    const newCount = updatedReviews.length;
-    const newRating = updatedReviews.reduce((acc, r) => acc + r.rating, 0) / newCount;
-
-    await updateDoc(doc(db, 'businesses', business.id), {
-        reviews: cleanObject(updatedReviews),
-        reviewCount: newCount,
-        rating: newRating
-    });
-    const idx = _businesses.findIndex(b => b.id === business.id);
-    if (idx >= 0) _businesses[idx] = { ..._businesses[idx], reviews: updatedReviews, reviewCount: newCount, rating: newRating };
+    await updateDoc(doc(db, 'reviews', reviewId), { status: 'approved' });
+    await recomputeBusinessRating(review.businessId);
     notifyListeners();
 };
 
 export const rejectReview = async (reviewId: string) => {
     const review = await fetchReview(reviewId);
-
-    review.status = 'rejected';
-    await setDoc(doc(db, 'reviews', reviewId), cleanObject(review), { merge: true });
-    
-    // If it was already in a business, remove it
-    if (review.businessId) {
-        let business = _businesses.find(b => b.id === review!.businessId);
-        if (!business) {
-             const bDoc = await getDoc(doc(db, 'businesses', review.businessId));
-             if (bDoc.exists()) {
-                 business = { id: bDoc.id, ...bDoc.data() } as BusinessProfile;
-             }
-        }
-        
-        if (business && business.reviews) {
-            business.reviews = business.reviews.filter(r => r.id !== reviewId);
-            business.reviewCount = business.reviews.length;
-            business.rating = business.reviewCount > 0 
-                ? business.reviews.reduce((acc, r) => acc + r.rating, 0) / business.reviewCount 
-                : 0;
-                
-            await setDoc(doc(db, 'businesses', business.id), cleanObject(business), { merge: true });
-        }
-    }
-    
+    await updateDoc(doc(db, 'reviews', reviewId), { status: 'rejected' });
+    if (review.businessId && review.status === 'approved') await recomputeBusinessRating(review.businessId);
     notifyListeners();
+};
+
+/** Dono da empresa responde a uma avaliação (as regras só deixam mexer em reply/replyAt). */
+export const replyToReview = async (reviewId: string, reply: string) => {
+    const text = cleanReply(reply);
+    if (text.length < 2) throw new Error('Escreva a resposta.');
+    await updateDoc(doc(db, 'reviews', reviewId), { reply: text, replyAt: new Date().toISOString() });
+    notifyListeners();
+    return text;
+};
+
+export interface RatingResetReport { businesses: number; reviewsArchived: number; backup: string }
+
+/**
+ * Admin: ZERA todas as notas. Remove nota/total/avaliações copiadas de TODAS as empresas e arquiva
+ * as avaliações antigas (status 'archived': saem do ar, mas continuam no banco).
+ * Devolve um backup em JSON (texto) com o que existia antes, para guardar.
+ */
+export const resetAllRatings = async (onProgress?: (msg: string) => void): Promise<RatingResetReport> => {
+    if (!isCurrentUserAdmin()) throw new Error('Só o administrador pode zerar as avaliações.');
+    onProgress?.('Lendo empresas...');
+    const bizSnap = await getDocs(collection(db, 'businesses'));
+    const revSnap = await getDocs(collection(db, 'reviews'));
+    const backup = {
+        at: new Date().toISOString(),
+        businesses: bizSnap.docs
+            .map(d => ({ id: d.id, ...(d.data() as any) }))
+            .filter(b => b.rating || b.reviewCount || (b.reviews || []).length || b.ratingStats)
+            .map(b => ({ id: b.id, name: b.name, rating: b.rating ?? null, reviewCount: b.reviewCount ?? null, ratingStats: b.ratingStats ?? null, reviews: b.reviews ?? [] })),
+        reviews: revSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    };
+
+    let batch = writeBatch(db); let n = 0; let total = 0;
+    const flush = async () => { if (n) { await batch.commit(); batch = writeBatch(db); n = 0; } };
+    for (const d of bizSnap.docs) {
+        batch.update(d.ref, { rating: 0, reviewCount: 0, reviews: [], ratingStats: { avg: 0, count: 0 } });
+        n++; total++;
+        if (n >= 400) { onProgress?.(`Zerando empresas (${total}/${bizSnap.size})...`); await flush(); }
+    }
+    await flush();
+
+    let archived = 0;
+    for (const d of revSnap.docs) {
+        if ((d.data() as any).status === 'archived') continue;
+        batch.update(d.ref, { status: 'archived' });
+        n++; archived++;
+        if (n >= 400) { onProgress?.(`Arquivando avaliações antigas (${archived})...`); await flush(); }
+    }
+    await flush();
+
+    _businesses = _businesses.map(b => ({ ...b, rating: 0, reviewCount: 0, reviews: [], ratingStats: { avg: 0, count: 0 } }));
+    void bumpContentVersion();
+    notifyListeners();
+    return { businesses: bizSnap.size, reviewsArchived: archived, backup: JSON.stringify(backup, null, 2) };
 };
 export const getDicasCategories = async () => {
     if (_dicasCategories.length === 0) {
@@ -2506,14 +2553,17 @@ export const createAdminPlace = async (data: Partial<BusinessProfile>) => {
         phone: data.phone || '',
         amenities: data.amenities || [],
         openingHours: data.openingHours || {},
-        rating: 5,
-        reviewCount: 0,
         views: 0,
         shares: 0,
         isClaimed: false,
         isBlocked: false,
         canBeClaimed: data.canBeClaimed ?? true,
-        ...data
+        ...data,
+        // Nota nunca vem de importação (IA, Google): só de avaliações verificadas pelo app.
+        rating: 0,
+        reviewCount: 0,
+        reviews: [],
+        ratingStats: { avg: 0, count: 0 },
     };
     await setDoc(doc(db, 'businesses', id), newPlace);
     void bumpContentVersion();
@@ -2762,12 +2812,7 @@ export const releaseClaims = async (categories?: string[]): Promise<number> => {
  * Nota exibida ao público: calculada só a partir das avaliações aprovadas gravadas na empresa.
  * Nota e quantidade "soltas" (vindas de importações antigas, sem avaliações reais) não aparecem.
  */
-export const getRealRating = (b?: Partial<BusinessProfile> | null): { rating: number; count: number } | null => {
-    const reviews = (b?.reviews || []).filter(r => r && typeof r.rating === 'number' && (!r.status || r.status === 'approved'));
-    if (reviews.length === 0) return null;
-    const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
-    return { rating: Math.round(avg * 10) / 10, count: reviews.length };
-};
+export const getRealRating = (b?: Partial<BusinessProfile> | null): { rating: number; count: number } | null => businessPublicRating(b as any);
 
 const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 

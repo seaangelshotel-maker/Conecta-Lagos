@@ -1016,16 +1016,6 @@ export const AIAgentTeam: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-xs"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 italic">Nota IA</label>
-                    <input 
-                      type="number" 
-                      value={finalData?.rating || 0}
-                      step="0.1"
-                      onChange={(e) => updateCurrentPlace({ rating: parseFloat(e.target.value) })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-xs"
-                    />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

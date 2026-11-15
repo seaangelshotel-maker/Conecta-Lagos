@@ -110,10 +110,15 @@ export interface BusinessProfile {
   reviews?: Review[];
   rating: number;
   reviewCount?: number;
+  /** Resumo das avaliações verificadas (gravado só pelo servidor). A nota só é exibida com 3 ou mais. */
+  ratingStats?: { avg: number; count: number };
   isOpenNow?: boolean;
   isFeatured?: boolean;
   lat?: number;
   lng?: number;
+  /** Como o local foi marcado: GPS do dono no estabelecimento, busca por endereço ou pino no mapa. */
+  locationSource?: 'gps' | 'address' | 'map';
+  locationSetAt?: string;
   views?: number;
   shares?: number;
   actionCounts?: { [key: string]: number };
@@ -298,9 +303,17 @@ export interface Review {
   rating: number;
   comment: string;
   date: string;
-  status?: 'pending' | 'approved' | 'rejected';
+  status?: 'pending' | 'approved' | 'rejected' | 'archived';
   businessId?: string;
   businessName?: string;
+  /** Como a visita foi comprovada: cupom usado ou check-in por GPS. */
+  proof?: 'coupon' | 'checkin';
+  checkinDistanceM?: number;
+  /** Motivos do alerta automático (link, telefone, ofensa...). */
+  flags?: string[];
+  /** Resposta da empresa. */
+  reply?: string;
+  replyAt?: string;
 }
 
 export interface BlogPost {

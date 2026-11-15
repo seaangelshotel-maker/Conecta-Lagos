@@ -8,6 +8,7 @@
  *   título, descrição, imagem, canônico, JSON-LD e um resumo em texto de cada página.
  */
 import type { Req, Res } from './http.js';
+import { businessPublicRating } from '../services/reviewRules.js';
 import { OFFICIAL_SITE_URL, CITY_LANDINGS, cityLandingBySlug, isKnownPath, PRIVATE_PATH_RE } from '../services/seoRoutes.js';
 
 const PROJECT = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'conectario-dd04b';
@@ -203,8 +204,8 @@ const businessType = (b: any) => {
 };
 
 const realRating = (b: any) => {
-  const rs = (b.reviews || []).filter((r: any) => r && typeof r.rating === 'number' && (!r.status || r.status === 'approved'));
-  return rs.length ? { avg: rs.reduce((s: number, r: any) => s + r.rating, 0) / rs.length, n: rs.length } : null;
+  const r = businessPublicRating(b); // só com avaliações verificadas suficientes (evita nota falsa no Google)
+  return r ? { avg: r.rating, n: r.count } : null;
 };
 
 const textOf = (md: string) => String(md || '').split('\n').map(l => l.replace(/^#+\s*|^-\s*|^>\s*(Dica|Alerta|Confirme|Prático):\s*/i, '').replace(/\*\*/g, '')).join('\n');

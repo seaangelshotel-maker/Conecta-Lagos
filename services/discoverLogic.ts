@@ -4,6 +4,7 @@
  * (a tela explica por quê) em vez de fingir resultados.
  */
 import { BusinessProfile, BlogPost, GuideRelated, AMENITIES_LABELS, DEFAULT_AMENITIES, AppAmenity } from '../types';
+import { businessPublicRating } from './reviewRules';
 
 export const norm = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -128,11 +129,7 @@ export const EXPERIENCE_TAGS = [
   { id: 'imperdivel', label: 'Imperdível' },
 ];
 
-export const realRating = (b: BusinessProfile) => {
-  const reviews = (b.reviews || []).filter(r => r && typeof r.rating === 'number' && (!r.status || r.status === 'approved'));
-  if (!reviews.length) return 0;
-  return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
-};
+export const realRating = (b: BusinessProfile) => businessPublicRating(b)?.rating ?? 0;
 
 const popularity = (b: BusinessProfile) => (b.views || 0) + Object.values(b.actionCounts || {}).reduce((s: number, n: any) => s + (Number(n) || 0), 0);
 

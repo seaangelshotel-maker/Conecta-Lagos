@@ -10,13 +10,14 @@ import {
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
-import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, formatDayHours, todayKey, hasOpeningHours, createCompanyRequest, getPricingPlans, addReview, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
+import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, formatDayHours, todayKey, hasOpeningHours, createCompanyRequest, getPricingPlans, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
 import { getNavigationSource } from '../services/navigation';
 import { CouponModal } from '../components/CouponModal';
 import { BusinessArticles } from '../components/RelatedContent';
 import { useNotification } from '../components/NotificationSystem';
 import { useLanguage, Translate } from '../hooks/useLanguage';
+import { ReviewsSection } from '../components/ReviewsSection';
 
 export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, onNavigate }) => {
   const { notify } = useNotification();
@@ -34,40 +35,8 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
   const [customer, setCustomer] = useState<OrderCustomer>({ name: '', delivery: 'pickup' });
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [newReviewRating, setNewReviewRating] = useState(5);
-  const [newReviewComment, setNewReviewComment] = useState('');
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [recommendedBusinesses, setRecommendedBusinesses] = useState<BusinessProfile[]>([]);
-
-  const handleReviewSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!currentUser) {
-          notify('error', 'Você precisa estar logado para avaliar.');
-          return;
-      }
-      if (!newReviewComment.trim()) {
-          notify('error', 'Por favor, escreva um comentário.');
-          return;
-      }
-      setIsSubmittingReview(true);
-      try {
-          await addReview(businessId, {
-              userId: currentUser.id,
-              userName: `${currentUser.name} ${currentUser.surname || ''}`.trim(),
-              userAvatar: currentUser.avatarUrl,
-              rating: newReviewRating,
-              comment: newReviewComment
-          });
-          setNewReviewComment('');
-          setNewReviewRating(5);
-          notify('success', 'Avaliação enviada com sucesso! Ela será analisada por nossa equipe.');
-      } catch (error) {
-          notify('error', 'Erro ao enviar avaliação.');
-      } finally {
-          setIsSubmittingReview(false);
-      }
-  };
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -450,89 +419,15 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             )}
 
-            {/* AVALIAÇÕES */}
+            {/* AVALIAÇÕES (verificadas: cupom usado ou check-in no local) */}
             {plan?.showReviews !== false && (
-                <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-black text-ocean-950">Avaliações</h3>
-                        {/* Nota calculada só com as avaliações reais mostradas abaixo */}
-                        {reviews.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            <Star className="text-gold-400 fill-current" size={20} />
-                            <span className="font-bold text-lg">{(reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)}</span>
-                            <span className="text-slate-400 text-sm">({reviews.length})</span>
-                        </div>
-                        )}
-                    </div>
-
-                    {currentUser ? (
-                        <form onSubmit={handleReviewSubmit} className="bg-slate-50 p-4 rounded-2xl space-y-4">
-                            <h4 className="font-bold text-ocean-950 text-sm">Deixe sua avaliação</h4>
-                            <div className="flex gap-2">
-                                {[1, 2, 3, 4, 5].map(star => (
-                                    <button
-                                        key={star}
-                                        type="button"
-                                        onClick={() => setNewReviewRating(star)}
-                                        className="focus:outline-none"
-                                    >
-                                        <Star size={24} className={star <= newReviewRating ? "text-gold-400 fill-current" : "text-slate-300"} />
-                                    </button>
-                                ))}
-                            </div>
-                            <textarea
-                                value={newReviewComment}
-                                onChange={(e) => setNewReviewComment(e.target.value)}
-                                placeholder="Conte como foi sua experiência..."
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-ocean-500 outline-none resize-none text-sm"
-                                rows={3}
-                            />
-                            <button
-                                type="submit"
-                                disabled={isSubmittingReview || !newReviewComment.trim()}
-                                className="w-full py-3 bg-ocean-600 text-white rounded-xl font-bold text-sm disabled:opacity-50"
-                            >
-                                {isSubmittingReview ? 'Enviando...' : 'Enviar Avaliação'}
-                            </button>
-                        </form>
-                    ) : (
-                        <div className="bg-slate-50 p-6 rounded-2xl text-center">
-                            <p className="text-slate-500 text-sm mb-4">Faça login para deixar uma avaliação.</p>
-                            <button onClick={() => onNavigate('login')} className="px-6 py-2 bg-ocean-600 text-white rounded-full font-bold text-sm">Fazer Login</button>
-                        </div>
-                    )}
-
-                    <div className="space-y-4">
-                        {reviews.map(review => (
-                            <div key={review.id} className="border-b border-slate-100 pb-4 last:border-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 rounded-full bg-ocean-100 flex items-center justify-center overflow-hidden">
-                                        {review.userAvatar ? (
-                                            <img src={review.userAvatar} alt={review.userName} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-ocean-600 font-bold text-sm">{review.userName.charAt(0).toUpperCase()}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm text-ocean-950">{review.userName}</p>
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star key={i} size={10} className={i < review.rating ? "text-gold-400 fill-current" : "text-slate-300"} />
-                                                ))}
-                                            </div>
-                                            <span className="text-[10px] text-slate-400">{new Date(review.date).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-slate-600">{review.comment}</p>
-                            </div>
-                        ))}
-                        {reviews.length === 0 && (
-                            <p className="text-center text-slate-400 text-sm py-4">Nenhuma avaliação ainda. Seja o primeiro!</p>
-                        )}
-                    </div>
-                </div>
+                <ReviewsSection
+                    business={business}
+                    currentUser={currentUser}
+                    reviews={reviews}
+                    onReload={async () => setReviews(await getReviewsByBusinessId(businessId))}
+                    onLogin={() => onNavigate('login')}
+                />
             )}
 
             {/* RECOMMENDED BUSINESSES */}

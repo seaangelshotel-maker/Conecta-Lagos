@@ -152,7 +152,7 @@ service cloud.firestore {
     function businessProtectedKeys() {
       return ['isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
               'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
-              'ownerId', 'rating', 'reviewCount', 'reviews', 'views', 'shares', 'actionCounts',
+              'ownerId', 'rating', 'reviewCount', 'reviews', 'ratingStats', 'views', 'shares', 'actionCounts',
               'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags'];
     }
 
@@ -291,13 +291,19 @@ service cloud.firestore {
       allow read: if resource.data.get('status', '') == 'approved'
         || isAdmin()
         || (isAuthenticated() && resource.data.get('userId', '') == uid());
-      allow create: if isAuthenticated() && isNotBlocked()
-        && request.resource.data.userId == uid()
-        && request.resource.data.status == 'pending'
-        && request.resource.data.rating is int
-        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
-        && isShortString(request.resource.data.comment, 2000);
-      allow update, delete: if isAdmin();
+      // Avaliações só nascem no servidor (/api/email?action=review-submit), que confere a prova da
+      // visita (cupom usado ou check-in por GPS). O cliente não cria nem altera nota ou texto.
+      allow create: if isAdmin();
+      // O dono da empresa só pode responder (reply / replyAt) à avaliação da própria empresa.
+      allow update: if isAdmin() || (
+        isAuthenticated() && isNotBlocked()
+        && isBusinessOwner(resource.data.get('businessId', ''))
+        && changedKeys().hasOnly(['reply', 'replyAt'])
+        && request.resource.data.reply is string
+        && request.resource.data.reply.size() >= 2 && request.resource.data.reply.size() <= 600
+        && request.resource.data.replyAt is string
+      );
+      allow delete: if isAdmin();
     }
 
     // ===============================================================

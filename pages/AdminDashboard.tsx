@@ -16,7 +16,7 @@ import {
   rejectReview, updateUser, getPaymentSettings, savePaymentSettings, 
   getRedemptionsByBusiness, validateRedemption, decideRedemption, getAmenities, saveAmenity, ensureSubcategory,
   getBlogAds, saveBlogAd, deleteBlogAd, getBlogPosts, saveBlogPost, deleteBlogPost,
-  getExpiredCoupons, renewExpiredCoupons,
+  getExpiredCoupons, renewExpiredCoupons, resetAllRatings,
   getDicasCategories, saveDicasCategory, deleteDicasCategory, deleteDicasSubcategory, saveDicasSubcategory
 } from '../services/dataService';
 import { seedTouristSpots } from '../services/seedService';
@@ -1621,11 +1621,12 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                 <MapPin size={18} className="text-ocean-600" /> Localização & GPS
                               </h3>
                               <div className="space-y-4">
-                                  <div className="h-80 rounded-3xl overflow-hidden border border-slate-100 shadow-inner">
+                                  <div>
                                     <LocationPicker 
                                         initialLat={editBusiness.lat} 
                                         initialLng={editBusiness.lng} 
-                                        onLocationSelect={(lat, lng) => setEditBusiness({...editBusiness, lat, lng})} 
+                                        addressHint={editBusiness.address}
+                                        onLocationSelect={(lat, lng, source) => setEditBusiness({...editBusiness, lat, lng, ...(source ? { locationSource: source, locationSetAt: new Date().toISOString() } : {})})} 
                                     />
                                   </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2985,6 +2986,26 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                   </div>
               </div>
 
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex flex-wrap items-center justify-between gap-3" data-testid="reset-ratings">
+                  <div className="max-w-xl">
+                      <p className="font-black text-amber-900 text-sm">Zerar todas as notas</p>
+                      <p className="text-xs text-amber-800">Remove as notas antigas (importadas do Google ou de teste) de todas as empresas e arquiva as avaliações antigas. Baixa um backup antes. Depois disso só valem avaliações verificadas (cupom usado ou check-in).</p>
+                  </div>
+                  <button data-testid="reset-ratings-btn" onClick={async () => {
+                      if (!(await confirm({ title: 'Zerar todas as notas', message: 'Vai zerar a nota e as avaliações de TODAS as empresas e baixar um backup. Continuar?', confirmText: 'Zerar tudo', type: 'danger' }))) return;
+                      try {
+                          const out = await resetAllRatings();
+                          const url = URL.createObjectURL(new Blob([out.backup], { type: 'application/json' }));
+                          const a = document.createElement('a');
+                          a.href = url; a.download = `backup-avaliacoes-${new Date().toISOString().slice(0, 10)}.json`;
+                          document.body.appendChild(a); a.click(); a.remove();
+                          setTimeout(() => URL.revokeObjectURL(url), 5000);
+                          notify('success', `Notas zeradas em ${out.businesses} empresa(s); ${out.reviewsArchived} avaliação(ões) antiga(s) arquivada(s). Backup baixado.`);
+                          await refreshData();
+                      } catch (e: any) { notify('error', e?.message || 'Não foi possível zerar as notas.'); }
+                  }} className="h-10 px-4 rounded-xl bg-amber-500 text-white text-sm font-black">Zerar notas (com backup)</button>
+              </div>
+
               {pendingReviews.length === 0 ? (
                   <div className="bg-white rounded-[2.5rem] p-12 text-center border border-slate-100 shadow-sm">
                       <div className="w-20 h-20 bg-ocean-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -3019,6 +3040,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               
                               <div className="bg-slate-50 p-4 rounded-2xl">
                                   <p className="text-xs font-bold text-ocean-600 uppercase mb-2">Empresa: {review.businessName}</p>
+                                  <p className="text-[11px] font-bold text-emerald-600 mb-2">{review.proof === 'coupon' ? 'Cupom usado confirmado' : review.proof === 'checkin' ? `Check-in no local${review.checkinDistanceM != null ? ` (${review.checkinDistanceM} m)` : ''}` : 'Sem prova de visita'}</p>
+                                  {review.flags?.length ? <p className="text-[11px] font-bold text-red-500 mb-2">Alerta automático: {review.flags.join(', ')}</p> : null}
                                   <p className="text-sm text-slate-700 italic">&quot;{review.comment}&quot;</p>
                               </div>
 

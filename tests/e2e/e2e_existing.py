@@ -40,12 +40,16 @@ async def main():
         u = await mock_docs(page, 'users/bruno')
         ok('favoritar empresa salva no perfil', 'ana' in u[0]['favorites']['businesses'])
 
-        # Avaliação
-        await page.fill('textarea[placeholder="Conte como foi sua experiência..."]', 'Passeio excelente, equipe atenciosa.')
-        await page.locator('button', has_text='Enviar Avaliação').click()
-        await page.wait_for_timeout(800)
-        rv = await mock_docs(page, 'reviews/')
-        ok('avaliação criada pendente com userId', len(rv) == 1 and rv[0]['status'] == 'pending' and rv[0]['userId'] == 'bruno' and rv[0]['rating'] == 5)
+        # Avaliação: só depois de comprovar a visita (cupom usado ou check-in). O envio vai ao servidor
+        # (/api/email?action=review-submit), que o mock não atende; aqui conferimos a porta de entrada.
+        ok('avaliação exige prova: aparece o check-in e não o formulário',
+           await page.locator('[data-testid=review-checkin]').count() > 0
+           and await page.locator('textarea[placeholder="Conte como foi sua experiência..."]').count() == 0)
+        # Simula a avaliação que o servidor grava (pendente, com prova de check-in) para testar a moderação.
+        await page.evaluate("""() => { const s = JSON.parse(sessionStorage.getItem('__mock_fs__'));
+          s.docs['reviews/bruno_ana'] = { id: 'bruno_ana', businessId: 'ana', businessName: 'Ana', userId: 'bruno', userName: 'Bruno',
+            rating: 5, comment: 'Passeio excelente, equipe atenciosa.', date: new Date().toISOString(), status: 'pending', proof: 'checkin' };
+          sessionStorage.setItem('__mock_fs__', JSON.stringify(s)); }""")
 
         # Admin aprova → aparece na página
         await logout(page)
@@ -58,7 +62,7 @@ async def main():
         await page.wait_for_timeout(1000)
         rv = await mock_docs(page, 'reviews/')
         biz = await mock_docs(page, 'businesses/ana')
-        ok('aprovação atualiza avaliação e nota da empresa', rv[0]['status'] == 'approved' and biz[0].get('reviewCount') == 1)
+        ok('aprovação atualiza avaliação e o resumo de notas da empresa', rv[0]['status'] == 'approved' and biz[0].get('reviewCount') == 1 and biz[0].get('ratingStats', {}).get('count') == 1)
         await page.goto(f'{BASE}/business/ana')
         await page.wait_for_timeout(1200)
         ok('avaliação aprovada aparece na página da empresa', await page.locator('text=Passeio excelente, equipe atenciosa.').count() > 0)
@@ -76,6 +80,13 @@ async def main():
         await page.fill('input[placeholder="Rua, Número, Complemento"]', 'Av. Teste, 100')
         await page.locator('button[type=submit]', has_text='Continuar').click()
         await page.wait_for_timeout(500)
+        ok('cadastro exige marcar o local no mapa', await page.locator('[data-testid=location-picker]').count() > 0 and await page.locator('text=Av. Teste, 100').count() >= 0)
+        await ctx.grant_permissions(['geolocation'])
+        await ctx.set_geolocation({'latitude': -22.8794, 'longitude': -42.0188, 'accuracy': 15})
+        await page.locator('[data-testid=location-gps]').click()
+        await page.wait_for_timeout(1200)
+        await page.locator('button[type=submit]', has_text='Continuar').click()
+        await page.wait_for_timeout(500)
         ok('cadastro mostra participação gratuita (sem plano fictício)', await page.locator('text=Gratuita').count() > 0)
         await page.locator('button[type=submit]', has_text='Continuar').click()
         await page.wait_for_timeout(500)
@@ -85,6 +96,7 @@ async def main():
         biz = await mock_docs(page, 'businesses/carla')
         ok('empresa criada pendente, sem plano pago, dono = usuária', biz and biz[0]['status'] == 'PENDING' and biz[0].get('ownerId') == 'carla' and 'subscriptionEndsAt' not in biz[0] and biz[0].get('plan') in (None, 'free'), str(biz)[:300])
         u = await mock_docs(page, 'users/carla')
+        ok('empresa nasce com o local marcado pelo GPS e sem nota', biz and abs(biz[0].get('lat', 0) - (-22.8794)) < 0.001 and biz[0].get('locationSource') == 'gps' and biz[0].get('rating') == 0)
         ok('usuária passa a COMPANY após cadastrar a empresa', u and u[0]['role'] == 'COMPANY')
         await page.wait_for_timeout(3200)
         ok('redireciona ao painel da empresa', '/admin-dashboard' in page.url, page.url)

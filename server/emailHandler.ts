@@ -3,7 +3,7 @@
  * Ações via ?action=:
  *  público ........ subscribe (POST), confirm (GET), unsubscribe (GET/POST), password-reset (POST),
  *                    redemption-decide (GET mostra a página, POST aplica; vem do botão do e-mail)
- *  usuário logado . welcome, verify-email, notify-admin, redemption-used (POST)
+ *  usuário logado . welcome, verify-email, notify-admin, redemption-used, review-submit (POST)
  *  admin .......... status, test, newsletter-preview, newsletter-send (POST)
  *  cron ........... cron-newsletter (GET, Bearer CRON_SECRET)
  */
@@ -13,6 +13,7 @@ import { adminRecipients, isEmail, mailConfigured, mailFrom, normalizeEmail, sen
 import * as T from './mailTemplates.js';
 import * as N from './newsletter.js';
 import * as R from './redemptions.js';
+import { submitReview } from './reviews.js';
 import { readRawBody } from './http.js';
 
 const query = (req: Req, key: string): string => {
@@ -192,6 +193,13 @@ export default async function emailHandler(req: Req, res: Res) {
             if (!body.id) return sendJson(res, 400, { error: 'Resgate inválido.' });
             const out = await R.notifyCompanyOfUse(String(body.id), user.uid, env);
             return sendJson(res, out.status, out.ok ? { ok: true } : { error: out.error });
+        }
+
+        if (action === 'review-submit') {
+            if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
+            if (!(await allow(`review_${user.uid}`, 15_000))) return sendJson(res, 429, { error: 'Aguarde alguns segundos para enviar de novo.' });
+            const out = await submitReview(adminDb(), user.uid, await readJsonBody(req));
+            return sendJson(res, out.status, out.ok ? { ok: true, reviewStatus: out.reviewStatus, proof: out.proof } : { error: out.error });
         }
 
         if (action === 'notify-admin') {

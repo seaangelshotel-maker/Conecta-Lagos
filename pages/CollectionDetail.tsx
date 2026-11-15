@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Collection, BusinessProfile } from '../types';
-import { getCollectionById, getBusinessById, checkIfOpen, getCoupons } from '../services/dataService';
+import { getCollectionById, getBusinessById, checkIfOpen, getCoupons, getRealRating } from '../services/dataService';
 import { ArrowLeft, Star, Heart, Ticket, Share2, MapPin, Truck, ChevronRight } from 'lucide-react';
 import { shareContent } from '../services/native';
 import { SEO } from '../components/SEO';
@@ -156,7 +156,7 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId
                     </button>
                   </div>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
-                    <span className="inline-flex items-center gap-0.5 font-bold text-slate-700"><Star size={12} className="text-amber-500 fill-amber-500" /> {biz.rating}</span>
+                    {getRealRating(biz) && <span className="inline-flex items-center gap-0.5 font-bold text-slate-700"><Star size={12} className="text-amber-500 fill-amber-500" /> {getRealRating(biz)!.rating.toFixed(1)}</span>}
                     <span className="truncate">{typeof biz.category === 'string' ? biz.category : ''}</span>
                   </p>
                   <p className="mt-1.5 text-[13px] text-slate-600 line-clamp-2">{typeof biz.description === 'string' ? biz.description : ''}</p>

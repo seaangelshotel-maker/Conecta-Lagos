@@ -108,16 +108,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
                 .sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
         }
     } else {
-        // Prioritize coupons of featured companies first, then sort by highest rating
-        result.sort((a: any, b: any) => {
-            const featA = a.isCompanyFeatured ? 1 : 0;
-            const featB = b.isCompanyFeatured ? 1 : 0;
-            if (featB !== featA) return featB - featA;
-            
-            const rA = a.rating || 5.0;
-            const rB = b.rating || 5.0;
-            return rB - rA;
-        });
+        // Cupons de empresas em destaque primeiro; o resto mantém a ordem (não há mais nota padrão "5.0").
+        result.sort((a: any, b: any) => (b.isCompanyFeatured ? 1 : 0) - (a.isCompanyFeatured ? 1 : 0));
     }
 
     setFilteredCoupons(result);
