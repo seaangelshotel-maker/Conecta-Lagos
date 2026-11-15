@@ -78,13 +78,16 @@ const rows = (list: [string, string][]) => `<table role="presentation" width="10
 // ───────── Conta e acesso
 
 export function welcome(o: { site: string; name?: string }): Rendered {
+    const perks = ['Cupons de estabelecimentos parceiros, para pegar no app e usar na hora', 'Carteira de Economia: acompanhe quanto você já economizou', 'Seus lugares favoritos salvos para consultar quando quiser', 'Avisos de eventos, ofertas e dicas da região'];
+    const list = `<ul style="margin:0 0 14px;padding-left:20px">${perks.map(x => `<li style="margin:0 0 6px">${esc(x)}</li>`).join('')}</ul>`;
     const body = p(`${esc(greet(o.name))} Que bom ter você no Lagos GO.`) +
-        p('Aqui você descobre praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios, junta cupons na sua carteira e acompanha o que acontece na região, tudo sem comissão.') +
-        p('Dois passos para começar: salve seus lugares favoritos e pegue o primeiro cupom.');
+        p('Seu guia da Região dos Lagos: praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios, com dicas de quem conhece.') +
+        p(`${b('O que você ganha com a sua conta')}`) + list +
+        p('Para começar, salve seus lugares favoritos e pegue o primeiro cupom.');
     return {
         subject: 'Bem-vindo ao Lagos GO 🌴',
-        html: layout({ site: o.site, preheader: 'Sua conta está pronta. Veja o que fazer primeiro.', heading: 'Bem-vindo ao Lagos GO', body, cta: { label: 'Explorar o guia', url: `${o.site}/descubra` } }),
-        text: `${greet(o.name)} Que bom ter você no Lagos GO.\n\nAqui você descobre praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios, junta cupons e acompanha o que acontece na região.\n\nExplorar o guia: ${o.site}/descubra\n`,
+        html: layout({ site: o.site, preheader: 'Sua conta está pronta: cupons, carteira de economia e dicas da região.', heading: 'Bem-vindo ao Lagos GO', body, cta: { label: 'Explorar o guia', url: `${o.site}/descubra` } }),
+        text: `${greet(o.name)} Que bom ter você no Lagos GO.\n\nSeu guia da Região dos Lagos: praias, restaurantes, passeios e hospedagens de Arraial do Cabo, Cabo Frio e Búzios, com dicas de quem conhece.\n\nO que você ganha com a sua conta:\n- ${perks.join('\n- ')}\n\nExplorar o guia: ${o.site}/descubra`,
     };
 }
 

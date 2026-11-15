@@ -161,6 +161,11 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         value={filters} onChange={setFilters} onApply={() => { setFiltersOpen(false); onNavigate('discover', { q, ...filters }); }} />
 
       <div className="max-w-5xl mx-auto space-y-10">
+        {currentUser && (
+          <div className="px-4 pt-4 -mb-5" data-testid="home-wallet">
+            <WalletCard summary={wallet.summary} loading={wallet.loading} variant="compact" onOpen={() => onNavigate('user-dashboard')} />
+          </div>
+        )}
         <section aria-label="Categorias" className="pt-5">
           <HScroller label="Categorias">
             {categories.map(c => {
@@ -240,11 +245,6 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         {(uniqueCoupons.length > 0 || currentUser) && (
           <section aria-label="Cupons e ofertas" data-testid="home-coupons">
             <SectionHead title={t('Cupons e ofertas')} subtitle="Vantagens de estabelecimentos parceiros" action={t('Ver todos')} onAction={() => onNavigate('search')} />
-            {currentUser && (
-              <div className="px-4 mb-3">
-                <WalletCard summary={wallet.summary} loading={wallet.loading} variant="compact" onOpen={() => onNavigate('user-dashboard')} />
-              </div>
-            )}
             {uniqueCoupons.length > 0 && (
               <HScroller label="Cupons" gap="gap-4">
                 {uniqueCoupons.slice(0, 8).map(c => <div key={c.id} className="w-[280px] shrink-0"><CouponCard coupon={c} onGetCoupon={setSelectedCoupon} /></div>)}
