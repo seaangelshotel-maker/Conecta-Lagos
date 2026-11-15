@@ -1,6 +1,6 @@
 // Regras de geolocalização — funções puras (sem Firebase, sem navegador), testáveis em node:test.
 // Usadas no check-in de avaliação, no cadastro da empresa (marcar o local) e na validação no servidor.
-import { haversineKm, locateMunicipality } from './regionGeo';
+import { haversineKm, locateMunicipality } from './regionGeo.js';
 
 export interface LatLng { lat: number; lng: number }
 
