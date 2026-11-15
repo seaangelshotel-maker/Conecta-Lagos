@@ -37,7 +37,8 @@ export const getDevicePosition = (opts: { timeoutMs?: number; highAccuracy?: boo
 export interface PlaceResult { label: string; lat: number; lng: number }
 
 /** Token público do Mapbox (feito para ficar no navegador; restrito ao nosso domínio no painel do Mapbox). */
-export const MAPBOX_TOKEN: string = ((import.meta as any).env?.VITE_MAPBOX_TOKEN as string | undefined) || '';
+// Leitura direta: o Vite só embute a chave no build se for escrito exatamente assim.
+export const MAPBOX_TOKEN: string = (import.meta.env.VITE_MAPBOX_TOKEN as string | undefined) || '';
 export const hasMapbox = (): boolean => MAPBOX_TOKEN.length > 20;
 
 // Caixa da Região dos Lagos (oeste, sul, leste, norte) para a busca priorizar a região.
