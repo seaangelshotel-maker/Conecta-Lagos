@@ -5,6 +5,7 @@ import { Bell,
 } from 'lucide-react';
 import { User as UserType } from '../types';
 import { isNativeApp } from '../services/appMode';
+import { startAppTour } from './AppTour';
 
 /** Evento global para abrir a gaveta de qualquer lugar (ex.: botão do topo da Home). */
 export const openAppDrawer = () => window.dispatchEvent(new Event('lagosgo:drawer'));
@@ -82,6 +83,7 @@ export const AppDrawer: React.FC<Props> = ({ currentUser, currentPage, onNavigat
     { label: 'Ajuda colaborativa', icon: <HandHeart size={20} />, page: 'opportunities', active: ['opportunities'] },
   ];
   const more: Item[] = [
+    { label: 'Como funciona', icon: <Compass size={20} />, onClick: () => { setOpen(false); startAppTour(); } },
     { label: 'Anuncie sua empresa', icon: <Megaphone size={20} />, page: 'pricing-plans' },
     { label: 'Compartilhar o app', icon: <Share2 size={20} />, onClick: share },
     ...(isNativeApp() ? [{ label: 'Avaliar na Play Store', icon: <Star size={20} />, onClick: () => window.open(PLAY_URL, '_blank') } as Item] : []),
