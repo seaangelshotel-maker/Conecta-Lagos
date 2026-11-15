@@ -58,10 +58,17 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
       }
   }, [user, coupon, isRedeemed, myRedemptions, step]);
 
+  // Sem conta: leva para entrar/criar conta e, depois do login, volta para este cupom.
+  const goLogin = () => {
+    try { sessionStorage.setItem('lagosgo_return_coupon', JSON.stringify({ id: coupon.id })); } catch { /* ok */ }
+    onClose();
+    try { window.history.pushState({}, '', '/login'); window.dispatchEvent(new PopStateEvent('popstate')); } catch { window.location.assign('/login'); }
+  };
+
   // Um passo só: pegar o cupom reserva o resgate e já mostra o código de 6 dígitos.
   // A economia entra na carteira quando o estabelecimento confirma esse código.
   const handleGetCoupon = async () => {
-    if (!user) return setError("Faça login para pegar o cupom.");
+    if (!user) return goLogin();
     setError(null);
     setIsGetting(true);
     try {
@@ -226,7 +233,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({ coupon, onClose, onRed
                             data-testid="get-coupon"
                             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                            {isGetting ? <Loader2 className="animate-spin" size={24} /> : "PEGAR CUPOM"}
+                            {isGetting ? <Loader2 className="animate-spin" size={24} /> : (user ? "PEGAR CUPOM" : "ENTRAR PARA PEGAR O CUPOM")}
                         </button>
                     )}
                 </div>

@@ -11,10 +11,12 @@ import { SEO } from '../components/SEO';
 interface SearchPageProps {
   initialCategory?: string;
   initialQuery?: string;
+  /** Volta do login: reabre este cupom para a pessoa pegar. */
+  initialCouponId?: string;
   onNavigate: (page: string) => void;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initialQuery, onNavigate }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initialQuery, initialCouponId, onNavigate }) => {
   const { notify } = useNotification();
   const [query, setQuery] = useState(initialQuery || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'Todos');
@@ -57,6 +59,12 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialCategory, initial
     window.addEventListener('dataUpdated', fetch);
     return () => window.removeEventListener('dataUpdated', fetch);
   }, []);
+
+  useEffect(() => {
+    if (!initialCouponId || selectedCoupon) return;
+    const c = coupons.find(x => x.id === initialCouponId);
+    if (c) setSelectedCoupon(c);
+  }, [initialCouponId, coupons]);
 
   useEffect(() => {
     if (initialCategory) {

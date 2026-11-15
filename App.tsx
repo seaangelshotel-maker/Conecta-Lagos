@@ -263,6 +263,15 @@ function AppContent() {
   const handleLoginSuccess = async () => {
     const u = getCurrentUser();
     setUser(u);
+    // Quem pediu "pegar cupom" sem estar logado volta direto para o cupom.
+    try {
+      const raw = u ? sessionStorage.getItem('lagosgo_return_coupon') : null;
+      if (raw) {
+        sessionStorage.removeItem('lagosgo_return_coupon');
+        const { id } = JSON.parse(raw);
+        if (typeof id === 'string' && id) { setAfterLogin(null); handleNavigate('search', { couponId: id }); return; }
+      }
+    } catch { /* segue o fluxo normal */ }
     if (afterLogin && u) {
       const target = afterLogin;
       setAfterLogin(null);
@@ -295,7 +304,7 @@ function AppContent() {
       case 'business-detail':
         return <BusinessDetail businessId={pageParams?.businessId} onNavigate={handleNavigate} />;
       case 'search':
-        return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} onNavigate={handleNavigate} />;
+        return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} initialCouponId={pageParams?.couponId} onNavigate={handleNavigate} />;
       case 'privacy':
         return <PrivacyPolicy onNavigate={handleNavigate} currentUser={user} />;
       case 'terms':
