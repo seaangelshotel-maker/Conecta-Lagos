@@ -6,6 +6,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { adminDb, getAdminApp, isAdminToken, verifyRequestUser } from './firebaseAdmin.js';
 import { Req, Res, sendJson, readJsonBody, methodNotAllowed } from './http.js';
 import { safeLink } from './pushLink.js';
+import { MAX_PUSH_PER_DAY, limitReached, startOfDayBRT } from './pushLimit.js';
 
 const TOPICS = ['cupons', 'materias', 'eventos', 'ajuda', 'todos'];
 const DEAD = ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token', 'messaging/invalid-argument'];
@@ -18,7 +19,7 @@ export const handlePushSend = async (req: Req, res: Res) => {
   if (!token || !(await isAdminToken(token).catch(() => false))) return sendJson(res, 403, { error: 'Apenas o administrador pode enviar notificações.' });
   if (!pushConfigured()) return sendJson(res, 503, { error: 'Envio ainda não configurado: falta a variável FIREBASE_SERVICE_ACCOUNT na Vercel.' });
 
-  const body = await readJsonBody<{ title?: string; body?: string; link?: string; topic?: string; dryRun?: boolean }>(req).catch(() => ({} as any));
+  const body = await readJsonBody<{ title?: string; body?: string; link?: string; topic?: string; dryRun?: boolean; force?: boolean }>(req).catch(() => ({} as any));
   const title = String(body.title || '').trim().slice(0, 80);
   const text = String(body.body || '').trim().slice(0, 240);
   const topic = TOPICS.includes(String(body.topic)) ? String(body.topic) : 'todos';
@@ -31,7 +32,11 @@ export const handlePushSend = async (req: Req, res: Res) => {
     const q = topic === 'todos' ? db.collection('push_tokens') : db.collection('push_tokens').where('topics', 'array-contains', topic);
     const snap = await q.get();
     const tokens = snap.docs.map(d => d.id);
-    if (body.dryRun) return sendJson(res, 200, { recipients: tokens.length });
+    const sentToday = (await db.collection('push_campaigns').where('at', '>=', startOfDayBRT()).get()).size;
+    if (body.dryRun) return sendJson(res, 200, { recipients: tokens.length, sentToday, limit: MAX_PUSH_PER_DAY });
+    if (limitReached(sentToday) && !body.force) {
+      return sendJson(res, 429, { error: `Limite de ${MAX_PUSH_PER_DAY} avisos por dia atingido (para ninguém desinstalar o app por excesso). Se for urgente, envie de novo e confirme o envio extra.`, limitReached: true, sentToday, limit: MAX_PUSH_PER_DAY });
+    }
     if (!tokens.length) return sendJson(res, 200, { recipients: 0, sent: 0, failed: 0, removed: 0 });
 
     let sent = 0, failed = 0; const dead: string[] = [];

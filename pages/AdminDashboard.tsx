@@ -53,6 +53,7 @@ import { EventsManager } from '../components/admin/EventsManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PrivacyRequestsAdmin } from '../components/admin/PrivacyRequestsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
+import { NotificationsPage } from '../components/admin/NotificationsPage';
 import { EmailAdmin } from '../components/admin/EmailAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
@@ -86,7 +87,7 @@ const PLAN_BLANK: Partial<PricingPlan> = {
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
   const [showPlanPreview, setShowPlanPreview] = useState(false);
-  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS'>(() => {
+  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'NOTIFICATIONS'>(() => {
     try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
   });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
@@ -774,6 +775,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <button onClick={() => setView('HOME_EDITORIAL')} data-testid="admin-home-editorial" className="bg-slate-50 hover:bg-amber-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-amber-600 mb-1">Home: destaque das matérias</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Escolha a matéria grande da Home e os subdestaques ao lado.</p>
+                              </button>
+                              <button onClick={() => setView('NOTIFICATIONS')} data-testid="admin-notifications-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-ocean-600 mb-1">Notificações</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Gere avisos por categoria (eventos, cupons, notícias, ajuda) e envie para o app.</p>
                               </button>
                               <button onClick={() => setView('EVENTS')} data-testid="admin-events-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-ocean-600 mb-1">Agenda de eventos</h4>
@@ -2931,6 +2936,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
       {view === 'EVENTS' && (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) && (
           <EventsManager currentUser={currentUser} myBusiness={myBusiness} onNavigate={onNavigate} />
+      )}
+
+      {view === 'NOTIFICATIONS' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <NotificationsPage onBack={() => setView('HOME')} />
       )}
 
       {view === 'HOME_EDITORIAL' && currentUser.role === UserRole.SUPER_ADMIN && (
