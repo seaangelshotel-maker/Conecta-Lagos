@@ -48,12 +48,14 @@ const storeToken = async (token: string, topics: PushTopic[], uid?: string | nul
 
 const nativeToken = (): Promise<string> => new Promise((resolve, reject) => {
   const P = (window as any).Capacitor.Plugins.PushNotifications;
-  P.requestPermissions().then((r: any) => {
-    if (r?.receive !== 'granted') { reject(new Error('denied')); return; }
-    P.addListener('registration', (t: any) => resolve(t.value));
-    P.addListener('registrationError', () => reject(new Error('registration')));
-    P.register();
-  }).catch(reject);
+  const timer = setTimeout(() => reject(new Error('O Android não devolveu o código do aparelho (tempo esgotado). Verifique se a internet e o Google Play Services estão ativos.')), 20000);
+  const done = (fn: () => void) => { clearTimeout(timer); fn(); };
+  Promise.resolve(P.requestPermissions()).then(async (r: any) => {
+    if (r?.receive !== 'granted') { done(() => reject(new Error('Permissão de notificação negada no Android.'))); return; }
+    await P.addListener('registration', (t: any) => done(() => resolve(t.value)));
+    await P.addListener('registrationError', (e: any) => done(() => reject(new Error(`Falha no registro do aparelho: ${e?.error || e?.message || 'erro desconhecido'}`))));
+    await P.register();
+  }).catch((e: any) => done(() => reject(new Error(`Falha ao ativar: ${e?.message || e}`))));
 });
 
 /** Ativa (ou atualiza) os avisos com os temas escolhidos. */

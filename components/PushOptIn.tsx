@@ -30,9 +30,9 @@ export const PushOptIn: React.FC<{ uid?: string | null }> = ({ uid }) => {
     try {
       await enablePush(PUSH_TOPICS.map(t => t.id), uid);
       mark(); setOpen(false);
-    } catch {
-      mark(); setMsg('Sem permissão por enquanto. Você pode ativar depois em Perfil › Avisos no celular.');
-      setTimeout(() => setOpen(false), 3500);
+    } catch (e: any) {
+      setMsg(`${e?.message || 'Não foi possível ativar.'} Você pode tentar de novo em Perfil › Avisos no celular.`);
+      mark();
     } finally { setBusy(false); }
   };
 
