@@ -140,7 +140,7 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
               {showFlags && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowFlags(false)} />
-                  <div className="absolute right-0 mt-2 p-1.5 bg-white rounded-xl shadow-xl flex flex-col gap-1 z-50">
+                  <div className="absolute right-0 top-full mt-2 p-1.5 bg-white rounded-xl shadow-xl flex flex-col gap-1 z-50">
                     {FLAGS.filter(f => f !== language).map(f => (
                       <button key={f} onClick={() => { setLanguage(f); setShowFlags(false); }} className="w-10 h-10 flex items-center justify-center text-xl rounded-lg hover:bg-slate-50" aria-label={`Idioma ${f}`}>{f}</button>
                     ))}
