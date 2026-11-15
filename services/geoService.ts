@@ -36,18 +36,30 @@ export const getDevicePosition = (opts: { timeoutMs?: number; highAccuracy?: boo
 
 export interface PlaceResult { label: string; lat: number; lng: number }
 
-// Caixa da Região dos Lagos (esquerda, topo, direita, base) para a busca priorizar a região.
-const REGION_VIEWBOX = '-42.62,-22.62,-41.78,-23.12';
+/** Token público do Mapbox (feito para ficar no navegador; restrito ao nosso domínio no painel do Mapbox). */
+export const MAPBOX_TOKEN: string = ((import.meta as any).env?.VITE_MAPBOX_TOKEN as string | undefined) || '';
+export const hasMapbox = (): boolean => MAPBOX_TOKEN.length > 20;
 
-/**
- * Procura um endereço. Só devolve resultados dentro da Região dos Lagos.
- * Serviço público e gratuito (OpenStreetMap): a busca só roda quando a pessoa toca no botão.
- */
-export const searchAddress = async (query: string, signal?: AbortSignal): Promise<PlaceResult[]> => {
-  const q = query.trim();
-  if (q.length < 4) return [];
+// Caixa da Região dos Lagos (oeste, sul, leste, norte) para a busca priorizar a região.
+const REGION_BBOX = { w: -42.62, s: -23.12, e: -41.78, n: -22.62 };
+
+const searchMapbox = async (q: string, signal?: AbortSignal): Promise<PlaceResult[]> => {
+  const url = 'https://api.mapbox.com/search/geocode/v6/forward'
+    + `?q=${encodeURIComponent(q)}&country=br&language=pt&limit=6&proximity=-42.03,-22.9`
+    + `&bbox=${REGION_BBOX.w},${REGION_BBOX.s},${REGION_BBOX.e},${REGION_BBOX.n}&access_token=${MAPBOX_TOKEN}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error('A busca de endereço está indisponível agora. Marque o local no mapa.');
+  const data = await res.json() as { features?: Array<{ geometry?: { coordinates?: number[] }; properties?: { full_address?: string; name?: string; place_formatted?: string } }> };
+  return (data.features || []).map(f => ({
+    label: f.properties?.full_address || [f.properties?.name, f.properties?.place_formatted].filter(Boolean).join(', '),
+    lat: Number(f.geometry?.coordinates?.[1]),
+    lng: Number(f.geometry?.coordinates?.[0]),
+  })).filter(r => r.label && isInsideRegion(r));
+};
+
+const searchNominatim = async (q: string, signal?: AbortSignal): Promise<PlaceResult[]> => {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR`
-    + `&viewbox=${REGION_VIEWBOX}&bounded=1&q=${encodeURIComponent(q)}`;
+    + `&viewbox=${REGION_BBOX.w},${REGION_BBOX.n},${REGION_BBOX.e},${REGION_BBOX.s}&bounded=1&q=${encodeURIComponent(q)}`;
   const res = await fetch(url, { signal, headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error('A busca de endereço está indisponível agora. Marque o local no mapa.');
   const rows = (await res.json()) as Array<{ display_name?: string; lat?: string; lon?: string }>;
@@ -55,3 +67,29 @@ export const searchAddress = async (query: string, signal?: AbortSignal): Promis
     .map(r => ({ label: String(r.display_name || '').split(',').slice(0, 4).join(',').trim(), lat: Number(r.lat), lng: Number(r.lon) }))
     .filter(r => r.label && isInsideRegion(r));
 };
+
+/**
+ * Procura um endereço dentro da Região dos Lagos. Usa o Mapbox quando há token; se falhar (ou sem token),
+ * cai no OpenStreetMap. Só roda quando a pessoa toca no botão de buscar.
+ */
+export const searchAddress = async (query: string, signal?: AbortSignal): Promise<PlaceResult[]> => {
+  const q = query.trim();
+  if (q.length < 4) return [];
+  if (hasMapbox()) {
+    try {
+      const r = await searchMapbox(q, signal);
+      if (r.length) return r;
+    } catch (e) { if ((e as any)?.name === 'AbortError') throw e; /* tenta o OpenStreetMap */ }
+  }
+  return searchNominatim(q, signal);
+};
+
+/** Camadas do mapa: satélite com nomes de ruas (precisão) e ruas. Sem token, só o OpenStreetMap. */
+export const mapLayers = () => hasMapbox()
+  ? {
+      satellite: { url: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, tileSize: 512, zoomOffset: -1, maxZoom: 19, label: 'Satélite' },
+      streets: { url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, tileSize: 512, zoomOffset: -1, maxZoom: 19, label: 'Mapa' },
+    }
+  : {
+      streets: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', tileSize: 256, zoomOffset: 0, maxZoom: 19, label: 'Mapa' },
+    } as Record<string, { url: string; tileSize: number; zoomOffset: number; maxZoom: number; label: string }>;

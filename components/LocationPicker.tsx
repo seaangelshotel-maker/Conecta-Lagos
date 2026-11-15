@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Crosshair, Loader2, MapPin, Search } from 'lucide-react';
 import { useNotification } from './NotificationSystem';
 import { loadLeaflet } from '../services/loadLeaflet';
-import { getDevicePosition, searchAddress, type PlaceResult } from '../services/geoService';
-import { isInsideRegion, isValidLatLng } from '../services/geoRules';
+import { getDevicePosition, mapLayers, searchAddress, type PlaceResult } from '../services/geoService';
+import { isInsideRegion, isShortMapsLink, isValidLatLng, parseMapsInput } from '../services/geoRules';
 
-export type LocationSource = 'gps' | 'address' | 'map';
+export type LocationSource = 'gps' | 'address' | 'map' | 'link';
 
 interface LocationPickerProps {
   initialLat?: number;
@@ -38,6 +38,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
   const [isSearching, setIsSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [results, setResults] = useState<PlaceResult[]>([]);
+  const layers = useRef(mapLayers()).current;
+  const [layerKey, setLayerKey] = useState<string>(layers.satellite ? 'satellite' : 'streets');
+  const tileRef = useRef<any>(null);
   const [leafletReady, setLeafletReady] = useState(!!(typeof window !== 'undefined' && (window as any).L));
 
   useEffect(() => { if (addressHint) setSearchQuery(prev => prev || addressHint); }, [addressHint]);
@@ -66,7 +69,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
       const has = isValidLatLng({ lat: initialLat, lng: initialLng });
       const start = has ? { lat: initialLat!, lng: initialLng! } : DEFAULT;
       const map = L.map(mapContainerRef.current, { center: [start.lat, start.lng], zoom: has ? 17 : 11, zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      const base = layers[layerKey] || layers.streets;
+      tileRef.current = L.tileLayer(base.url, { maxZoom: base.maxZoom, tileSize: base.tileSize, zoomOffset: base.zoomOffset, attribution: '' }).addTo(map);
 
       const icon = L.divIcon({
         className: 'custom-pin',
@@ -92,6 +96,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
       if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; markerRef.current = null; }
     };
   }, [leafletReady]);
+
+  // Troca entre satélite e mapa de ruas.
+  useEffect(() => {
+    const map = mapInstanceRef.current; const l = layers[layerKey];
+    if (!map || !l || !L) return;
+    if (tileRef.current) map.removeLayer(tileRef.current);
+    tileRef.current = L.tileLayer(l.url, { maxZoom: l.maxZoom, tileSize: l.tileSize, zoomOffset: l.zoomOffset, attribution: '' }).addTo(map);
+  }, [layerKey, leafletReady]);
 
   // Quando o ponto muda por fora (dados carregados), move o pino.
   useEffect(() => {
@@ -126,6 +138,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
   };
 
   const performSearch = async () => {
+    const pasted = parseMapsInput(searchQuery);
+    if (pasted) { setResults([]); moveTo(pasted.lat, pasted.lng, 'link'); return; }
+    if (isShortMapsLink(searchQuery)) return notify('warning', 'Esse é um link curto do Google Maps. Abra o link, copie o endereço completo da barra do navegador e cole aqui.');
     if (searchQuery.trim().length < 4) return notify('warning', 'Digite o endereço (rua, número e bairro).');
     setIsSearching(true);
     (document.activeElement as HTMLElement | null)?.blur();
@@ -153,7 +168,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
       </button>
 
       <div className="relative shadow-sm rounded-xl flex items-center bg-white overflow-hidden border border-slate-200">
-        <input type="text" placeholder="Ou busque pelo endereço..." value={searchQuery}
+        <input type="text" placeholder="Endereço ou link do Google Maps..." value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void performSearch(); } }}
           className="flex-1 min-w-0 pl-3 pr-2 py-3 text-sm focus:outline-none text-slate-800 placeholder:text-slate-400 bg-transparent" />
@@ -178,6 +193,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
 
       <div className="relative w-full h-64 rounded-2xl overflow-hidden border border-slate-200 isolate">
         <div ref={mapContainerRef} className="absolute inset-0 z-0 bg-slate-100" />
+        {Object.keys(layers).length > 1 && (
+          <div className="absolute top-2 right-2 z-[500] flex rounded-lg overflow-hidden shadow border border-white/70 text-xs font-bold" data-testid="map-layers">
+            {Object.entries(layers).map(([k, l]) => (
+              <button key={k} type="button" onClick={() => setLayerKey(k)}
+                className={`px-3 py-1.5 ${layerKey === k ? 'bg-ocean-600 text-white' : 'bg-white/95 text-slate-600'}`}>{l.label}</button>
+            ))}
+          </div>
+        )}
       </div>
       <p className="text-[11px] text-slate-400">Toque no mapa ou arraste o pino até a porta do estabelecimento. É esse ponto que libera o check-in dos clientes.</p>
     </div>

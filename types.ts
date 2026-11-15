@@ -117,7 +117,7 @@ export interface BusinessProfile {
   lat?: number;
   lng?: number;
   /** Como o local foi marcado: GPS do dono no estabelecimento, busca por endereço ou pino no mapa. */
-  locationSource?: 'gps' | 'address' | 'map';
+  locationSource?: 'gps' | 'address' | 'map' | 'link';
   locationSetAt?: string;
   views?: number;
   shares?: number;

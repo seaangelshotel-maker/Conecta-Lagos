@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   checkinCheck, distanceMeters, isValidLatLng, isInsideRegion, buildAddressQuery, directionsUrl,
-  CHECKIN_RADIUS_M, MAX_ACCURACY_M,
+  CHECKIN_RADIUS_M, MAX_ACCURACY_M, parseMapsInput, isShortMapsLink,
 } from '../services/geoRules';
 
 const praiaGrande = { lat: -22.9840, lng: -42.0224 };
@@ -64,4 +64,26 @@ test('texto de endereço não repete partes', () => {
 
 test('link de rota usa as coordenadas', () => {
   assert.match(directionsUrl(praiaGrande), /destination=-22\.984,-42\.0224/);
+});
+
+test('lê coordenadas coladas e links completos do Google Maps', () => {
+  assert.deepEqual(parseMapsInput('-22.9661, -42.0278'), { lat: -22.9661, lng: -42.0278 });
+  assert.deepEqual(parseMapsInput('-22.9661 -42.0278'), { lat: -22.9661, lng: -42.0278 });
+  assert.deepEqual(parseMapsInput('https://www.google.com/maps/place/Praia+Grande/@-22.9701,-42.0300,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d-22.98401!4d-42.02244'),
+    { lat: -22.98401, lng: -42.02244 }); // prefere o pino do lugar ao centro da tela
+  assert.deepEqual(parseMapsInput('https://www.google.com/maps/@-22.9701,-42.0300,17z'), { lat: -22.9701, lng: -42.03 });
+  assert.deepEqual(parseMapsInput('https://maps.google.com/?q=-22.9,-42.03'), { lat: -22.9, lng: -42.03 });
+  assert.deepEqual(parseMapsInput('https://www.google.com/maps/dir/?api=1&destination=-22.984,-42.0224'), { lat: -22.984, lng: -42.0224 });
+});
+
+test('texto comum e valores inválidos não viram coordenada', () => {
+  assert.equal(parseMapsInput('Rua General Osório, 10'), null);
+  assert.equal(parseMapsInput(''), null);
+  assert.equal(parseMapsInput('99.5, 10.2'), null);
+});
+
+test('detecta link curto do Google Maps', () => {
+  assert.equal(isShortMapsLink('https://maps.app.goo.gl/AbCdEf123'), true);
+  assert.equal(isShortMapsLink('https://goo.gl/maps/xyz'), true);
+  assert.equal(isShortMapsLink('https://www.google.com/maps/@-22.9,-42.0,17z'), false);
 });

@@ -59,3 +59,34 @@ export const buildAddressQuery = (parts: { address?: string; neighborhood?: stri
 /** Link para abrir a rota no app de mapas do celular. */
 export const directionsUrl = (to: LatLng): string =>
   `https://www.google.com/maps/dir/?api=1&destination=${to.lat},${to.lng}`;
+
+const num = (v: string | undefined) => (v === undefined ? NaN : Number(v));
+
+/**
+ * Lê coordenadas de um texto colado: "-22.9661, -42.0278" ou um link COMPLETO do Google Maps
+ * (…/@lat,lng…, …!3dLAT!4dLNG…, …?q=lat,lng, …destination=lat,lng). Devolve null se não achar.
+ * Links curtos (maps.app.goo.gl) não trazem as coordenadas: use isShortMapsLink para avisar a pessoa.
+ */
+export const parseMapsInput = (text: string): LatLng | null => {
+  const t = (text || '').trim();
+  if (!t) return null;
+  const patterns: RegExp[] = [
+    /!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/,                                   // pino do lugar (mais preciso)
+    /[?&](?:q|ll|query|destination|center)=(-?\d{1,2}\.\d+)(?:,|%2C)\s*(-?\d{1,3}\.\d+)/i,
+    /@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/,                                       // centro da tela do mapa
+    /^(-?\d{1,2}\.\d+)\s*[,;]\s*(-?\d{1,3}\.\d+)$/,                              // "lat, lng"
+    /^(-?\d{1,2}\.\d+)\s+(-?\d{1,3}\.\d+)$/,
+  ];
+  for (const re of patterns) {
+    const m = t.match(re);
+    if (m) {
+      const p = { lat: num(m[1]), lng: num(m[2]) };
+      if (isValidLatLng(p)) return p;
+    }
+  }
+  return null;
+};
+
+/** Link curto do Google Maps (não dá para ler as coordenadas sem abrir o link). */
+export const isShortMapsLink = (text: string): boolean =>
+  /(^|\/\/)(maps\.app\.goo\.gl|goo\.gl\/maps)/i.test((text || '').trim());
