@@ -15,6 +15,7 @@ export const PUSH_TOPICS = [
   { id: 'materias', label: 'Matérias e notícias do Feed' },
   { id: 'eventos', label: 'Eventos na região' },
   { id: 'ajuda', label: 'Novidades da Ajuda Colaborativa' },
+  { id: 'lembretes', label: 'Lembretes dos meus eventos e cupons' },
 ] as const;
 export type PushTopic = typeof PUSH_TOPICS[number]['id'];
 

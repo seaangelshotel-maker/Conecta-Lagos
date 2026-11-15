@@ -441,6 +441,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // "Me avise no dia": o usuário pede lembrete de um evento (a rotina diária do servidor lê e avisa).
+    match /event_reminders/{id} {
+      allow read: if isAuthenticated() && (resource.data.uid == uid() || isAdmin());
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.keys().hasOnly(['uid', 'eventId', 'title', 'date', 'createdAt'])
+        && request.resource.data.uid == uid()
+        && id == uid() + '_' + request.resource.data.eventId
+        && request.resource.data.eventId is string && request.resource.data.eventId.size() <= 128
+        && request.resource.data.title is string && request.resource.data.title.size() <= 200
+        && request.resource.data.date is string && request.resource.data.date.size() == 10;
+      allow delete: if isAuthenticated() && resource.data.uid == uid();
+      allow update: if false;
+    }
+
     // Aparelhos que aceitaram notificações. O id é o próprio token (segredo do aparelho).
     match /push_tokens/{token} {
       allow read: if isAdmin();

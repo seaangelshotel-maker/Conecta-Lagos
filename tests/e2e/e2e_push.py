@@ -25,7 +25,7 @@ async def main():
         await page.locator('[data-testid=push-topic-ajuda]').click()
         await page.locator('[data-testid=push-enable]').click(); await page.wait_for_timeout(2500)
         d = await mock_docs(page, 'push_tokens/')
-        ok('ativar grava o aparelho com os temas e o usuário', len(d) == 1 and set(d[0]['topics']) == {'cupons', 'materias', 'eventos', 'ajuda'} and d[0]['uid'] == 'bruno' and d[0]['platform'] == 'web', str(d))
+        ok('ativar grava o aparelho com os temas e o usuário', len(d) == 1 and set(d[0]['topics']) == {'cupons', 'materias', 'eventos', 'ajuda', 'lembretes'} and d[0]['uid'] == 'bruno' and d[0]['platform'] == 'web', str(d))
         ok('mensagem de confirmação', 'Pronto' in (await page.locator('[data-testid=push-msg]').inner_text()))
         await page.locator('[data-testid=push-topic-eventos]').click()
         await page.locator('[data-testid=push-enable]').click(); await page.wait_for_timeout(1500)

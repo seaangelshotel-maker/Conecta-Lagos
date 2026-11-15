@@ -5,6 +5,7 @@
   "outputDirectory": "dist",
   "crons": [
     { "path": "/api/expire-plans", "schedule": "0 7 * * *" },
+    { "path": "/api/push-reminders", "schedule": "0 11 * * *" },
     { "path": "/api/email?action=cron-newsletter", "schedule": "0 12 * * 5" }
   ],
   "rewrites": [

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarDays, CalendarPlus, Clock, ExternalLink, Info, MapPin, Share2, Store, Ticket, Link2, AlertTriangle } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock, ExternalLink, Info, MapPin, Share2, Store, Ticket, Link2, AlertTriangle, BellRing } from 'lucide-react';
 import { AppEvent, User } from '../types';
 import { getEventById } from '../services/eventService';
 import { buildICS, googleCalendarUrl, categoryLabel, cityLabel, eventEnd, eventPhase, formatEventDates, formatEventTime, whenLabel } from '../services/eventRules';
@@ -8,6 +8,7 @@ import { PageHeader, LoadingState, EmptyState } from '../components/ui/States';
 import { useNotification } from '../components/NotificationSystem';
 import { openExternal } from '../services/native';
 import { SEO } from '../components/SEO';
+import { clearEventReminder, hasEventReminder, setEventReminder } from '../services/eventReminderService';
 
 interface Props { eventId: string; currentUser: User | null; onNavigate: (page: string, params?: any) => void; }
 
@@ -27,6 +28,9 @@ const Row: React.FC<{ icon: React.ReactNode; label: string; children: React.Reac
 export const EventDetail: React.FC<Props> = ({ eventId, currentUser, onNavigate }) => {
   const { notify } = useNotification();
   const [ev, setEv] = useState<AppEvent | null | undefined>(undefined);
+  const [reminded, setReminded] = useState(false);
+  const [remBusy, setRemBusy] = useState(false);
+  useEffect(() => { if (currentUser?.id) hasEventReminder(currentUser.id, eventId).then(setReminded); else setReminded(false); }, [currentUser?.id, eventId]);
 
   useEffect(() => {
     let alive = true;
@@ -63,6 +67,17 @@ export const EventDetail: React.FC<Props> = ({ eventId, currentUser, onNavigate 
       await navigator.clipboard.writeText(`${text}\n${url}`);
       notify('success', 'Link copiado.');
     } catch { /* pessoa cancelou */ }
+  };
+
+  const toggleReminder = async () => {
+    if (!ev) return;
+    if (!currentUser) { notify('info', 'Entre na sua conta para receber o lembrete.'); onNavigate('login'); return; }
+    setRemBusy(true);
+    try {
+      if (reminded) { await clearEventReminder(currentUser.id, ev.id); setReminded(false); notify('success', 'Lembrete removido.'); }
+      else { await setEventReminder(currentUser.id, { id: ev.id, title: ev.title, startDate: ev.startDate }); setReminded(true); notify('success', 'Combinado! Avisamos você no dia do evento.'); }
+    } catch { notify('error', 'Não foi possível salvar o lembrete. Tente de novo.'); }
+    finally { setRemBusy(false); }
   };
 
   const addToCalendar = () => {
@@ -141,6 +156,9 @@ export const EventDetail: React.FC<Props> = ({ eventId, currentUser, onNavigate 
           <div className="grid gap-2.5">
             {phase !== 'past' && ev.status === 'published' && (
               <button onClick={addToCalendar} data-testid="add-to-calendar" className="h-12 rounded-2xl bg-ocean-600 text-white font-black flex items-center justify-center gap-2 active:scale-[0.98]"><CalendarPlus size={18} /> Adicionar à minha agenda</button>
+            )}
+            {phase === 'upcoming' && ev.status === 'published' && (
+              <button onClick={toggleReminder} disabled={remBusy} data-testid="event-reminder" className={`h-12 rounded-2xl font-black flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-60 ${reminded ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-white border border-ocean-200 text-ocean-700'}`}><BellRing size={18} /> {reminded ? 'Vamos avisar você no dia (tocar para remover)' : 'Me avise no dia'}</button>
             )}
             {ev.ticketUrl && <button onClick={() => openExternal(ev.ticketUrl!)} className="h-12 rounded-2xl bg-amber-400 text-amber-950 font-black flex items-center justify-center gap-2 active:scale-[0.98]"><Ticket size={18} /> Ingressos</button>}
             {ev.infoUrl && <button onClick={() => openExternal(ev.infoUrl!)} className="h-12 rounded-2xl bg-white border border-slate-200 text-ocean-950 font-black flex items-center justify-center gap-2 active:scale-[0.98]"><ExternalLink size={18} /> Mais informações</button>}
