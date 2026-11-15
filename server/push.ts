@@ -6,6 +6,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { adminDb, getAdminApp, isAdminToken, verifyRequestUser } from './firebaseAdmin.js';
 import { Req, Res, sendJson, readJsonBody, methodNotAllowed } from './http.js';
 import { safeLink } from './pushLink.js';
+import { addBroadcastToInbox } from './inbox.js';
 import { MAX_PUSH_PER_DAY, limitReached, startOfDayBRT } from './pushLimit.js';
 
 const TOPICS = ['cupons', 'materias', 'eventos', 'ajuda', 'todos'];
@@ -54,7 +55,10 @@ export const handlePushSend = async (req: Req, res: Res) => {
       r.responses.forEach((x, k) => { if (!x.success && x.error && DEAD.includes(x.error.code)) dead.push(chunk[k]); });
     }
     await Promise.all(dead.map(t => db.collection('push_tokens').doc(t).delete().catch(() => undefined)));
-    await db.collection('push_campaigns').add({ title, body: text, link, topic, sent, failed, removed: dead.length, by: token.uid, at: new Date().toISOString() });
+    const at = new Date().toISOString();
+    await db.collection('push_campaigns').add({ title, body: text, link, topic, sent, failed, removed: dead.length, by: token.uid, at });
+    // Cópia para o sininho do app; se falhar, o envio já foi feito e segue valendo.
+    await addBroadcastToInbox(db, { title, body: text, link, at }).catch(e => console.error('[push-send] sininho:', String(e?.message || e).slice(0, 200)));
     return sendJson(res, 200, { recipients: tokens.length, sent, failed, removed: dead.length });
   } catch (e: any) {
     const code = String(e?.code || e?.errorInfo?.code || 'desconhecido');

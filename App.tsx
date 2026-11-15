@@ -7,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './hooks/useLanguage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { NavBar } from './components/NavBar';
+import { NotificationBell } from './components/NotificationBell';
 import { AppDrawer } from './components/AppDrawer';
 import { AppSplash, PullToRefresh } from './components/AppExtras';
 import { Home } from './pages/Home';
@@ -373,6 +374,7 @@ function AppContent() {
       <OfflineBanner />
       <ConsentBanner onNavigate={handleNavigate} />
       <PushOptIn uid={user?.id} />
+      {showChrome && <NotificationBell uid={user?.id} />}
       {showChrome && (
           <NavBar
             currentUser={user}

@@ -431,6 +431,16 @@ service cloud.firestore {
             || request.time.toMillis() > resource.data.get('t', 0) + 60000));
     }
 
+    // Sininho do app: últimos avisos gerais (gravado só pelo servidor) e avisos pessoais de cada usuário.
+    match /meta/inbox {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /inbox_user/{userId} {
+      allow read: if isAuthenticated() && uid() == userId;
+      allow write: if false;
+    }
+
     // Aparelhos que aceitaram notificações. O id é o próprio token (segredo do aparelho).
     match /push_tokens/{token} {
       allow read: if isAdmin();
