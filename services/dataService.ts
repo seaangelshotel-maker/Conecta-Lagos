@@ -4,7 +4,8 @@ import {
     getDocs, 
     getDoc, 
     setDoc, 
-    doc, 
+    doc,
+    writeBatch, 
     updateDoc, 
     deleteDoc, 
     query, 
@@ -647,6 +648,24 @@ export const getBusinessesPaginated = async (
  * - Cupons sem status ou sem campo active DEVEM ser tratados como aprovados e ativos (compatibilidade legado).
  * - Use sempre: !c.status || c.status === 'approved' e c.active !== false.
  */
+/** Admin: quantos cupons já venceram (e quais), para renovar de uma vez. */
+export const getExpiredCoupons = async (): Promise<Coupon[]> =>
+    (await getCoupons(true, true)).filter(c => isExpired(c.expiryDate));
+
+/** Admin: renova a validade dos cupons vencidos até `newDate` (AAAA-MM-DD). Devolve quantos foram renovados. */
+export const renewExpiredCoupons = async (newDate: string): Promise<number> => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador pode renovar cupons.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || isExpired(newDate)) throw new Error('Escolha uma data de hoje em diante.');
+    const list = await getExpiredCoupons();
+    for (let i = 0; i < list.length; i += 400) {
+        const batch = writeBatch(db);
+        list.slice(i, i + 400).forEach(c => batch.update(doc(db, 'coupons', c.id), { expiryDate: newDate }));
+        await batch.commit();
+    }
+    _coupons = [];
+    return list.length;
+};
+
 export const getCoupons = async (forceRefresh = false, includeInactive = false) => {
     if (_coupons.length === 0 || forceRefresh) {
         const q = query(collection(db, 'coupons'));

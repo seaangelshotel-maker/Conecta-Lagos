@@ -16,6 +16,7 @@ import {
   rejectReview, updateUser, getPaymentSettings, savePaymentSettings, 
   getRedemptionsByBusiness, validateRedemption, decideRedemption, getAmenities, saveAmenity, ensureSubcategory,
   getBlogAds, saveBlogAd, deleteBlogAd, getBlogPosts, saveBlogPost, deleteBlogPost,
+  getExpiredCoupons, renewExpiredCoupons,
   getDicasCategories, saveDicasCategory, deleteDicasCategory, deleteDicasSubcategory, saveDicasSubcategory
 } from '../services/dataService';
 import { seedTouristSpots } from '../services/seedService';
@@ -3089,6 +3090,26 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                       <span className="text-xs font-black text-ocean-600 uppercase">{coupons.length} Ativos</span>
                   </div>
               </div>
+
+              {currentUser.role === UserRole.SUPER_ADMIN && (
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex flex-wrap items-center justify-between gap-3" data-testid="renew-coupons">
+                      <div>
+                          <p className="font-black text-amber-900 text-sm">Cupons vencidos</p>
+                          <p className="text-xs text-amber-800">Renova de uma vez a validade de todos os cupons que já venceram.</p>
+                      </div>
+                      <button data-testid="renew-coupons-btn" onClick={async () => {
+                          try {
+                              const expired = await getExpiredCoupons();
+                              if (!expired.length) { notify('info', 'Nenhum cupom vencido.'); return; }
+                              const date = `${new Date().getFullYear()}-12-31`;
+                              if (!(await confirm({ title: 'Renovar cupons vencidos', message: `Renovar ${expired.length} cupom(ns) vencido(s) até 31/12/${new Date().getFullYear()}?`, confirmText: 'Renovar', type: 'primary' }))) return;
+                              const n = await renewExpiredCoupons(date);
+                              notify('success', `${n} cupom(ns) renovado(s) até 31/12.`);
+                              await refreshData();
+                          } catch (e: any) { notify('error', e?.message || 'Não foi possível renovar os cupons.'); }
+                      }} className="h-10 px-4 rounded-xl bg-amber-500 text-white text-sm font-black">Renovar vencidos até 31/12</button>
+                  </div>
+              )}
 
               <AdminFilterBar
                   testId="filters-coupons"
