@@ -44,6 +44,11 @@ const loadBaked = async (l: string) => {
     try { baked[l] = (await bakedLoaders[l]()).default; } catch { /* usa a API */ }
 };
 
+/** Traduções que já vêm prontas do banco (conteúdo salvo com `i18n`). */
+export const learnTranslations = (l: string, srcs: string[], trs: string[]) => {
+    srcs.forEach((s, i) => { const t = trs[i]; if (s && t) memo.set(l + '|' + s.trim(), t); });
+};
+
 const lookup = (src: string): string | undefined => {
     const key = src.trim();
     const pre = baked[lang]?.[key];

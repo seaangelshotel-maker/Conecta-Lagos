@@ -2,7 +2,7 @@ import { waLink } from '../../services/claimRules';
 import React, { useEffect, useState } from 'react';
 import { Save, Users } from 'lucide-react';
 import { AppGlobalSettings, SpecialistReferralSettings } from '../../types';
-import { backfillPublicProfiles, getGlobalSettings, saveGlobalSettings } from '../../services/dataService';
+import { backfillContentI18n, backfillPublicProfiles, getGlobalSettings, saveGlobalSettings } from '../../services/dataService';
 import { useNotification } from '../NotificationSystem';
 import { Field, LoadingState, inputClass, primaryButton, secondaryButton } from '../ui/States';
 
@@ -27,6 +27,7 @@ export const EcosystemSettings: React.FC = () => {
     const [settings, setSettings] = useState<AppGlobalSettings | null>(null);
     const [saving, setSaving] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [translating, setTranslating] = useState('');
 
     useEffect(() => {
         getGlobalSettings(true).then(s => setSettings({ ...s, specialistReferral: { ...DEFAULT_SPECIALIST, ...(s.specialistReferral || {}) } }));
@@ -65,6 +66,18 @@ export const EcosystemSettings: React.FC = () => {
             notify('error', e?.message || 'Erro ao sincronizar perfis.');
         } finally {
             setSyncing(false);
+        }
+    };
+
+    const translateAll = async () => {
+        setTranslating('Começando…');
+        try {
+            const r = await backfillContentI18n(m => setTranslating(m));
+            notify(r.failed ? 'error' : 'success', `Traduzidos: ${r.done}. Já prontos: ${r.skipped}.${r.failed ? ` Falharam ${r.failed}: tente de novo mais tarde.` : ''}`);
+        } catch (e: any) {
+            notify('error', e?.message || 'Erro ao traduzir.');
+        } finally {
+            setTranslating('');
         }
     };
 
@@ -121,6 +134,7 @@ export const EcosystemSettings: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-3">
                 <button onClick={save} disabled={saving} className={primaryButton}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar configurações'}</button>
                 <button onClick={syncProfiles} disabled={syncing} className={secondaryButton}><Users size={18} /> {syncing ? 'Sincronizando...' : 'Gerar perfis públicos dos autores'}</button>
+                <button data-testid="eco-translate-all" onClick={translateAll} disabled={!!translating} className={secondaryButton}>{translating || 'Traduzir conteúdo existente (en/es/fr)'}</button>
             </div>
             <p className="text-[11px] text-slate-400">
                 “Gerar perfis públicos” cria a versão pública (sem e-mail/telefone) dos perfis de jornalistas e autores do blog. Use uma vez após publicar esta versão.

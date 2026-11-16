@@ -81,6 +81,8 @@ export interface User {
 }
 
 export interface BusinessProfile {
+  /** Traduções prontas (en/es/fr) dos textos, gravadas ao salvar. */
+  i18n?: { src: string[]; en: string[]; es: string[]; fr: string[] };
   id: string;
   ownerId?: string;
   name: string;
@@ -177,6 +179,8 @@ export interface SavingsRecord {
 }
 
 export interface Coupon {
+  /** Traduções prontas (en/es/fr) dos textos, gravadas ao salvar. */
+  i18n?: { src: string[]; en: string[]; es: string[]; fr: string[] };
   id: string;
   companyId: string;
   companyName: string;
@@ -317,6 +321,8 @@ export interface Review {
 }
 
 export interface BlogPost {
+  /** Traduções prontas (en/es/fr) dos textos, gravadas ao salvar. */
+  i18n?: { src: string[]; en: string[]; es: string[]; fr: string[] };
   id: string;
   title: string;
   excerpt: string;

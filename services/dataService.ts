@@ -1,4 +1,5 @@
 
+import { businessTexts, couponTexts, postTexts, buildI18n, needsI18n, learnAll, learnI18n } from './contentI18n';
 import { 
     collection, 
     getDocs, 
@@ -506,6 +507,7 @@ export const getBusinesses = async (forceRefresh = false) => {
     if (_businesses.length === 0 || forceRefresh) {
         const snap = await getDocs(query(collection(db, 'businesses'), where('isBlocked', '==', false), limit(50)));
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
+        learnAll(_businesses);
     }
     
     // Seed em segundo plano: nunca segura o carregamento da tela.
@@ -673,6 +675,7 @@ export const getCoupons = async (forceRefresh = false, includeInactive = false) 
         const snap = await getDocs(q);
         trackRead('coupons', snap.size, 'getCoupons');
         _coupons = snap.docs.map(d => ({ id: d.id, ...d.data() } as Coupon));
+        learnAll(_coupons);
     }
     
     let resultCoupons = includeInactive ? _coupons : _coupons.filter(c => c.active !== false);
@@ -703,6 +706,7 @@ export const getBusinessById = async (id: string) => {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const biz = { id: docSnap.id, ...docSnap.data() } as BusinessProfile;
+        learnI18n(biz);
         if (!biz.isBlocked) {
             // Add to cache if not there
             if (!_businesses.find(b => b.id === biz.id)) {
@@ -1221,6 +1225,7 @@ export const getBlogPosts = async () => {
         const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(100)));
         // Matérias do Guia (kind 'guia') têm página própria e não entram no Feed.
         _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost)).filter(p => p.kind !== 'guia');
+        learnAll(_posts);
     }
     
     // Auto-seed checking: ensure ALL default seed posts exist in the database and local array
@@ -1373,8 +1378,21 @@ export const isOwnerOfBusiness = (b: Partial<BusinessProfile> | null | undefined
     return b.id === userId || b.ownerId === userId;
 };
 
+/** Traduz (uma vez, ao salvar) os textos que mudaram e guarda no próprio documento. Nunca impede o salvamento. */
+async function withI18n<T extends { i18n?: any }>(item: T, texts: (x: T) => string[]): Promise<T> {
+    try {
+        const t = texts(item);
+        if (!t.length) return item;
+        if (!needsI18n(t, item.i18n)) return item;
+        const i18n = await buildI18n(t, item.i18n);
+        if (i18n) { const next = { ...item, i18n }; learnI18n(next); return next; }
+    } catch { /* segue sem traduzir */ }
+    return item;
+}
+
 export const saveBusiness = async (b: BusinessProfile) => {
     try {
+        b = await withI18n(b, businessTexts);
         const ref = doc(db, 'businesses', b.id);
         if (isCurrentUserAdmin()) {
             await setDoc(ref, cleanObject(b), { merge: true });
@@ -1839,7 +1857,7 @@ export const deleteDicasSubcategory = async (categoryId: string, subcategoryId: 
 };
 
 export const saveCoupon = async (c: Coupon): Promise<{ sentToReview: boolean } | void> => {
-    const couponToSave = { ...c };
+    const couponToSave = await withI18n({ ...c }, couponTexts);
     
     // Default status to pending if not set
     if (!couponToSave.status) {
@@ -2048,6 +2066,7 @@ export const getBlogPostById = async (id: string) => {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const post = { id: docSnap.id, ...docSnap.data() } as BlogPost;
+        learnI18n(post);
         
         // Dynamically map all post author IDs and names to Yuri's actual account
         const yuriId = await resolveYuriAuthorId();
@@ -2063,6 +2082,7 @@ export const getBlogPostById = async (id: string) => {
 };
 
 export const saveBlogPost = async (post: BlogPost) => {
+    post = await withI18n(post, postTexts);
     const idx = _posts.findIndex(p => p.id === post.id);
     if (idx >= 0) {
         _posts[idx] = post;
@@ -3067,3 +3087,28 @@ export const addBlogPostComment = async (postId: string, commentData: Omit<BlogC
     return newComment;
 };
 
+
+
+/** Administrador: traduz o conteúdo que já existe (empresas, cupons, matérias), devagar, para respeitar a cota gratuita. */
+export const backfillContentI18n = async (onProgress?: (msg: string) => void): Promise<{ done: number; skipped: number; failed: number }> => {
+    if (!isCurrentUserAdmin()) throw new Error('Apenas o administrador.');
+    const groups: Array<[string, (x: any) => string[]]> = [
+        ['businesses', businessTexts], ['coupons', couponTexts], ['blog_posts', postTexts],
+    ];
+    let done = 0, skipped = 0, failed = 0;
+    for (const [col, texts] of groups) {
+        const snap = await getDocs(collection(db, col));
+        for (const d of snap.docs) {
+            const data: any = d.data();
+            const t = texts(data);
+            if (!t.length || !needsI18n(t, data.i18n)) { skipped++; continue; }
+            onProgress?.(`${col}: ${done + failed + 1}…`);
+            const i18n = await buildI18n(t, data.i18n, 60000);
+            if (!i18n || needsI18n(t, i18n)) { failed++; }
+            else { await updateDoc(d.ref, { i18n }); done++; }
+            await new Promise(r => setTimeout(r, 1500));
+        }
+    }
+    void bumpContentVersion();
+    return { done, skipped, failed };
+};
