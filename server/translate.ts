@@ -33,16 +33,28 @@ const viaGoogleOnce = async (text: string, target: string): Promise<string> => {
     return (data[0] || []).map((i: any) => i[0]).join('') || text;
 };
 
+/** Quanto tempo esperamos o Gemini antes de seguir para o Google Tradutor (sem custo). */
+const GEMINI_TIMEOUT_MS = 4000;
+/** Quando o Gemini falha (ex.: 503 "alta demanda"), pula ele por um tempo e vai direto no plano B, em vez de repetir a espera. */
+const GEMINI_PAUSE_MS = 60_000;
+let geminiDownUntil = 0;
+
+const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error('gemini timeout')), ms);
+        p.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+    });
+
 const viaGemini = async (texts: string[], target: string, apiKey: string): Promise<string[]> => {
     const ai = new GoogleGenAI({ apiKey });
     let resp: any = null, lastErr: unknown;
-    for (const model of ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-flash-lite-latest']) {
+    for (const model of ['gemini-flash-latest']) {
         try {
-            resp = await ai.models.generateContent({
+            resp = await withTimeout(ai.models.generateContent({
                 model,
                 contents: `Translate every value of this JSON object from Brazilian Portuguese to ${TARGETS[target]}. Translate ALL of them, even short ones. Keep proper nouns (places, brands), emojis, numbers, URLs and line breaks. Return ONLY a JSON object with the same keys.\n${JSON.stringify(Object.fromEntries(texts.map((t, i) => [String(i), t])))}`,
                 config: { responseMimeType: 'application/json', temperature: 0 } as any,
-            });
+            }), GEMINI_TIMEOUT_MS);
             break;
         } catch (e) { lastErr = e; }
     }
@@ -71,12 +83,19 @@ export const handleTranslate = async (req: Req, res: Res) => {
         const miss = missIdx.map(i => texts[i]);
         let done: string[] | null = null;
         const key = process.env.GEMINI_API_KEY;
-        if (key) { try { done = await viaGemini(miss, target, key); engine = 'gemini'; } catch (e: any) { console.warn('[translate] gemini falhou', e); geminiError = String(e?.message || e).slice(0, 200); } }
+        if (key && Date.now() >= geminiDownUntil) {
+            try { done = await viaGemini(miss, target, key); engine = 'gemini'; }
+            catch (e: any) {
+                geminiDownUntil = Date.now() + GEMINI_PAUSE_MS;
+                console.warn('[translate] gemini falhou; pausando por 60s', e?.message || e);
+                geminiError = String(e?.message || e).slice(0, 200);
+            }
+        }
         if (!done) {
             const g = target === 'pt-PT' ? 'pt-PT' : target;
             engine = 'google';
             done = [];
-            for (const part of Array.from({ length: Math.ceil(miss.length / 8) }, (_, i) => miss.slice(i * 8, i * 8 + 8)))
+            for (const part of Array.from({ length: Math.ceil(miss.length / 13) }, (_, i) => miss.slice(i * 13, i * 13 + 13)))
                 done.push(...await Promise.all(part.map(t => viaGoogle(t, g))));
         }
         missIdx.forEach((idx, k) => {

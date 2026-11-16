@@ -76,6 +76,8 @@ const setText = (t: Text, src: string, tr: string) => {
     if (t.nodeValue !== val) t.nodeValue = val;
 };
 
+const yOf = (el: Element | null): number => { try { const r = el!.getBoundingClientRect(); return r.bottom < 0 ? 1e8 + Math.abs(r.top) : r.top; } catch { return 1e9; } };
+
 const collect = (root: Node, texts: Text[], attrs: Element[]) => {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
         acceptNode: n => (n.nodeType === 1 && (SKIP.has((n as Element).tagName.toUpperCase()) || (n as Element).getAttribute('translate') === 'no' || (n as Element).classList.contains('notranslate')))
@@ -88,13 +90,14 @@ const collect = (root: Node, texts: Text[], attrs: Element[]) => {
 };
 
 let retryLater = false;
+let retries = 0;                                       // no máximo 3 novas tentativas, para não ficar chamando a API sem parar
 const run = async (root: Node) => {
     if (lang === 'pt') return;
     retryLater = false;
     const myLang = lang;
     const texts: Text[] = []; const els: Element[] = [];
     if (root.nodeType === 3) texts.push(root as Text); else collect(root, texts, els);
-    type Job = { apply: (tr: string) => void; src: string };
+    type Job = { apply: (tr: string) => void; src: string; y?: number };
     const jobs: Job[] = [];
     for (const t of texts) {
         if (!t.parentElement || blocked(t.parentElement)) continue;
@@ -102,7 +105,7 @@ const run = async (root: Node) => {
         if (applied.get(t) === cur) continue;           // já é a nossa tradução
         if (!shouldTranslate(cur)) continue;
         original.set(t, cur); touchedText.add(t);
-        jobs.push({ src: cur, apply: tr => { if (t.isConnected && original.get(t) === cur) setText(t, cur, tr); } });
+        jobs.push({ src: cur, y: yOf(t.parentElement), apply: tr => { if (t.isConnected && original.get(t) === cur) setText(t, cur, tr); } });
     }
     for (const el of els) {
         if (blocked(el)) continue;
@@ -112,19 +115,27 @@ const run = async (root: Node) => {
             if (attrApplied.get(el)?.[a] === v) continue;
             if (!shouldTranslate(v)) continue;
             const o = attrOriginal.get(el) || {}; o[a] = v; attrOriginal.set(el, o); touchedEls.add(el);
-            jobs.push({ src: v, apply: tr => { const ap = attrApplied.get(el) || {}; ap[a] = tr; attrApplied.set(el, ap); el.setAttribute(a, tr); } });
+            jobs.push({ src: v, y: yOf(el), apply: tr => { const ap = attrApplied.get(el) || {}; ap[a] = tr; attrApplied.set(el, ap); el.setAttribute(a, tr); } });
         }
     }
     const need: string[] = [];
+    const top = new Map<string, number>();                 // texto -> posição vertical (o que está na tela vem primeiro)
     for (const j of jobs) {
         const key = j.src.trim();
         const hit = lookup(key);
-        if (hit !== undefined) j.apply(hit); else if (!need.includes(key)) need.push(key);
+        if (hit !== undefined) { j.apply(hit); continue; }
+        if (!need.includes(key)) need.push(key);
+        const y = j.y ?? 1e9;
+        if (y < (top.get(key) ?? 1e9)) top.set(key, y);
     }
-    for (const part of chunk(need, 25)) {
+    need.sort((a, b) => (top.get(a) ?? 1e9) - (top.get(b) ?? 1e9));
+    // Primeiro lote pequeno (aparece rápido) e o resto em lotes maiores, vários ao mesmo tempo.
+    const parts = [need.slice(0, 12), ...chunk(need.slice(12), 25)].filter(p => p.length);
+    let nextPart = 0;
+    const doPart = async (part: string[]) => {
         const res = await fetchBatch(myLang, part);
         if (myLang !== lang) return;
-        if (!res) continue;
+        if (!res) return;
         // só guarda o que realmente mudou: se veio igual ao original, foi falha/limite — tenta de novo depois
         let failed = 0;
         part.forEach((s, i) => {
@@ -134,8 +145,10 @@ const run = async (root: Node) => {
         if (failed > part.length / 3) retryLater = true;
         saveStore();
         for (const j of jobs) { const h = memo.get(myLang + '|' + j.src.trim()); if (h) j.apply(h); }
-    }
-    if (retryLater && myLang === lang) { retryLater = false; window.setTimeout(() => { if (myLang === lang) void run(root); }, 4000); }
+    };
+    const worker = async () => { while (nextPart < parts.length && myLang === lang) await doPart(parts[nextPart++]); };
+    await Promise.all(Array.from({ length: Math.min(3, parts.length) }, worker));
+    if (retryLater && myLang === lang && retries < 3) { retryLater = false; retries++; window.setTimeout(() => { if (myLang === lang) void run(root); }, 4000); }
 };
 
 const flush = () => {
@@ -157,6 +170,7 @@ export const setPageLanguage = (flag: string) => {
     observer?.disconnect(); observer = null;
     restore();
     lang = next;
+    retries = 0;
     if (lang === 'pt') return;
     store = loadStore();
     void run(document.body);
