@@ -1,4 +1,5 @@
 
+import { MenuCatalog } from '../components/MenuCatalog';
 import { canOrder, orderTarget, cartAdd, cartSetNote, cartCount, cartTotal, cartLines, validateOrder, buildOrderMessage, whatsappUrl, formatBRL, isAvailable, type Cart, type OrderCustomer, type OrderMode } from '../services/orderModel';
 import React, { useEffect, useState } from 'react';
 import { ClaimBox } from '../components/ClaimBox';
@@ -30,6 +31,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
   const [isFav, setIsFav] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showMenuOverlay, setShowMenuOverlay] = useState(false);
+  const touchX = React.useRef<number | null>(null);
   const [cart, setCart] = useState<Cart>({});
   const [checkout, setCheckout] = useState(false);
   const [customer, setCustomer] = useState<OrderCustomer>({ name: '', delivery: 'pickup' });
@@ -367,6 +369,38 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
             )}
 
+            {/* VITRINE DO CARDÁPIO */}
+            {(plan?.showMenu !== false) && business.menu && business.menu.some(sec => sec.items?.length) && (() => {
+                const all = business.menu.flatMap(sec => (sec.items || []).map(it => ({ ...it, sec: sec.title }))).filter(i => isAvailable(i));
+                const feat = [...all.filter(i => i.imageUrl), ...all.filter(i => !i.imageUrl)].slice(0, 10);
+                const mode = business.orderMode === 'services' ? 'services' : 'menu';
+                return (
+                    <div className="space-y-5 pt-2" data-testid="menu-showcase">
+                        <div className="flex items-end justify-between gap-4">
+                            <div>
+                                <h3 className="text-2xl md:text-3xl font-black text-ocean-950 tracking-tight">{mode === 'services' ? 'Serviços' : 'Cardápio'}</h3>
+                                <p className="text-xs text-slate-400 font-bold mt-1">{business.menu.filter(x => x.items?.length).map(x => x.title).slice(0, 4).join(' · ')}</p>
+                            </div>
+                            <button type="button" onClick={() => handleAction('menu')} className="text-xs font-black uppercase tracking-wide text-ocean-600 whitespace-nowrap">Ver tudo</button>
+                        </div>
+                        <div className="flex gap-4 overflow-x-auto snap-x hide-scrollbar -mx-6 px-6 pb-2">
+                            {feat.map(it => (
+                                <button type="button" key={it.id} onClick={() => handleAction('menu')} className="snap-start shrink-0 w-40 text-left group">
+                                    <div className="w-40 h-40 rounded-3xl overflow-hidden bg-gradient-to-br from-ocean-50 to-slate-100 shadow-md flex items-center justify-center text-ocean-200">
+                                        {it.imageUrl ? <img src={it.imageUrl} alt={it.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <Utensils size={34} />}
+                                    </div>
+                                    <p className="mt-2 font-black text-sm text-ocean-950 leading-tight line-clamp-2">{it.name}</p>
+                                    <p className="font-black text-emerald-700 text-sm">{it.price > 0 ? formatBRL(it.price) : 'Sob consulta'}</p>
+                                </button>
+                            ))}
+                        </div>
+                        <button type="button" onClick={() => handleAction('menu')} className="w-full py-4 rounded-2xl bg-ocean-600 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-ocean-600/20">
+                            <Utensils size={18} /> {canOrder(plan) && business.ordersEnabled && orderTarget(business) ? (mode === 'services' ? 'Ver serviços e solicitar' : 'Ver cardápio e pedir') : (mode === 'services' ? 'Ver serviços' : 'Ver cardápio completo')}
+                        </button>
+                    </div>
+                );
+            })()}
+
             {/* GALERIA DE FOTOS */}
             {business.gallery && business.gallery.length > 0 && (plan?.showGallery !== false) && (
                 <div className="space-y-6 pt-2 pb-4">
@@ -374,14 +408,14 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                         <h3 className="text-2xl md:text-3xl font-black text-ocean-950 tracking-tight">Galeria</h3>
                         <div className="w-12 h-1.5 rounded-full bg-ocean-500"></div>
                     </div>
-                    <div className="overflow-x-auto hide-scrollbar -mx-6 px-6 pb-4">
-                        <div className="flex gap-5 w-max mx-auto">
-                            {business.gallery.map((img, idx) => (
-                                <div key={idx} onClick={() => setLightboxIndex(idx)} className="w-64 md:w-80 aspect-[4/5] flex-shrink-0 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50 cursor-pointer hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 border-[6px] border-white bg-white group">
-                                    <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" alt={`${business.name} galeria ${idx + 1}`} />
-                                </div>
-                            ))}
-                        </div>
+                    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar -mx-6 px-6 pb-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:overflow-visible" data-testid="gallery">
+                        {business.gallery.map((img, idx) => (
+                            <button type="button" key={idx} onClick={() => setLightboxIndex(idx)} aria-label={`Abrir foto ${idx + 1} de ${business.gallery!.length}`}
+                                className={`group relative snap-center shrink-0 w-[78%] sm:w-64 md:w-auto aspect-[4/5] md:aspect-[4/3] rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/60 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ${idx === 0 && business.gallery!.length > 3 ? 'md:col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
+                                <img src={img} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={`${business.name} galeria ${idx + 1}`} />
+                                <span className="absolute bottom-3 right-3 text-[10px] font-black text-white bg-black/45 backdrop-blur px-2.5 py-1 rounded-full">{idx + 1}/{business.gallery!.length}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
@@ -479,34 +513,9 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                     <button onClick={() => { setShowMenuOverlay(false); setCheckout(false); }} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center" aria-label="Fechar"><X size={24}/></button>
                 </div>
                 {!checkout ? (
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-32">
+                <div className="flex-1 overflow-y-auto px-6 pb-32 pt-4 space-y-4 bg-slate-50/60">
                     {ordersOn && <p className="text-xs text-slate-500 bg-ocean-50 rounded-xl p-3 font-bold">Monte seu pedido e envie direto para o WhatsApp de {business.name}. Sem taxas do app.</p>}
-                    {business.menu?.map(section => (
-                        <div key={section.title} className="space-y-4">
-                            <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest">{section.title}</h3>
-                            {section.items.map(item => {
-                                const qty = cart[item.id]?.qty || 0;
-                                const off = !isAvailable(item);
-                                return (
-                                <div key={item.id} data-testid="menu-item" className={`bg-slate-50 p-5 rounded-2xl flex justify-between items-center gap-3 ${off ? 'opacity-50' : ''}`}>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-sm text-ocean-950">{item.name}{off && <span className="ml-2 text-[10px] font-black uppercase text-red-500">Esgotado</span>}</h4>
-                                        <p className="text-xs text-slate-400">{item.description}</p>
-                                        <span className="font-black text-green-600 text-sm">{item.price > 0 ? formatBRL(item.price) : 'Sob consulta'}</span>
-                                    </div>
-                                    {ordersOn && !off && (
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {qty > 0 && <>
-                                                <button onClick={() => setCart(c => cartAdd(c, item, -1))} className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center" aria-label="Diminuir"><Minus size={16}/></button>
-                                                <span className="font-black w-5 text-center" data-testid="item-qty">{qty}</span>
-                                            </>}
-                                            <button onClick={() => setCart(c => cartAdd(c, item, 1))} className="w-9 h-9 rounded-full bg-ocean-600 text-white flex items-center justify-center" aria-label="Adicionar" data-testid="item-add"><Plus size={16}/></button>
-                                        </div>
-                                    )}
-                                </div>);
-                            })}
-                        </div>
-                    ))}
+                    {business.menu && business.menu.length > 0 && <MenuCatalog menu={business.menu} ordersOn={ordersOn} cart={cart} setCart={setCart} />}
                     {(!business.menu || business.menu.length === 0) && <p className="text-center py-20 text-slate-400">{mode === 'services' ? 'Os serviços serão' : 'O cardápio será'} disponibilizado em breve.</p>}
                 </div>
                 ) : (
@@ -537,7 +546,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 </div>
                 )}
                 {ordersOn && count > 0 && (
-                    <div className="absolute bottom-0 inset-x-0 p-4 bg-white border-t flex gap-3">
+                    <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-white via-white to-transparent flex gap-3">
                         {checkout && <button onClick={() => setCheckout(false)} className="px-5 rounded-2xl border border-slate-200 font-black text-xs uppercase">Voltar</button>}
                         <button data-testid={checkout ? 'send-order' : 'open-checkout'} onClick={() => checkout ? sendOrder() : setCheckout(true)} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2">
                             {checkout ? <>ENVIAR PELO WHATSAPP</> : <>{count} {count === 1 ? 'item' : 'itens'} · {total > 0 ? formatBRL(total) : 'ver pedido'}</>}
@@ -551,7 +560,15 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
 
         {/* LIGHTBOX GALERIA */}
         {lightboxIndex !== null && business.gallery && (
-            <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center animate-in fade-in">
+            <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center animate-in fade-in"
+                onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+                onTouchEnd={e => {
+                    const x0 = touchX.current; touchX.current = null;
+                    if (x0 === null) return;
+                    const dx = e.changedTouches[0].clientX - x0;
+                    const n = business.gallery!.length;
+                    if (Math.abs(dx) > 50) setLightboxIndex(prev => prev === null ? null : dx < 0 ? (prev + 1) % n : (prev - 1 + n) % n);
+                }}>
                 <button 
                     onClick={() => setLightboxIndex(null)} 
                     className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 p-3 rounded-full backdrop-blur-md transition-all z-50"

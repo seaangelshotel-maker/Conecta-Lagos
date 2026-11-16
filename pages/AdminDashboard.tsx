@@ -1,5 +1,5 @@
 import { merchantImpact, formatBRL, couponSaving } from '../services/walletRules';
-import { canOrder } from '../services/orderModel';
+import { canOrder, menuProgress, menuBytes, MENU_BYTES_WARN } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
 import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity, BlogAd, BlogPost } from '../types';
@@ -88,6 +88,8 @@ const PLAN_BLANK: Partial<PricingPlan> = {
 export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: string, params?: any) => void; onLogout: () => void }> = ({ currentUser, onNavigate, onLogout }) => {
   const { notify, confirm } = useNotification();
   const [showPlanPreview, setShowPlanPreview] = useState(false);
+  const NUDGE_KEY = 'lagos_menu_nudge_v1';
+  const [menuNudge, setMenuNudge] = useState(false);
   const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'NOTIFICATIONS'>(() => {
     try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
   });
@@ -245,6 +247,13 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+      if (view !== 'MENU') return;
+      try { if (localStorage.getItem(NUDGE_KEY)) return; } catch { /* ok */ }
+      if (editBusiness?.orderMode !== 'services' && !menuProgress(editBusiness?.menu).done) setMenuNudge(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   useEffect(() => {
     refreshData();
@@ -1739,6 +1748,22 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
           </div>
       )}
 
+      {view === 'MENU' && menuNudge && (
+          <div data-testid="menu-nudge" role="dialog" aria-modal="true" className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-[2rem] max-w-md w-full p-8 space-y-4 shadow-2xl">
+                  <h3 className="text-2xl font-black text-ocean-950">Cadastre pelo menos 15 pratos 🍽️</h3>
+                  <p className="text-sm text-slate-600">O Lagos GO vai lançar uma vitrine de pratos, com foto e preço, para turistas e moradores escolherem o que comer. Quem já estiver com o cardápio completo entra primeiro.</p>
+                  <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
+                      <li>Pelo menos 15 itens</li>
+                      <li>Uma foto boa de cada prato</li>
+                      <li>Descrição curta (ingredientes, tamanho)</li>
+                      <li>Preço de cada item</li>
+                  </ul>
+                  <p className="text-xs text-slate-500">Seu cardápio já aparece na sua página e recebe pedidos no WhatsApp, sem comissão.</p>
+                  <button type="button" onClick={() => { try { localStorage.setItem(NUDGE_KEY, '1'); } catch { /* ok */ } setMenuNudge(false); }} className="w-full bg-ocean-600 text-white py-3 rounded-2xl font-black">ENTENDI, VOU CADASTRAR</button>
+              </div>
+          </div>
+      )}
       {view === 'MENU' && (
           <div className="bg-white p-6 md:p-12 rounded-[3rem] shadow-xl border border-slate-100 animate-in slide-in-from-bottom-6 space-y-8 relative">
               {isExpired && (
@@ -1767,6 +1792,27 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                         <Plus size={16} /> NOVA SEÇÃO
                     </button>
                   </div>
+
+                  {editBusiness.orderMode !== 'services' && (() => {
+                      const mp = menuProgress(editBusiness.menu);
+                      const heavy = menuBytes(editBusiness.menu) > MENU_BYTES_WARN;
+                      return (
+                          <div data-testid="menu-progress" className="bg-amber-50 border border-amber-200 p-6 rounded-[2rem] space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                  <h3 className="font-black text-ocean-950">{mp.done ? 'Cardápio completo! 🎉' : `Complete seu cardápio: ${mp.complete} de ${mp.goal} itens`}</h3>
+                                  <span className="text-xs font-black text-amber-700">{mp.pct}%</span>
+                              </div>
+                              <div className="h-2 bg-white rounded-full overflow-hidden"><div className="h-full bg-amber-500 transition-all" style={{ width: `${mp.pct}%` }} /></div>
+                              <p className="text-xs text-slate-600">
+                                  {mp.done
+                                      ? 'Seu cardápio está pronto para entrar na vitrine de pratos do Lagos GO quando ela for lançada.'
+                                      : `Faltam ${mp.missingItems} itens com foto, preço e descrição (pelo menos 10 letras). Em breve o Lagos GO terá uma vitrine de pratos, e quem já estiver com o cardápio completo entra primeiro.`}
+                              </p>
+                              <p className="text-[11px] text-slate-500">{mp.total} itens cadastrados · {mp.withPhoto} com foto · {mp.withDescription} com descrição</p>
+                              {heavy && <p className="text-[11px] font-bold text-red-600">O cardápio está ficando pesado. Use fotos simples e evite repetir imagens.</p>}
+                          </div>
+                      );
+                  })()}
 
                   <div className="bg-ocean-50 border border-ocean-100 p-6 rounded-[2rem] space-y-4" data-testid="orders-settings">
                       <div>
@@ -1861,6 +1907,14 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                                 setEditBusiness({ ...editBusiness, menu: newMenu });
                                             }}
                                           />
+                                      </div>
+                                      <div className="w-24 shrink-0" data-testid="item-photo">
+                                          <ImageUpload label="" maxWidth={360} className="w-24" currentImage={item.imageUrl}
+                                              onImageSelect={(img: string) => {
+                                                  const newMenu = [...(editBusiness.menu || [])];
+                                                  newMenu[sIdx].items[iIdx].imageUrl = img || undefined;
+                                                  setEditBusiness({ ...editBusiness, menu: newMenu });
+                                              }} />
                                       </div>
                                       <div className="flex flex-col items-end justify-between">
                                           <button onClick={() => handleDeleteMenuItem(sIdx, iIdx)} className="text-red-300 hover:text-red-500" aria-label="Remover item">

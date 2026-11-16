@@ -105,3 +105,28 @@ export const buildOrderMessage = (bizName: string, mode: OrderMode, cart: Cart, 
 };
 
 export const whatsappUrl = (number: string, message: string) => `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+/** Meta para o restaurante entrar na futura vitrine de pratos do Lagos GO. */
+export const MENU_GOAL = 15;
+
+export interface MenuProgress {
+    total: number; withPhoto: number; withDescription: number; goal: number;
+    /** Itens que contam para a meta: têm nome, preço, foto e descrição. */
+    complete: number; pct: number; done: boolean; missingItems: number;
+}
+
+export const menuProgress = (menu: MenuSection[] = [], goal = MENU_GOAL): MenuProgress => {
+    const items = flattenItems(menu).filter(i => (i.name || '').trim() && (i.name || '').trim() !== 'Novo Item');
+    const withPhoto = items.filter(i => !!i.imageUrl).length;
+    const withDescription = items.filter(i => (i.description || '').trim().length >= 10).length;
+    const complete = items.filter(i => i.price > 0 && !!i.imageUrl && (i.description || '').trim().length >= 10).length;
+    return {
+        total: items.length, withPhoto, withDescription, goal, complete,
+        pct: Math.min(100, Math.round((complete / goal) * 100)),
+        done: complete >= goal, missingItems: Math.max(0, goal - complete),
+    };
+};
+
+/** Tamanho aproximado do cardápio no banco (as fotos ficam dentro do documento, que tem limite de 1 MB). */
+export const menuBytes = (menu: MenuSection[] = []): number => JSON.stringify(menu).length;
+export const MENU_BYTES_WARN = 450_000;
