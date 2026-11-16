@@ -28,3 +28,10 @@ test('o tutorial está ligado ao app e ao "Como funciona" da gaveta', () => {
   assert.match(drawer, /Como funciona/);
   assert.match(drawer, /startAppTour/);
 });
+
+test('o convite dos avisos espera o tutorial terminar (não cobre a barra de baixo)', () => {
+  const push = readFileSync('components/PushOptIn.tsx', 'utf8');
+  assert.match(push, /TOUR_DONE_EVENT/);
+  assert.match(push, /tourSeen\(\)/);
+  assert.match(tour, /dispatchEvent\(new Event\(TOUR_DONE_EVENT\)\)/);
+});

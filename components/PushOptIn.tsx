@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, Loader2 } from 'lucide-react';
 import { PUSH_TOPICS, enablePush, pushAvailability, savedPush } from '../services/pushService';
 import { isNative } from '../services/native';
+import { TOUR_DONE_EVENT, tourSeen, tourActive } from './AppTour';
 
 const ASKED = 'lagosgo_push_asked_v1';
 
@@ -19,8 +20,18 @@ export const PushOptIn: React.FC<{ uid?: string | null }> = ({ uid }) => {
     let asked = false;
     try { asked = !!localStorage.getItem(ASKED); } catch { /* ok */ }
     if (asked || savedPush() || !pushAvailability().ok) return;
-    const t = setTimeout(() => setOpen(true), 4000);
-    return () => clearTimeout(t);
+    // Ordem na primeira abertura: aviso de privacidade -> tutorial -> convite dos avisos.
+    // O convite espera o tutorial acabar para não cobrir a barra de baixo que o tutorial aponta.
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => { if (t) clearTimeout(t); t = setTimeout(() => setOpen(true), 1500); };
+    if (tourSeen()) {
+      t = setTimeout(() => setOpen(true), 4000);
+    } else {
+      window.addEventListener(TOUR_DONE_EVENT, schedule);
+      // Rede de segurança: se o tutorial não for começar (ex.: a pessoa abriu direto numa página interna), mostra depois de um tempo.
+      t = setTimeout(() => { if (!tourActive() && !tourSeen()) setOpen(true); }, 45000);
+    }
+    return () => { if (t) clearTimeout(t); window.removeEventListener(TOUR_DONE_EVENT, schedule); };
   }, []);
 
   const mark = () => { try { localStorage.setItem(ASKED, '1'); } catch { /* ok */ } };

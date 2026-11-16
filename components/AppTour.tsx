@@ -9,6 +9,10 @@ import { getConsent, CONSENT_EVENT } from '../services/consent';
  */
 export const TOUR_KEY = 'lagos_go_tour_v1';
 export const TOUR_EVENT = 'lagosgo:tour';
+export const TOUR_DONE_EVENT = 'lagosgo:tour-done';
+/** Outros avisos (ex.: convite para ligar notificações) esperam o tutorial acabar para não cobrir a barra de baixo. */
+export const tourSeen = () => { try { return localStorage.getItem(TOUR_KEY) === '1'; } catch { return true; } };
+export const tourActive = () => !!(window as any).__lagosTourActive;
 export const startAppTour = () => window.dispatchEvent(new Event(TOUR_EVENT));
 
 export interface TourStep {
@@ -97,7 +101,13 @@ export const AppTour: React.FC<Props> = ({ page }) => {
     return () => { window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true); };
   }, [active, measure]);
 
-  const finish = useCallback(() => { markSeen(); setActive(false); setI(0); }, []);
+  const finish = useCallback(() => {
+    markSeen(); setActive(false); setI(0);
+    (window as any).__lagosTourActive = false;
+    window.dispatchEvent(new Event(TOUR_DONE_EVENT));
+  }, []);
+
+  useEffect(() => { (window as any).__lagosTourActive = active; }, [active]);
 
   useEffect(() => {
     if (!active) return;
