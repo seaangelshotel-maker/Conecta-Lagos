@@ -32,8 +32,22 @@ const loadStore = (): Record<string, string> => { try { const o = JSON.parse(loc
 let store: Record<string, string> = {};
 const saveStore = () => { try { const s = JSON.stringify(store); if (s.length < 1_500_000) localStorage.setItem('lagos_tr2_' + lang, s); } catch { /* cheio */ } };
 
+// Dicionários prontos (textos fixos do app), carregados sob demanda por idioma.
+const baked: Record<string, Record<string, string>> = {};
+const bakedLoaders: Record<string, () => Promise<{ default: Record<string, string> }>> = {
+    en: () => import('./i18n/en.json'),
+    es: () => import('./i18n/es.json'),
+    fr: () => import('./i18n/fr.json'),
+};
+const loadBaked = async (l: string) => {
+    if (baked[l] || !bakedLoaders[l]) return;
+    try { baked[l] = (await bakedLoaders[l]()).default; } catch { /* usa a API */ }
+};
+
 const lookup = (src: string): string | undefined => {
     const key = src.trim();
+    const pre = baked[lang]?.[key];
+    if (pre) return pre;
     const fromDict = translateText(key, lang === 'pt-PT' ? '🇵🇹' : lang === 'es' ? '🇪🇸' : lang === 'fr' ? '🇫🇷' : '🇺🇸');
     if (fromDict !== key) return fromDict;
     return memo.get(lang + '|' + key) ?? store[key];
@@ -155,7 +169,8 @@ export const setPageLanguage = (flag: string) => {
     retries = 0;
     if (lang === 'pt') return;
     store = loadStore();
-    void run(document.body);
+    const mine = lang;
+    void loadBaked(mine).then(() => { if (lang === mine) void run(document.body); });
     observer = new MutationObserver(muts => {
         for (const m of muts) {
             if (m.type === 'characterData') schedule(m.target);
