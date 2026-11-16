@@ -189,6 +189,9 @@ const longDate = (iso?: string) => {
   const d = isoDate(iso); if (!d) return '';
   try { return new Date(`${d}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' }); } catch { return d; }
 };
+/** Só endereço de imagem vale para o Google: foto gravada como texto (base64) fica de fora dos dados estruturados. */
+export const httpImg = (u?: string): string | undefined => (u && /^https?:\/\//.test(u) ? u : undefined);
+
 const NOT_FOUND = (def: PageMeta, title: string): PageMeta => ({ ...def, title: `${title} | ${BRAND}`, noindex: true, notFound: true, body: `<h1>${esc(title)}</h1><p>Esta página não existe ou foi retirada. Volte ao <a href="/">início do ${BRAND}</a>.</p>` });
 const TOURIST_SUBS = ['praias', 'trilhas', 'natureza', 'mirantes', 'pontos históricos', 'cultura'];
 
@@ -224,7 +227,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     const rating = realRating(b);
     const ld: any = {
       '@context': 'https://schema.org', '@type': businessType(b), name: b.name, description: clip(b.description || '', 500) || undefined,
-      url: canonical, image: b.coverImage || undefined, telephone: b.phone || undefined,
+      url: canonical, image: httpImg(b.coverImage), telephone: b.phone || undefined,
       address: b.address ? { '@type': 'PostalAddress', streetAddress: b.address, addressLocality: city || undefined, addressRegion: 'RJ', addressCountry: 'BR' } : undefined,
       geo: typeof b.lat === 'number' && typeof b.lng === 'number' ? { '@type': 'GeoCoordinates', latitude: b.lat, longitude: b.lng } : undefined,
       sameAs: [b.website, b.instagram && (String(b.instagram).startsWith('http') ? b.instagram : `https://instagram.com/${String(b.instagram).replace('@', '')}`)].filter(Boolean),
@@ -243,7 +246,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     if (!a || !isPublished(a)) return NOT_FOUND(def, 'Matéria não encontrada');
     const ld = {
       '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.excerpt, inLanguage: 'pt-BR',
-      datePublished: isoDate(a.date) || undefined, dateModified: isoDate(a.date) || undefined, image: a.imageUrl || undefined,
+      datePublished: isoDate(a.date) || undefined, dateModified: isoDate(a.date) || undefined, image: httpImg(a.imageUrl),
       author: { '@type': 'Organization', name: a.author || BRAND }, publisher: { '@type': 'Organization', name: BRAND },
       mainEntityOfPage: canonical, keywords: (a.tags || []).join(', ') || undefined, articleSection: a.category,
     };
@@ -260,7 +263,7 @@ export const pageMeta = async (path: string, base: string): Promise<PageMeta> =>
     if (p.kind === 'guia') return { ...def, canonical: `${base}/guia/${encodeURIComponent(p.slug || p.id)}` };
     const ld = {
       '@context': 'https://schema.org', '@type': 'BlogPosting', headline: p.title, description: p.excerpt, inLanguage: 'pt-BR',
-      datePublished: isoDate(p.date) || undefined, image: p.imageUrl || undefined,
+      datePublished: isoDate(p.date) || undefined, image: httpImg(p.imageUrl),
       author: { '@type': 'Person', name: p.author || BRAND }, publisher: { '@type': 'Organization', name: BRAND }, mainEntityOfPage: canonical,
     };
     return {
