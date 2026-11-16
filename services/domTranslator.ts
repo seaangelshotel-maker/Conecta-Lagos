@@ -39,34 +39,16 @@ const lookup = (src: string): string | undefined => {
     return memo.get(lang + '|' + key) ?? store[key];
 };
 
-/** Plano B no navegador (IP de cada visitante) quando o servidor não conseguiu traduzir. */
-const viaBrowser = async (target: string, texts: string[]): Promise<string[]> => {
-    const out: string[] = [];
-    for (let i = 0; i < texts.length; i += 6) {
-        out.push(...await Promise.all(texts.slice(i, i + 6).map(async t => {
-            try {
-                const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${target}&dt=t&q=${encodeURIComponent(t)}`);
-                if (!r.ok) return t;
-                const d = await r.json();
-                return (d[0] || []).map((x: any) => x[0]).join('') || t;
-            } catch { return t; }
-        })));
-    }
-    return out;
-};
-
 const fetchBatch = async (target: string, texts: string[]): Promise<string[] | null> => {
-    let res: string[] | null = null;
-    try {
-        const r = await fetch('/api/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, texts }) });
-        if (r.ok) { const d = await r.json(); if (Array.isArray(d.translations)) res = d.translations; }
-    } catch { /* cai no plano B */ }
-    const unchanged = res ? texts.filter((t, i) => res![i] === t && /\p{L}{4,}/u.test(t)).length : texts.length;
-    if (!res || unchanged > texts.length / 2) {
-        const fb = await viaBrowser(target, texts);
-        return res ? texts.map((t, i) => (res![i] !== t ? res![i] : fb[i])) : fb;
+    // O servidor escolhe o melhor tradutor disponível. (O Google bloqueia chamadas diretas do navegador, por isso não há plano B aqui.)
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const r = await fetch('/api/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, texts }) });
+            if (r.ok) { const d = await r.json(); if (Array.isArray(d.translations)) return d.translations; }
+        } catch { /* tenta de novo */ }
+        await new Promise(res => setTimeout(res, 600));
     }
-    return res;
+    return null;
 };
 
 const setText = (t: Text, src: string, tr: string) => {
@@ -130,7 +112,7 @@ const run = async (root: Node) => {
     }
     need.sort((a, b) => (top.get(a) ?? 1e9) - (top.get(b) ?? 1e9));
     // Primeiro lote pequeno (aparece rápido) e o resto em lotes maiores, vários ao mesmo tempo.
-    const parts = [need.slice(0, 12), ...chunk(need.slice(12), 25)].filter(p => p.length);
+    const parts = [need.slice(0, 10), ...chunk(need.slice(10), 15)].filter(p => p.length);
     let nextPart = 0;
     const doPart = async (part: string[]) => {
         const res = await fetchBatch(myLang, part);

@@ -20,9 +20,10 @@ const rateLimited = (ip: string) => {
     return h.n > 200;
 };
 
-const viaGoogle = async (text: string, target: string, tries = 3): Promise<string> => {
+let googleError = '';
+const viaGoogle = async (text: string, target: string, tries = 2): Promise<string> => {
     for (let i = 0; i < tries; i++) {
-        try { return await viaGoogleOnce(text, target); } catch { await new Promise(r => setTimeout(r, 250 * (i + 1))); }
+        try { return await viaGoogleOnce(text, target); } catch (e: any) { googleError = String(e?.message || e).slice(0, 120); await new Promise(r => setTimeout(r, 200 * (i + 1))); }
     }
     return text;
 };
@@ -34,10 +35,11 @@ const viaGoogleOnce = async (text: string, target: string): Promise<string> => {
 };
 
 /** Quanto tempo esperamos o Gemini antes de seguir para o Google Tradutor (sem custo). */
-const GEMINI_TIMEOUT_MS = 4000;
+const GEMINI_TIMEOUT_MS = 3500;
 /** Quando o Gemini falha (ex.: 503 "alta demanda"), pula ele por um tempo e vai direto no plano B, em vez de repetir a espera. */
-const GEMINI_PAUSE_MS = 60_000;
-let geminiDownUntil = 0;
+const GEMINI_PAUSE_MS = 30_000;
+const modelDownUntil = new Map<string, number>();
+const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
 
 const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
     new Promise<T>((resolve, reject) => {
@@ -48,7 +50,8 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 const viaGemini = async (texts: string[], target: string, apiKey: string): Promise<string[]> => {
     const ai = new GoogleGenAI({ apiKey });
     let resp: any = null, lastErr: unknown;
-    for (const model of ['gemini-flash-latest']) {
+    for (const model of GEMINI_MODELS) {
+        if (Date.now() < (modelDownUntil.get(model) || 0)) continue;
         try {
             resp = await withTimeout(ai.models.generateContent({
                 model,
@@ -56,9 +59,9 @@ const viaGemini = async (texts: string[], target: string, apiKey: string): Promi
                 config: { responseMimeType: 'application/json', temperature: 0 } as any,
             }), GEMINI_TIMEOUT_MS);
             break;
-        } catch (e) { lastErr = e; }
+        } catch (e) { lastErr = e; modelDownUntil.set(model, Date.now() + GEMINI_PAUSE_MS); }
     }
-    if (!resp) throw lastErr;
+    if (!resp) throw lastErr || new Error('gemini indisponível (pausado)');
     const obj = JSON.parse(resp.text || '{}');
     if (!obj || typeof obj !== 'object') throw new Error('bad gemini output');
     return texts.map((t, i) => { const x = Array.isArray(obj) ? obj[i] : obj[String(i)]; return typeof x === 'string' && x ? x : t; });
@@ -83,11 +86,10 @@ export const handleTranslate = async (req: Req, res: Res) => {
         const miss = missIdx.map(i => texts[i]);
         let done: string[] | null = null;
         const key = process.env.GEMINI_API_KEY;
-        if (key && Date.now() >= geminiDownUntil) {
+        if (key) {
             try { done = await viaGemini(miss, target, key); engine = 'gemini'; }
             catch (e: any) {
-                geminiDownUntil = Date.now() + GEMINI_PAUSE_MS;
-                console.warn('[translate] gemini falhou; pausando por 60s', e?.message || e);
+                console.warn('[translate] gemini falhou', e?.message || e);
                 geminiError = String(e?.message || e).slice(0, 200);
             }
         }
@@ -104,5 +106,5 @@ export const handleTranslate = async (req: Req, res: Res) => {
         });
     }
     res.setHeader('Cache-Control', 'no-store');
-    return sendJson(res, 200, { translations: out, engine, ...(geminiError ? { geminiError } : {}) });
+    return sendJson(res, 200, { translations: out, engine, ...(geminiError ? { geminiError } : {}), ...(engine === 'google' && googleError ? { googleError } : {}) });
 };
