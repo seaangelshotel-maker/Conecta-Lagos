@@ -800,4 +800,42 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     description: 'Pousada na Praia Rasa, em Búzios.',
     sources: ['https://www.google.com/maps/search/Pousada+Manaaki+Búzios'], checkedAt: '2026-11-17',
   },
+
+  // ───────── Bares de Cabo Frio (Google Maps, 2026-11-17)
+  {
+    name: 'Tróia Bar Lounge Roof Top', cityId: CF, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'Av. Nossa Sra. da Assunção, 721, São Bento, Cabo Frio - RJ, 28906-200', neighborhood: 'São Bento',
+    phone: '',
+    description: 'Bar lounge rooftop na Av. Nossa Senhora da Assunção, em Cabo Frio.',
+    sources: ['https://www.google.com/maps/search/Tróia+Bar+Lounge+Roof+Top+Cabo+Frio'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'The Duck Rock Pub', cityId: CF, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'The Duck Pub, Passagem, Cabo Frio - RJ, 28906-370', neighborhood: 'Passagem', phone: '', website: 'https://instagram.com/theduckrockpub',
+    description: 'Pub de temática rock na Passagem, em Cabo Frio.',
+    sources: ['https://www.google.com/maps/search/The+Duck+Rock+Pub+Cabo+Frio', 'https://instagram.com/theduckrockpub'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Bamba', cityId: CF, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'R. Maestro Clodomiro Guimarães Oliveira, 05, Passagem, Cabo Frio - RJ, 28905-165', neighborhood: 'Passagem',
+    phone: '(22) 99966-6100', website: 'https://instagram.com/bamba.br',
+    description: 'Bar na Passagem, em Cabo Frio.',
+    sources: ['https://www.google.com/maps/search/Bamba+bar+Cabo+Frio+Maestro+Clodomiro', 'https://instagram.com/bamba.br'], checkedAt: '2026-11-17',
+  },
+
+  // ───────── Bares de Arraial do Cabo (Google Maps, 2026-11-17)
+  {
+    name: 'Esquina da Onda', cityId: AC, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'R. Nilo Peçanha, 39, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
+    phone: '(21) 98907-4479',
+    description: 'Bar com música ao vivo na Praia dos Anjos, em Arraial do Cabo.',
+    sources: ['https://www.google.com/maps/search/Esquina+da+Onda+Arraial+do+Cabo'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Lounge da Praia', cityId: AC, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'Av. Dr. Hermes Barcelos, 20, Loja 09, Praia Grande, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia Grande',
+    phone: '', website: 'https://instagram.com/loungedapraia2',
+    description: 'Gastrobar na orla da Praia Grande, em Arraial do Cabo.',
+    sources: ['https://www.google.com/maps/search/LOUNGE+DA+PRAIA+Arraial+do+Cabo+Hermes+Barcelos', 'https://instagram.com/loungedapraia2'], checkedAt: '2026-11-17',
+  },
 ];
