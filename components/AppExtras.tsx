@@ -24,6 +24,11 @@ export const AppSplash: React.FC = () => {
   );
 };
 
+/** Áreas que usam o arrastar para outra coisa (mapa, campos de texto): ali o puxar-para-atualizar não dispara. */
+export const PULL_BLOCK_SELECTOR = '[data-no-pull], .leaflet-container, input, textarea, select';
+export const isPullBlocked = (target: EventTarget | null): boolean =>
+  !!target && typeof (target as Element).closest === 'function' && !!(target as Element).closest(PULL_BLOCK_SELECTOR);
+
 /** Puxar para atualizar (só no app instalado): puxe a tela para baixo estando no topo. */
 export const PullToRefresh: React.FC = () => {
   const [pull, setPull] = useState(0);
@@ -32,7 +37,7 @@ export const PullToRefresh: React.FC = () => {
   const native = isNativeApp();
   useEffect(() => {
     if (!native) return;
-    const ts = (e: TouchEvent) => { start.current = window.scrollY <= 0 && e.touches[0].clientX > 24 ? e.touches[0].clientY : null; };
+    const ts = (e: TouchEvent) => { start.current = window.scrollY <= 0 && e.touches[0].clientX > 24 && !isPullBlocked(e.target) ? e.touches[0].clientY : null; };
     const tm = (e: TouchEvent) => {
       if (start.current == null) return;
       const d = e.touches[0].clientY - start.current;

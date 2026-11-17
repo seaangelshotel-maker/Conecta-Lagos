@@ -191,7 +191,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ initialLat, init
         </ul>
       )}
 
-      <div className="relative w-full h-64 rounded-2xl overflow-hidden border border-slate-200 isolate">
+      <div data-no-pull className="relative w-full h-64 rounded-2xl overflow-hidden border border-slate-200 isolate" style={{ overscrollBehavior: 'contain' }}>
         <div ref={mapContainerRef} className="absolute inset-0 z-0 bg-slate-100" />
         {Object.keys(layers).length > 1 && (
           <div className="absolute top-2 right-2 z-[500] flex rounded-lg overflow-hidden shadow border border-white/70 text-xs font-bold" data-testid="map-layers">
