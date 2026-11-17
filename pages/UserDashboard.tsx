@@ -289,6 +289,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
         </div>
       )}
 
+      {/* Carteira (Passaporte de Economia): logo abaixo do topo, antes de "Como você participa" */}
+      <div className="mb-8"><WalletCard summary={wallet} loading={walletLoading} variant="full" /></div>
+
       {/* Centro da conta: uma identidade, várias formas de participar */}
       <ParticipationHub currentUser={currentUser} onNavigate={onNavigate} />
 
@@ -303,8 +306,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
           {activeTab === 'overview' && (
               <div className="animate-in fade-in space-y-6 md:space-y-10">
-                  <WalletCard summary={wallet} loading={walletLoading} variant="full" />
-
                   {/* Quick access to last coupons */}
                   {history.length > 0 && (
                       <div className="space-y-4 md:space-y-6">
