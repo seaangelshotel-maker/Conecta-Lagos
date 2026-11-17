@@ -8,12 +8,12 @@
  */
 import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from './firebase';
-import { getCurrentUser, getCategories } from './dataService';
+import { getCurrentUser, getCategories, getCities, saveCity } from './dataService';
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
 import { bumpContentVersion } from './contentVersion';
 import {
-    FEATURED_BUSINESSES, FEATURED_BATCH, FEATURED_TAXONOMY, FREE_TRIAL_DAYS, FREE_TRIAL_PLAN, FeaturedBusiness,
+    FEATURED_BUSINESSES, FEATURED_BATCH, FEATURED_TAXONOMY, FEATURED_NEW_CITIES, FREE_TRIAL_DAYS, FREE_TRIAL_PLAN, FeaturedBusiness,
 } from '../data/featuredBusinesses';
 
 const normalize = (s: string) => s
@@ -77,6 +77,16 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
     if (!user || user.role !== UserRole.SUPER_ADMIN) throw new Error('Apenas o administrador pode importar empresas.');
 
     const preview = await previewFeaturedImport();
+
+    // Cidades novas (Araruama, São Pedro da Aldeia, Saquarema, Iguaba Grande): cria as que ainda não existem
+    const cities = await getCities();
+    const usedCityIds = new Set(preview.toCreate.map(b => b.cityId as string));
+    for (const c of FEATURED_NEW_CITIES) {
+        if (usedCityIds.has(c.id) && !cities.find(x => x.id === c.id)) {
+            await saveCity({ id: c.id, name: c.name, active: true });
+            cities.push({ id: c.id, name: c.name, active: true });
+        }
+    }
 
     // Categorias e subcategorias usadas
     const categories = await getCategories(true);

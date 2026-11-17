@@ -8,6 +8,10 @@ const CITY_LABEL: Record<string, string> = {
     city_arraial_do_cabo: 'Arraial do Cabo',
     city_cabo_frio: 'Cabo Frio',
     city_buzios: 'Búzios',
+    city_araruama: 'Araruama',
+    city_sao_pedro_da_aldeia: 'São Pedro da Aldeia',
+    city_saquarema: 'Saquarema',
+    city_iguaba_grande: 'Iguaba Grande',
 };
 
 /** Painel do admin: prévia e importação das empresas em destaque, com 3 meses grátis. */

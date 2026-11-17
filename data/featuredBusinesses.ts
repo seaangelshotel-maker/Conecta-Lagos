@@ -10,7 +10,17 @@
  * - A descrição é neutra: só repete categoria e localização informadas pela própria empresa.
  */
 
-export type CityId = 'city_arraial_do_cabo' | 'city_cabo_frio' | 'city_buzios';
+export type CityId =
+  | 'city_arraial_do_cabo' | 'city_cabo_frio' | 'city_buzios'
+  | 'city_araruama' | 'city_sao_pedro_da_aldeia' | 'city_saquarema' | 'city_iguaba_grande';
+
+/** Cidades que podem não existir no banco ainda; a importação cria as que faltarem. */
+export const FEATURED_NEW_CITIES: { id: CityId; name: string }[] = [
+  { id: 'city_araruama', name: 'Araruama' },
+  { id: 'city_sao_pedro_da_aldeia', name: 'São Pedro da Aldeia' },
+  { id: 'city_saquarema', name: 'Saquarema' },
+  { id: 'city_iguaba_grande', name: 'Iguaba Grande' },
+];
 
 export interface FeaturedBusiness {
   name: string;
@@ -72,6 +82,10 @@ export const allDays = (h: string) => ({ Domingo: h, Segunda: h, 'Terça': h, Qu
 const AC = 'city_arraial_do_cabo' as const;
 const CF = 'city_cabo_frio' as const;
 const BZ = 'city_buzios' as const;
+const AR = 'city_araruama' as const;
+const SP = 'city_sao_pedro_da_aldeia' as const;
+const SQ = 'city_saquarema' as const;
+const IG = 'city_iguaba_grande' as const;
 
 export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   // ───────── Arraial do Cabo · Pousadas
@@ -620,5 +634,84 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '',
     description: 'Restaurante à beira-mar na Prainha, em Arraial do Cabo.',
     sources: ['https://www.google.com/maps/search/Anchova+na+Brasa+Arraial+do+Cabo'], checkedAt: '2026-11-17',
+  },
+
+  // ───────── Araruama, São Pedro da Aldeia e Saquarema · pré-cadastro (Google Maps, 2026-11-17). Telefone de 1 fonte; Instagram e horário por dia ficam para completar.
+  {
+    name: 'Restaurante Mediterrâneo', cityId: AR, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'R. Gen. Eurico Gaspar Dutra, 1067, Pontinha, Araruama - RJ, 28970-000', neighborhood: 'Pontinha',
+    phone: '(22) 2665-1086',
+    description: 'Restaurante de cozinha mediterrânea na Pontinha, em Araruama, com entrega.',
+    sources: ['https://www.google.com/maps/search/Ristorante+Mediterrâneo+Araruama'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'La Bodeguita Restaurante e Pizzaria', cityId: AR, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'Estr. de Praia Seca, 12555, Praia Seca, Araruama - RJ, 28970-000', neighborhood: 'Praia Seca',
+    phone: '(22) 99909-3672',
+    description: 'Restaurante e pizzaria em Praia Seca, em Araruama.',
+    sources: ['https://www.google.com/maps/search/La+Bodeguita+Praia+Seca+Araruama'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Pousada Algodão da Praia', cityId: AR, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. Otávio Carneiro, 55, Praia dos Amores, Araruama - RJ, 28970-000', neighborhood: 'Praia dos Amores',
+    phone: '(22) 99788-2024',
+    description: 'Pousada na Praia dos Amores, em Araruama.',
+    sources: ['https://www.google.com/maps/search/Pousada+Algodão+da+Praia+Araruama'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Recanto Suítes', cityId: AR, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. Bonfim, 96, Areal, Araruama - RJ, 28976-114', neighborhood: 'Areal',
+    phone: '(22) 98825-1822', website: 'https://recantosuites.com.br',
+    description: 'Hospedagem em suítes no bairro Areal, em Araruama.',
+    sources: ['https://www.google.com/maps/search/Recanto+Suites+Araruama', 'https://recantosuites.com.br'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Toshi Conceito', cityId: SP, category: 'Gastronomia', subcategory: 'Restaurantes',
+    address: 'R. Epaminondas Pereira Nunes, 9, Nova São Pedro, São Pedro da Aldeia - RJ, 28940-000', neighborhood: 'Nova São Pedro',
+    phone: '(22) 2621-3560',
+    description: 'Restaurante de culinária japonesa em Nova São Pedro, em São Pedro da Aldeia, com entrega.',
+    sources: ['https://www.google.com/maps/search/Toshi+Conceito+São+Pedro+da+Aldeia'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Pousada Enseada das Garças', cityId: SP, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. José Costa, 1088, Boqueirão, São Pedro da Aldeia - RJ, 28940-210', neighborhood: 'Boqueirão',
+    phone: '(22) 2627-0007',
+    description: 'Pousada com café da manhã incluído no Boqueirão, em São Pedro da Aldeia.',
+    sources: ['https://www.google.com/maps/search/Pousada+Enseada+das+Garças+São+Pedro+da+Aldeia'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Pousada Villa Mares', cityId: SP, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. Luiz de Camões, 1, Centro, São Pedro da Aldeia - RJ, 28941-048', neighborhood: 'Centro',
+    phone: '(22) 2321-0904',
+    description: 'Pousada com café da manhã incluído no Centro de São Pedro da Aldeia.',
+    sources: ['https://www.google.com/maps/search/Pousada+Villa+Mares+São+Pedro+da+Aldeia'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Hotel Cave do Sol', cityId: SP, category: 'Hospedagem', subcategory: 'Hotéis',
+    address: 'Rua José Costa, 1087, Ponta da Areia, São Pedro da Aldeia - RJ, 28940-000', neighborhood: 'Ponta da Areia',
+    phone: '(21) 3900-6964', website: 'https://hotelcavedosol.com.br',
+    description: 'Hotel com café da manhã incluído na Ponta da Areia, em São Pedro da Aldeia.',
+    sources: ['https://www.google.com/maps/search/Hotel+Cave+do+Sol+São+Pedro+da+Aldeia', 'https://hotelcavedosol.com.br'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Village Itaúna Inn', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. dos Vermelhos, 459, Itaúna, Saquarema - RJ, 28990-882', neighborhood: 'Itaúna',
+    phone: '(21) 98297-4015',
+    description: 'Hospedagem em Itaúna, em Saquarema.',
+    sources: ['https://www.google.com/maps/search/Village+Itaúna+Inn+Saquarema'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Pousada Fruto de Itaúna', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
+    address: 'R. dos Mariscos, 511, Segundo Piso, Itaúna, Saquarema - RJ, 28990-844', neighborhood: 'Itaúna',
+    phone: '(22) 99755-5401',
+    description: 'Pousada em Itaúna, em Saquarema.',
+    sources: ['https://www.google.com/maps/search/Pousada+Fruto+do+Mar+Itaúna+Saquarema'], checkedAt: '2026-11-17',
+  },
+  {
+    name: 'Bar do Cajueiro by Bodega Boa', cityId: SQ, category: 'Gastronomia', subcategory: 'Bares e Quiosques',
+    address: 'R. Etelvina Henrique Leme, 54, Porto da Roça, Saquarema - RJ, 28990-000', neighborhood: 'Porto da Roça',
+    phone: '',
+    description: 'Bar no Porto da Roça, em Saquarema, com entrega sem contato.',
+    sources: ['https://www.google.com/maps/search/Bar+do+Cajueiro+Saquarema'], checkedAt: '2026-11-17',
   },
 ];
