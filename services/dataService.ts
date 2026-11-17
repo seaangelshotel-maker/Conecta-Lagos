@@ -2004,23 +2004,17 @@ export const getLocations = () => {
 let _amenities: AppAmenity[] = DEFAULT_AMENITIES;
 
 export const getAmenities = async () => {
+    // O catálogo (data/amenityCatalog.ts) é a fonte das comodidades padrão; do banco vêm só as criadas pelo admin.
     try {
         const snap = await getDocs(collection(db, 'app_amenities'));
-        if (!snap.empty) {
-            _amenities = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppAmenity));
-        } else {
-            // Seed defaults
-            _amenities = DEFAULT_AMENITIES;
-            for (const am of DEFAULT_AMENITIES) {
-                try {
-                    await setDoc(doc(db, 'app_amenities', am.id), am);
-                } catch (e) {
-                    console.warn("Using default amenities. Seed failed (permissions expected if non-admin):", e);
-                }
-            }
-        }
+        const known = new Set(DEFAULT_AMENITIES.flatMap(d => [d.id, d.label.toLowerCase()]));
+        const custom = snap.docs
+            .map(d => ({ id: d.id, ...d.data() } as AppAmenity))
+            .filter(a => a.label && !known.has(a.id) && !known.has(a.label.toLowerCase()));
+        _amenities = [...DEFAULT_AMENITIES, ...custom];
     } catch (e) {
         console.warn("Using default amenities:", e);
+        _amenities = DEFAULT_AMENITIES;
     }
     return _amenities;
 };

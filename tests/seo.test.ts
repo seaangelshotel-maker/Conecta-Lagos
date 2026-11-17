@@ -134,6 +134,12 @@ test('página da cidade: título próprio, lista de lugares e breadcrumbs', asyn
   assert.ok(m.jsonLd.some(j => j['@type'] === 'BreadcrumbList'));
   assert.ok(!m.notFound && !m.noindex);
   assert.equal(cityLandingBySlug('buzios')?.cityId, 'city_buzios');
+  for (const [slug, id] of [['araruama', 'city_araruama'], ['sao-pedro-da-aldeia', 'city_sao_pedro_da_aldeia'], ['saquarema', 'city_saquarema'], ['iguaba-grande', 'city_iguaba_grande']]) {
+    assert.equal(cityLandingBySlug(slug)?.cityId, id);
+    const c = await pageMeta(`/${slug}`, 'https://x.com');
+    assert.ok(!c.notFound && !c.noindex, slug);
+    assert.equal(c.jsonLd[0]['@type'], 'CollectionPage');
+  }
 });
 
 test('endereço inexistente é 404 e sem índice; páginas reais não', async () => {

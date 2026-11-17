@@ -5,6 +5,7 @@
  */
 import { BusinessProfile, BlogPost, GuideRelated, AMENITIES_LABELS, DEFAULT_AMENITIES, AppAmenity } from '../types';
 import { businessPublicRating } from './reviewRules';
+import { KIND_BY_DISCOVER_CATEGORY, amenityAppliesTo } from '../data/amenityCatalog';
 
 export const norm = (s: string = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -152,6 +153,20 @@ export const hasAmenity = (b: BusinessProfile, id: string, defs: AppAmenity[] = 
 export const countByAmenity = (all: BusinessProfile[], defs: AppAmenity[] = DEFAULT_AMENITIES) => {
   const live = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
   return Object.fromEntries(defs.map(d => [d.id, live.filter(b => hasAmenity(b, d.id, defs)).length]));
+};
+
+/**
+ * Comodidades que o filtro mostra: só as que fazem sentido para a categoria escolhida
+ * (hotel não vê "Faz entrega") E que alguma empresa do recorte tem (filtro sem resultado não aparece).
+ * As já marcadas ficam visíveis para o usuário poder desmarcar. Ordem: mais empresas primeiro.
+ */
+export const visibleAmenities = (defs: AppAmenity[], scope: BusinessProfile[], categoryId: string | undefined, selected: string[] = []): { def: AppAmenity; count: number }[] => {
+  const kind = categoryId ? KIND_BY_DISCOVER_CATEGORY[categoryId] : undefined;
+  const counts = countByAmenity(scope, defs);
+  return defs
+    .filter(d => selected.includes(d.id) || (amenityAppliesTo(d, kind) && (counts[d.id] || 0) > 0))
+    .map(d => ({ def: d, count: counts[d.id] || 0 }))
+    .sort((a, b) => b.count - a.count || a.def.label.localeCompare(b.def.label));
 };
 
 export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {

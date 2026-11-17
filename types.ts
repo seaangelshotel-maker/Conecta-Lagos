@@ -1,3 +1,4 @@
+import { AMENITY_CATALOG, AmenityGroup, BusinessKind } from './data/amenityCatalog';
 
 export enum UserRole {
   CUSTOMER = 'CUSTOMER',
@@ -258,6 +259,10 @@ export interface AppAmenity {
   id: string;
   label: string;
   icon?: string;
+  /** Seção em que aparece no cadastro. */
+  group?: AmenityGroup;
+  /** Tipos de negócio a que se aplica; ausente = vale para todos (ex.: comodidade criada pelo admin). */
+  kinds?: BusinessKind[];
 }
 
 export interface AppConfig {
@@ -678,35 +683,9 @@ export interface SpecialistReferralSettings {
 export const PROTECTED_CATEGORIES =['Gastronomia', 'Hospedagem', 'Comércio', 'Serviços'];
 export const DEFAULT_CATEGORIES = [...PROTECTED_CATEGORIES, 'Passeios', 'Entretenimento'];
 
-export const AMENITIES_LABELS: { [key: string]: string } = {
-    wifi: 'Wi-Fi Grátis',
-    ac: 'Ar Condicionado',
-    parking: 'Estacionamento',
-    access: 'Acessibilidade',
-    kids: 'Espaço Kids',
-    pet: 'Pet Friendly',
-    pool: 'Piscina',
-    breakfast: 'Café da Manhã',
-    tv: 'Televisão',
-    bar: 'Bar no Local',
-    card: 'Aceita Cartão',
-    delivery: 'Faz Entrega'
-};
+export const AMENITIES_LABELS: { [key: string]: string } = Object.fromEntries(AMENITY_CATALOG.map(a => [a.id, a.label]));
 
-export const DEFAULT_AMENITIES: AppAmenity[] = [
-    { id: 'wifi', label: 'Wi-Fi Grátis' },
-    { id: 'ac', label: 'Ar Condicionado' },
-    { id: 'parking', label: 'Estacionamento' },
-    { id: 'access', label: 'Acessibilidade' },
-    { id: 'kids', label: 'Espaço Kids' },
-    { id: 'pet', label: 'Pet Friendly' },
-    { id: 'pool', label: 'Piscina' },
-    { id: 'breakfast', label: 'Café da Manhã' },
-    { id: 'tv', label: 'Televisão' },
-    { id: 'bar', label: 'Bar no Local' },
-    { id: 'card', label: 'Aceita Cartão' },
-    { id: 'delivery', label: 'Faz Entrega' }
-];
+export const DEFAULT_AMENITIES: AppAmenity[] = AMENITY_CATALOG.map(a => ({ id: a.id, label: a.label, group: a.group, kinds: a.kinds }));
 
 export interface BlogAd {
   id: string;

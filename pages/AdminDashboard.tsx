@@ -2,6 +2,7 @@ import { merchantImpact, formatBRL, couponSaving } from '../services/walletRules
 import { canOrder, menuProgress, menuBytes, MENU_BYTES_WARN } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
+import { AmenityPicker } from '../components/AmenityPicker';
 import { User, Coupon, BusinessProfile, DEFAULT_AMENITIES, MenuSection, MenuItem, CompanyRequest, UserRole, PricingPlan, HomeHighlight, City, Neighborhood, AppCategory, AppAmenity, BlogAd, BlogPost } from '../types';
 import { 
   getCoupons, saveCoupon, deleteCoupon, getBusinesses, getAllBusinesses, 
@@ -1688,26 +1689,15 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <h3 className="font-black text-ocean-950 text-sm flex items-center gap-2 mb-6">
                                 <Check size={18} className="text-ocean-600" /> Comodidades & Diferenciais
                               </h3>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                  {amenitiesList.map(am => {
-                                      const isSelected = (editBusiness.amenities || []).includes(am.id);
-                                      return (
-                                          <button 
-                                            key={am.id}
-                                            type="button"
-                                            onClick={() => {
-                                                const current = [...(editBusiness.amenities || [])];
-                                                const next = isSelected ? current.filter(x => x !== am.id) : [...current, am.id];
-                                                setEditBusiness({...editBusiness, amenities: next});
-                                            }}
-                                            className={`flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${isSelected ? 'bg-ocean-600 border-ocean-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}`}
-                                          >
-                                              <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-slate-300'}`} />
-                                              <span className="text-xs font-bold">{am.label}</span>
-                                          </button>
-                                      );
-                                  })}
-                                  <div className="flex gap-2 items-center p-2 bg-slate-50 border border-slate-100 rounded-2xl col-span-full">
+                              <div className="space-y-5">
+                                  <AmenityPicker
+                                    category={editBusiness.category}
+                                    subcategory={editBusiness.subcategory}
+                                    defs={amenitiesList}
+                                    selected={editBusiness.amenities || []}
+                                    onChange={next => setEditBusiness({ ...editBusiness, amenities: next })}
+                                  />
+                                  <div className="flex gap-2 items-center p-2 bg-slate-50 border border-slate-100 rounded-2xl">
                                       <input 
                                           className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none"
                                           placeholder="Nova comodidade (Enter para adicionar)..."

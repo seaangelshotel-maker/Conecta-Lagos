@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { amenityAppliesTo, businessKind } from "../data/amenityCatalog";
 import {
   Search,
   MapPin,
@@ -1152,7 +1153,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
 
               {activeModal === "filters" && (
                 <div className="flex flex-col gap-1 p-2">
-                  {amenities.map((am) => {
+                  {amenities.filter((am) => selectedAmenities.includes(am.id) || amenityAppliesTo(am, selectedCategory === "Todos" ? undefined : businessKind({ category: selectedCategory, subcategory: selectedSubCategory === "Todos" ? undefined : selectedSubCategory }))).map((am) => {
                     const isSelected = selectedAmenities.includes(am.id);
                     return (
                       <button

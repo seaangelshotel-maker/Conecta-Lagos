@@ -2,13 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Loader2, Sparkles, MapPin } from 'lucide-react';
 import { CategoryIcon } from '../components/categoryIcons';
 import { useHomeConfig } from '../services/homeConfigService';
+import { KIND_BY_DISCOVER_CATEGORY, amenityAppliesTo } from '../data/amenityCatalog';
 import { BlogPost, BusinessProfile, City, AppAmenity, DEFAULT_AMENITIES } from '../types';
 import { getAllBusinesses, getCities, getAmenities } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
 import { getGuideArticles } from '../services/guideService';
 import { findNeed, needMatch } from '../services/needNow';
 import {
-  CONTEXT_FILTERS, filterBusinesses, countByCategory, countByAmenity, searchArticles, haversineKm,
+  CONTEXT_FILTERS, filterBusinesses, countByCategory, visibleAmenities, searchArticles, haversineKm,
 } from '../services/discoverLogic';
 import { ArticleCard, BusinessMiniCard } from '../components/GuideCards';
 import { CollaborationCta } from '../components/RelatedContent';
@@ -91,8 +92,14 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
 
   const counts = useMemo(() => countByCategory(businesses, categories), [businesses, categories]);
   const active = !!(cat || flt || q.trim() || am.length || need);
-  const amCounts = useMemo(() => countByAmenity(businesses, amenityDefs), [businesses, amenityDefs]);
-  const amList = useMemo(() => [...amenityDefs].sort((a, b) => (amCounts[b.id] || 0) - (amCounts[a.id] || 0)), [amenityDefs, amCounts]);
+  // Comodidades do recorte atual (cidade + categoria): só as que se aplicam a esse tipo e têm empresa.
+  const amScope = useMemo(() => filterBusinesses(businesses, { categories, categoryId: cat, cityId: city }), [businesses, categories, cat, city]);
+  const amList = useMemo(() => visibleAmenities(amenityDefs, amScope, cat || undefined, am), [amenityDefs, amScope, cat, am]);
+  // Trocou de categoria: some a comodidade marcada que não se aplica ao novo tipo (ex.: "Faz entrega" em hospedagem).
+  useEffect(() => {
+    const kind = cat ? KIND_BY_DISCOVER_CATEGORY[cat] : undefined;
+    setAm(cur => { const next = cur.filter(id => { const d = amenityDefs.find(x => x.id === id); return !d || amenityAppliesTo(d, kind); }); return next.length === cur.length ? cur : next; });
+  }, [cat, amenityDefs]);
   const toggleAm = (id: string) => setAm(cur => (cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]));
   const needItem = findNeed(need);
   const results = useMemo(() => {
@@ -190,8 +197,8 @@ export const Discover: React.FC<Props> = ({ onNavigate, initialCity }) => {
         <section aria-label="Comodidades" className="pt-1" data-testid="amenities">
           <p className="px-4 text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Comodidades</p>
           <HScroller label="Comodidades" gap="gap-2">
-            {amList.map(a => {
-              const on = am.includes(a.id); const n = amCounts[a.id] || 0;
+            {amList.map(({ def: a, count: n }) => {
+              const on = am.includes(a.id);
               return (
                 <button key={a.id} onClick={() => toggleAm(a.id)} aria-pressed={on} data-testid={`am-${a.id}`}
                   className={`px-4 h-9 flex items-center gap-1.5 rounded-full text-xs font-bold whitespace-nowrap border ${on ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}`}>

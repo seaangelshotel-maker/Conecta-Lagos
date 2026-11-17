@@ -2,8 +2,10 @@
 import { canOrder, whatsappNumber } from '../services/orderModel';
 import { addPlanPeriod, brl, periodLabel, planTotal } from '../services/planRules';
 import React, { useState, useEffect } from 'react';
-import { User, UserRole, BusinessProfile, PricingPlan } from '../types';
-import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans } from '../services/dataService';
+import { User, UserRole, BusinessProfile, PricingPlan, AppAmenity, DEFAULT_AMENITIES } from '../types';
+import { AmenityPicker } from '../components/AmenityPicker';
+import { amenityAppliesTo, businessKind } from '../data/amenityCatalog';
+import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans, getAmenities } from '../services/dataService';
 import { LocationPicker, type LocationSource } from '../components/LocationPicker';
 import { buildAddressQuery, isValidLatLng } from '../services/geoRules';
 import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X } from 'lucide-react';
@@ -28,6 +30,8 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
     const [categories, setCategories] = useState<any[]>([]);
     const [cities, setCities] = useState<any[]>([]);
     const [neighborhoods, setNeighborhoods] = useState<any[]>([]);
+    const [amenityDefs, setAmenityDefs] = useState<AppAmenity[]>(DEFAULT_AMENITIES);
+    const [amenities, setAmenities] = useState<string[]>([]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -46,6 +50,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
             setCategories(cats);
             setCities(cts);
             setNeighborhoods(nbs);
+            getAmenities().then(setAmenityDefs).catch(() => {});
         };
         loadInitialData();
     }, [currentUser.plan]);
@@ -120,7 +125,8 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                 // O campo do cadastro é o WhatsApp: grava nos dois, senão o botão "WhatsApp" do perfil nasce sem número.
                 whatsapp: formData.phone,
                 ...(formData.instagram.trim() ? { instagram: formData.instagram.trim().replace(/^@/, '') } : {}),
-                amenities: [],
+                // Só grava o que se aplica ao tipo escolhido (quem trocou de categoria no meio do cadastro).
+                amenities: amenities.filter(id => { const d = amenityDefs.find(x => x.id === id); return !d || amenityAppliesTo(d, businessKind({ category: formData.category, subcategory: formData.subcategory })); }),
                 openingHours: {},
                 rating: 0,
                 views: 0,
@@ -387,6 +393,11 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                     <p className="text-slate-500 font-medium">Últimos detalhes para publicar sua empresa.</p>
                                 </div>
                                 <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">O que sua empresa oferece</label>
+                                        <p className="text-xs text-slate-500 font-medium mb-3 ml-1">Marque só o que é verdade. Isso aparece no seu perfil e nos filtros dos clientes.</p>
+                                        <AmenityPicker category={formData.category} subcategory={formData.subcategory} defs={amenityDefs} selected={amenities} onChange={setAmenities} />
+                                    </div>
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">WhatsApp de Contato</label>
                                         <input 

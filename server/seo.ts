@@ -181,7 +181,7 @@ const breadcrumbs = (base: string, items: [string, string][]) => ({
 });
 
 const CITY: Record<string, string> = {
-  city_arraial_do_cabo: 'Arraial do Cabo', city_cabo_frio: 'Cabo Frio', city_buzios: 'Armação dos Búzios', arraial: 'Arraial do Cabo',
+  city_arraial_do_cabo: 'Arraial do Cabo', city_cabo_frio: 'Cabo Frio', city_buzios: 'Armação dos Búzios', city_araruama: 'Araruama', city_sao_pedro_da_aldeia: 'São Pedro da Aldeia', city_saquarema: 'Saquarema', city_iguaba_grande: 'Iguaba Grande', arraial: 'Arraial do Cabo',
   'arraial-do-cabo': 'Arraial do Cabo', 'cabo-frio': 'Cabo Frio', buzios: 'Armação dos Búzios', 'sao-pedro-da-aldeia': 'São Pedro da Aldeia',
   'iguaba-grande': 'Iguaba Grande', araruama: 'Araruama', saquarema: 'Saquarema',
 };

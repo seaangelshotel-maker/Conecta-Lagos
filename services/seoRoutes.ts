@@ -17,7 +17,7 @@ export interface CityLanding {
   intro: string;
 }
 
-/** Páginas por cidade: /arraial-do-cabo, /cabo-frio, /buzios (as buscas locais caem aqui). */
+/** Páginas por cidade: /arraial-do-cabo, /cabo-frio, /buzios, /araruama… (as buscas locais caem aqui). */
 export const CITY_LANDINGS: CityLanding[] = [
   {
     slug: 'arraial-do-cabo', cityId: 'city_arraial_do_cabo', aliases: ['arraial', 'arraial-do-cabo'], name: 'Arraial do Cabo',
@@ -36,6 +36,30 @@ export const CITY_LANDINGS: CityLanding[] = [
     title: 'Búzios: praias, passeios, restaurantes e hospedagens',
     description: 'Guia de Armação dos Búzios (RJ): praias, passeios, restaurantes, hospedagens, cupons e dicas para aproveitar a cidade.',
     intro: 'Búzios do seu jeito: praias, passeios, restaurantes e onde se hospedar, com dicas de quem vive aqui.',
+  },
+  {
+    slug: 'araruama', cityId: 'city_araruama', aliases: ['araruama'], name: 'Araruama',
+    title: 'Araruama: restaurantes, hospedagens e o que fazer',
+    description: 'Guia de Araruama (RJ): restaurantes, hotéis e pousadas, com endereço, telefone e comodidades, e dicas para moradores e visitantes.',
+    intro: 'Araruama, na Lagoa de Araruama: onde comer, onde ficar e o que aproveitar na cidade.',
+  },
+  {
+    slug: 'sao-pedro-da-aldeia', cityId: 'city_sao_pedro_da_aldeia', aliases: ['sao-pedro-da-aldeia'], name: 'São Pedro da Aldeia',
+    title: 'São Pedro da Aldeia: restaurantes, hospedagens e o que fazer',
+    description: 'Guia de São Pedro da Aldeia (RJ): restaurantes, pousadas e hotéis, com endereço, telefone e comodidades, e dicas locais.',
+    intro: 'São Pedro da Aldeia sem complicação: restaurantes, pousadas e dicas para curtir a cidade.',
+  },
+  {
+    slug: 'saquarema', cityId: 'city_saquarema', aliases: ['saquarema'], name: 'Saquarema',
+    title: 'Saquarema: restaurantes, hospedagens e o que fazer',
+    description: 'Guia de Saquarema (RJ): restaurantes, bares, pousadas e hotéis, incluindo Itaúna, com endereço, telefone e comodidades.',
+    intro: 'Saquarema e Itaúna: onde comer, onde ficar e como aproveitar a cidade do surfe.',
+  },
+  {
+    slug: 'iguaba-grande', cityId: 'city_iguaba_grande', aliases: ['iguaba-grande'], name: 'Iguaba Grande',
+    title: 'Iguaba Grande: restaurantes, hospedagens e o que fazer',
+    description: 'Guia de Iguaba Grande (RJ): restaurantes, hotéis e pousadas, com endereço, telefone e comodidades, e dicas locais.',
+    intro: 'Iguaba Grande à beira da lagoa: onde comer, onde se hospedar e o que fazer.',
   },
 ];
 
