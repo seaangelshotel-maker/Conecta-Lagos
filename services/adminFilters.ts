@@ -9,7 +9,7 @@ const hasText = (q: string, ...fields: unknown[]) => {
   return !n || fields.some(f => norm(f).includes(n));
 };
 
-/** Valores aceitos em "kind": pagantes, gratuitas, serviços públicos, lugares sem dono, com dono. */
+/** Valores aceitos em "kind": pagantes, gratuitas, serviços públicos, lugares sem dono, com dono, parceiras (lote inicial). */
 export interface BizFilter { q: string; category: string; cityId: string; plan: string; status: string; kind: string }
 export const EMPTY_BIZ_FILTER: BizFilter = { q: '', category: '', cityId: '', plan: '', status: '', kind: '' };
 
@@ -33,6 +33,7 @@ export function filterBusinesses(list: BusinessProfile[], f: BizFilter): Busines
     if (f.kind === 'public' && !isPublicService(b)) return false;
     if (f.kind === 'unclaimed' && (b.isClaimed || isPublicService(b))) return false;
     if (f.kind === 'claimed' && !b.isClaimed) return false;
+    if (f.kind === 'partner' && !(b as any).importBatch?.startsWith('empresas-destaque')) return false;
     return true;
   });
 }

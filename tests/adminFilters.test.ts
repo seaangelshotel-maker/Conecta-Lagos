@@ -28,6 +28,10 @@ test('serviços públicos, sem dono e reivindicadas', () => {
   assert.deepEqual(filterBusinesses(list, { ...EMPTY_BIZ_FILTER, kind: 'unclaimed' }).map(b => b.id), ['b', 'd', 'e']);
   assert.deepEqual(filterBusinesses(list, { ...EMPTY_BIZ_FILTER, kind: 'claimed' }).map(b => b.id), ['a']);
 });
+test('empresas parceiras: só as do lote inicial', () => {
+  const l: any[] = [...list, { id: 'p1', name: 'Parceira', importBatch: 'empresas-destaque-2026-11' }];
+  assert.deepEqual(filterBusinesses(l, { ...EMPTY_BIZ_FILTER, kind: 'partner' }).map(b => b.id), ['p1']);
+});
 test('status ativa/inativa/pendente', () => {
   assert.deepEqual(filterBusinesses(list, { ...EMPTY_BIZ_FILTER, status: 'blocked' }).map(b => b.id), ['d']);
   assert.deepEqual(filterBusinesses(list, { ...EMPTY_BIZ_FILTER, status: 'pending' }).map(b => b.id), ['e']);

@@ -2248,7 +2248,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
             onClear={() => setBizFilter(EMPTY_BIZ_FILTER)}
             selects={[
               { key: 'kind', label: 'Tipo', value: bizFilter.kind, onChange: kind => setBizFilter({ ...bizFilter, kind }),
-                options: [{ value: 'paid', label: 'Pagantes (Pro/Premium)' }, { value: 'free', label: 'Gratuitas' }, { value: 'public', label: 'Serviços públicos' }, { value: 'unclaimed', label: 'Lugares sem dono' }, { value: 'claimed', label: 'Reivindicadas' }] },
+                options: [{ value: 'partner', label: 'Empresas parceiras (lote inicial)' }, { value: 'paid', label: 'Pagantes (Pro/Premium)' }, { value: 'free', label: 'Gratuitas' }, { value: 'public', label: 'Serviços públicos' }, { value: 'unclaimed', label: 'Lugares sem dono' }, { value: 'claimed', label: 'Reivindicadas' }] },
               { key: 'category', label: 'Categoria', value: bizFilter.category, onChange: category => setBizFilter({ ...bizFilter, category }),
                 options: distinct(allBusinesses.map(b => b.category)).map(c => ({ value: c, label: c })) },
               { key: 'city', label: 'Cidade', value: bizFilter.cityId, onChange: cityId => setBizFilter({ ...bizFilter, cityId }),
