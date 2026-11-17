@@ -1,6 +1,6 @@
 
 import { canOrder, whatsappNumber } from '../services/orderModel';
-import { addPlanPeriod, brl, periodLabel, planTotal } from '../services/planRules';
+import { addPlanPeriod, brl, periodLabel, planTotal, CANCEL_WINDOW_TITLE, CANCEL_WINDOW_TEXT } from '../services/planRules';
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, BusinessProfile, PricingPlan, AppAmenity, DEFAULT_AMENITIES } from '../types';
 import { AmenityPicker } from '../components/AmenityPicker';
@@ -8,7 +8,7 @@ import { amenityAppliesTo, businessKind } from '../data/amenityCatalog';
 import { getCategories, saveBusiness, promoteSelfToCompany, getCities, getNeighborhoods, getPricingPlans, getAmenities } from '../services/dataService';
 import { LocationPicker, type LocationSource } from '../components/LocationPicker';
 import { buildAddressQuery, isValidLatLng } from '../services/geoRules';
-import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X } from 'lucide-react';
+import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X, ShieldCheck } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 import { ImageUpload } from '../components/ImageUpload';
 
@@ -470,6 +470,14 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                     <p className="text-[10px] font-black text-ocean-600 uppercase tracking-widest mb-1">Plano Selecionado</p>
                                     <p className="text-2xl font-black text-ocean-950">{selectedPlan.name}</p>
                                     <p className="text-sm font-bold text-ocean-800">{brl(selectedPlan.price)}/mês · {periodLabel(selectedPlan.period)} ({brl(planTotal(selectedPlan))})</p>
+                                </div>
+
+                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-start gap-3" data-testid="cancel-window">
+                                    <ShieldCheck size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-black text-emerald-800">{CANCEL_WINDOW_TITLE}</p>
+                                        <p className="text-xs font-bold text-emerald-700 mt-0.5">{CANCEL_WINDOW_TEXT}</p>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">

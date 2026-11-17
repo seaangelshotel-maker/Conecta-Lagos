@@ -44,3 +44,8 @@ export const addPlanPeriod = (period: string | undefined, from: Date = new Date(
   return d;
 };
 export const brl = (n: number): string => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+/** Direito de arrependimento (Código de Defesa do Consumidor, art. 49): 7 dias para desistir de contratação feita fora do estabelecimento. */
+export const CANCEL_WINDOW_DAYS = 7;
+export const CANCEL_WINDOW_TITLE = `${CANCEL_WINDOW_DAYS} dias para desistir`;
+export const CANCEL_WINDOW_TEXT = `Contratou e mudou de ideia? Cancele em até ${CANCEL_WINDOW_DAYS} dias e receba o valor de volta (art. 49 do Código de Defesa do Consumidor). É só pedir pelo WhatsApp do Lagos GO.`;

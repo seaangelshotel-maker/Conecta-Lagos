@@ -27,3 +27,11 @@ test('rebaixe tira destaque, volta para "free" e guarda o plano anterior', () =>
   assert.equal(f.previousPlan, 'pro');
   assert.equal(f.planExpiredAt, '2026-11-11T15:00:00.000Z');
 });
+
+test('prazo de desistência de 7 dias (CDC art. 49) está definido e citado no texto', async () => {
+  const { CANCEL_WINDOW_DAYS, CANCEL_WINDOW_TEXT, CANCEL_WINDOW_TITLE } = await import('../services/planRules');
+  assert.equal(CANCEL_WINDOW_DAYS, 7);
+  assert.match(CANCEL_WINDOW_TITLE, /7 dias/);
+  assert.match(CANCEL_WINDOW_TEXT, /7 dias/);
+  assert.match(CANCEL_WINDOW_TEXT, /art\. 49/);
+});

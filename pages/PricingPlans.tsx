@@ -3,8 +3,8 @@ import { canOrder } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
 import { getPricingPlans, getGlobalSettings, getMyBusinesses } from '../services/dataService';
-import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass } from 'lucide-react';
-import { brl, periodLabel, planTotal } from '../services/planRules';
+import { Check, ArrowRight, MessageCircle, Star, Shield, Zap, Loader2, CreditCard, Lock, Calendar, Info, X, Gem, Compass, ShieldCheck } from 'lucide-react';
+import { brl, periodLabel, planTotal, CANCEL_WINDOW_TITLE } from '../services/planRules';
 import { waLink } from '../services/claimRules';
 import { useNotification } from '../components/NotificationSystem';
 import { auth } from '../services/firebase';
@@ -303,6 +303,10 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                         Ou venha testar por {plan.trialDays || 30} dias
                                     </button>
                                 )}
+                                <p className="flex items-start gap-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-xl px-3 py-2" data-testid="cancel-window">
+                                    <ShieldCheck size={14} className="shrink-0 mt-0.5" />
+                                    <span>{CANCEL_WINDOW_TITLE}: cancele e receba o valor de volta.</span>
+                                </p>
                             </div>
                         </div>
                     ))}
