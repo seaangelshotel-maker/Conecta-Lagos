@@ -10,7 +10,7 @@ Atualizado em 13/nov/2026. Decisão: **TWA** (o app abre o próprio lagosgo.com.
 1. **Play Console → Criar app**: nome "Lagos GO", idioma português (Brasil), tipo "App", gratuito.
 2. **Gerar o pacote**: pwabuilder.com → site `https://lagosgo.com.br` → "Package for stores" → Android. Package ID `org.lagosgo.app`, "Signing key: new". Baixar o zip e **guardar a chave de assinatura e a senha** (sem ela não dá para atualizar o app).
 3. **Enviar o `.aab`** em Produção → Criar versão (ou em Teste interno primeiro, para você testar no seu celular). Ativar "Play App Signing" quando perguntar.
-4. **Link verificado (some a barra do Chrome)**: no Play Console, Configuração → Integridade do app → copiar a impressão digital SHA-256 do certificado de assinatura. Mandar para o time técnico, que publica `/.well-known/assetlinks.json`.
+4. **Link verificado (some a barra do Chrome)**: no Play Console, Configuração → Integridade do app → copiar a impressão digital SHA-256 do certificado de assinatura. Mandar para o time técnico, que publica `/.well-known/assetlinks.json`. **Feito em 17/11/2026**: o arquivo tem a chave de assinatura do Google Play (app da loja) e a chave de upload (APK instalado direto). Se a Google trocar a chave de assinatura, atualizar o arquivo.
 5. **Teste interno (recomendado)**: adicione o seu Gmail como testador e instale pelo link antes de mandar para produção.
 6. **Ficha da loja** (textos abaixo), classificação de conteúdo, público-alvo (18+ é o mais simples), segurança dos dados e URL da política de privacidade.
 7. **Enviar para análise** em Produção. A primeira análise do Google costuma levar de 1 a 7 dias.
