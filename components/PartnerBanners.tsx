@@ -23,7 +23,7 @@ export const PartnerBanners: React.FC = () => {
               <span className="absolute top-1.5 left-1.5 bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">Parceiro</span>
             </div>
             <div className="p-3">
-              <p className="text-sm font-black text-ocean-950 flex items-center gap-1">{b.name} <ExternalLink size={11} className="text-slate-400" /></p>
+              <p translate="no" className="notranslate text-sm font-black text-ocean-950 flex items-center gap-1">{b.name} <ExternalLink size={11} className="text-slate-400" /></p>
               {b.text && <p className="text-[11px] text-slate-500 leading-snug mt-0.5">{b.text}</p>}
             </div>
           </a>

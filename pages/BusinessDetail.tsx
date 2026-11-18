@@ -258,7 +258,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             <div className="absolute bottom-6 left-6 right-6 z-10 text-white max-w-4xl">
                 <span className="bg-ocean-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase mb-3 inline-block tracking-wider shadow-lg">{business.category}</span>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2 leading-tight tracking-tight drop-shadow-md flex flex-wrap items-center gap-3">
-                    {business.name}
+                    <span translate="no" className="notranslate">{business.name}</span>
                     {business.deliveryUrl && (
                         <span title="Delivery Disponível" className="bg-red-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 shadow-md">
                             Tem Entrega

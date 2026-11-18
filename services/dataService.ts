@@ -1,4 +1,8 @@
 
+import { registerNames } from './protectedNames';
+import { FEATURED_BUSINESSES } from '../data/featuredBusinesses';
+import { PUBLIC_PLACES } from '../data/publicPlaces';
+registerNames([...FEATURED_BUSINESSES.map(b => b.name), ...PUBLIC_PLACES.map(p => p.name)]);
 import { businessTexts, couponTexts, postTexts, buildI18n, needsI18n, learnAll, learnI18n } from './contentI18n';
 import { 
     collection, 
@@ -508,6 +512,7 @@ export const getBusinesses = async (forceRefresh = false) => {
         const snap = await getDocs(query(collection(db, 'businesses'), where('isBlocked', '==', false), limit(50)));
         _businesses = snap.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProfile));
         learnAll(_businesses);
+        registerNames(_businesses.map(b => b.name));
     }
     
     // Seed em segundo plano: nunca segura o carregamento da tela.
@@ -707,6 +712,7 @@ export const getBusinessById = async (id: string) => {
     if (docSnap.exists()) {
         const biz = { id: docSnap.id, ...docSnap.data() } as BusinessProfile;
         learnI18n(biz);
+        registerNames([biz.name]);
         if (!biz.isBlocked) {
             // Add to cache if not there
             if (!_businesses.find(b => b.id === biz.id)) {

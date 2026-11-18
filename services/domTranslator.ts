@@ -5,6 +5,7 @@
  */
 import { translateText } from './translations';
 import { flagToLang, shouldTranslate, chunk } from './langDetect';
+import { isProtectedName, maskNames } from './protectedNames';
 
 const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'CODE', 'PRE', 'SVG', 'IFRAME', 'SELECT', 'OPTION']);
 const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
@@ -58,7 +59,16 @@ const lookup = (src: string): string | undefined => {
     return memo.get(lang + '|' + key) ?? store[key];
 };
 
-const fetchBatch = async (target: string, texts: string[]): Promise<string[] | null> => {
+const fetchBatch = async (target: string, original: string[]): Promise<string[] | null> => {
+    // Nomes de empresas/locais são escondidos antes de traduzir e devolvidos depois (nome próprio não se traduz).
+    const masks = original.map(t => maskNames(t));
+    const texts = original.map((t, i) => masks[i]?.masked ?? t);
+    const res = await fetchRaw(target, texts);
+    if (!res) return null;
+    return res.map((tr, i) => { const m = masks[i]; if (!m) return tr; return m.restore(tr) ?? original[i]; });
+};
+
+const fetchRaw = async (target: string, texts: string[]): Promise<string[] | null> => {
     // O servidor escolhe o melhor tradutor disponível. (O Google bloqueia chamadas diretas do navegador, por isso não há plano B aqui.)
     for (let attempt = 0; attempt < 2; attempt++) {
         try {
@@ -104,7 +114,7 @@ const run = async (root: Node) => {
         if (!t.parentElement || blocked(t.parentElement)) continue;
         const cur = t.nodeValue || '';
         if (applied.get(t) === cur) continue;           // já é a nossa tradução
-        if (!shouldTranslate(cur)) continue;
+        if (!shouldTranslate(cur) || isProtectedName(cur)) continue;
         original.set(t, cur); touchedText.add(t);
         jobs.push({ src: cur, y: yOf(t.parentElement), apply: tr => { if (t.isConnected && original.get(t) === cur) setText(t, cur, tr); } });
     }
@@ -114,7 +124,7 @@ const run = async (root: Node) => {
             const v = el.getAttribute(a);
             if (!v) continue;
             if (attrApplied.get(el)?.[a] === v) continue;
-            if (!shouldTranslate(v)) continue;
+            if (!shouldTranslate(v) || isProtectedName(v)) continue;
             const o = attrOriginal.get(el) || {}; o[a] = v; attrOriginal.set(el, o); touchedEls.add(el);
             jobs.push({ src: v, y: yOf(el), apply: tr => { const ap = attrApplied.get(el) || {}; ap[a] = tr; attrApplied.set(el, ap); el.setAttribute(a, tr); } });
         }

@@ -55,7 +55,7 @@ const viaGemini = async (texts: string[], target: string, apiKey: string): Promi
         try {
             resp = await withTimeout(ai.models.generateContent({
                 model,
-                contents: `Translate every value of this JSON object from Brazilian Portuguese to ${TARGETS[target]}. Translate ALL of them, even short ones. Keep proper nouns (places, brands), emojis, numbers, URLs and line breaks. Return ONLY a JSON object with the same keys.\n${JSON.stringify(Object.fromEntries(texts.map((t, i) => [String(i), t])))}`,
+                contents: `Translate every value of this JSON object from Brazilian Portuguese to ${TARGETS[target]}. Translate ALL of them, even short ones. NEVER translate or alter proper nouns: names of businesses, hotels, restaurants, bars, shops, places, streets, beaches, brands and any token like Zq0x (keep them exactly as written). Keep emojis, numbers, URLs and line breaks. Return ONLY a JSON object with the same keys.\n${JSON.stringify(Object.fromEntries(texts.map((t, i) => [String(i), t])))}`,
                 config: { responseMimeType: 'application/json', temperature: 0 } as any,
             }), GEMINI_TIMEOUT_MS);
             break;

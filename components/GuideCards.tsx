@@ -44,7 +44,7 @@ export const BusinessMiniCard: React.FC<{ business: BusinessProfile; onOpen: (b:
         {b.coverImage ? <img src={b.coverImage} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <MapPin size={22} className="text-white" />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-black text-ocean-950 text-sm leading-snug">{b.name}</p>
+        <p translate="no" className="notranslate font-black text-ocean-950 text-sm leading-snug">{b.name}</p>
         <p className="text-[11px] font-bold text-ocean-600 uppercase tracking-wide">{b.subcategory || b.category}</p>
         {b.address && <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{b.address}</p>}
         <div className="flex items-center gap-3 mt-1 text-[11px] font-bold text-slate-400">
