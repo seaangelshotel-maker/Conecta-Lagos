@@ -1,5 +1,6 @@
 
 import { MenuCatalog } from '../components/MenuCatalog';
+import { openLink } from '../services/native';
 import { canOrder, orderTarget, cartAdd, cartSetNote, cartCount, cartTotal, cartLines, validateOrder, buildOrderMessage, whatsappUrl, formatBRL, isAvailable, type Cart, type OrderCustomer, type OrderMode } from '../services/orderModel';
 import React, { useEffect, useState } from 'react';
 import { ClaimBox } from '../components/ClaimBox';
@@ -132,19 +133,19 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
               const digits = (business.whatsapp || '').replace(/\D/g, '');
               const number = digits.length <= 11 ? `55${digits}` : digits;
               const text = encodeURIComponent(`Olá! Encontrei a ${business.name} na Lagos GO.`);
-              if (digits) window.open(`https://wa.me/${number}?text=${text}`, '_blank', 'noopener');
+              if (digits) openLink(`https://wa.me/${number}?text=${text}`);
               break;
           }
           case 'menu': setShowMenuOverlay(true); break;
           case 'social': if(business.instagram) {
               // Aceita @perfil, perfil ou o endereço completo do perfil.
               const ig = String(business.instagram).trim();
-              window.open(/^https?:\/\//i.test(ig) ? ig : `https://instagram.com/${ig.replace('@', '')}`, '_blank', 'noopener');
+              openLink(/^https?:\/\//i.test(ig) ? ig : `https://instagram.com/${ig.replace('@', '')}`);
           } break;
-          case 'phone': if(business.phone) window.open(`tel:${business.phone}`, '_self'); break;
-          case 'website': if(business.website) window.open(business.website.startsWith('http') ? business.website : `https://${business.website}`, '_blank'); break;
-          case 'delivery': if(business.deliveryUrl) window.open(business.deliveryUrl, '_blank'); break;
-          case 'booking': if(business.bookingUrl) window.open(business.bookingUrl, '_blank'); break;
+          case 'phone': if(business.phone) openLink(`tel:${business.phone}`); break;
+          case 'website': if(business.website) openLink(business.website.startsWith('http') ? business.website : `https://${business.website}`); break;
+          case 'delivery': if(business.deliveryUrl) openLink(business.deliveryUrl); break;
+          case 'booking': if(business.bookingUrl) openLink(business.bookingUrl); break;
           case 'map': {
               // Coordenadas quando houver; senão nome + localização (sem os complementos entre parênteses).
               // Sem coordenadas, o endereço sozinho localiza melhor: o nome pode casar com outro lugar parecido
@@ -153,7 +154,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
               const q = (typeof business.lat === 'number' && typeof business.lng === 'number')
                   ? `${business.lat},${business.lng}`
                   : (/\d/.test(cleanAddress) && cleanAddress.includes(',') ? cleanAddress : `${business.name}, ${cleanAddress}`);
-              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
+              openLink(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`);
               break;
           }
           case 'share': 
@@ -502,7 +503,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
                 if (err) { notify('warning', err); return; }
                 const msg = buildOrderMessage(business.name, mode, cart, business.menu || [], customer);
                 trackAction(businessId, 'order', getNavigationSource());
-                window.open(whatsappUrl(target, msg), '_blank', 'noopener');
+                openLink(whatsappUrl(target, msg));
                 setCart({}); setCheckout(false);
                 notify('success', 'Pedido pronto! Finalize a conversa no WhatsApp.');
             };

@@ -25,6 +25,26 @@ meta = ('        <meta-data android:name="com.google.firebase.messaging.default_
         '        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/lagosgo_notification" />\n')
 if 'default_notification_icon' not in s:
     s = s.replace('</application>', meta + '    </application>')
+
+# Links: https://lagosgo.com.br/... abre no app quando instalado (Android App Links, verificado por /.well-known/assetlinks.json)
+# e lagosgo://... (esquema próprio). Quem clica num link de e-mail/WhatsApp/Google cai direto na tela certa do app.
+links = '''            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="lagosgo.com.br" />
+                <data android:scheme="https" android:host="www.lagosgo.com.br" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="lagosgo" />
+            </intent-filter>
+'''
+if 'android:host="lagosgo.com.br"' not in s:
+    i = s.index('</intent-filter>', s.index('android.intent.category.LAUNCHER')) + len('</intent-filter>')
+    s = s[:i] + '\n' + links.rstrip('\n') + s[i:]
 open(mf, 'w', encoding='utf-8').write(s)
 
 res = os.path.join(root, 'src', 'main', 'res')

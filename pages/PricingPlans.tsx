@@ -1,5 +1,6 @@
 
 import { canOrder } from '../services/orderModel';
+import { openLink } from '../services/native';
 import React, { useState, useEffect } from 'react';
 import { User, PricingPlan, UserRole } from '../types';
 import { getPricingPlans, getGlobalSettings, getMyBusinesses } from '../services/dataService';
@@ -111,7 +112,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
             const encodedMessage = encodeURIComponent(message);
             const whatsappUrl = waLink(whatsapp, message);
             
-            window.open(whatsappUrl, '_blank', 'noopener');
+            openLink(whatsappUrl);
             setLoading(false);
             notify('success', 'Abrindo conversa com a equipe no WhatsApp...');
             
@@ -134,7 +135,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
             }
             const message = `Olá! Vi o Lagos GO e gostaria de falar com um consultor sobre um plano personalizado para minha empresa.`;
             const whatsappUrl = waLink(whatsapp, message);
-            window.open(whatsappUrl, '_blank');
+            openLink(whatsappUrl);
         } catch (e) {
             notify('error', 'Erro ao abrir WhatsApp');
         }

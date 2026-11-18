@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { openLink } from '../services/native';
 import { Compass, MessageCircle, ExternalLink } from 'lucide-react';
 import { SpecialistReferralSettings } from '../types';
 import { getGlobalSettings } from '../services/dataService';
@@ -28,12 +29,12 @@ export const SpecialistReferral: React.FC<{ source: string; compact?: boolean }>
             const digits = cfg.whatsapp.replace(/\D/g, '');
             const number = digits.length <= 11 ? `55${digits}` : digits;
             const text = encodeURIComponent('Olá! Vim pela Lagos GO e gostaria de ajuda para montar meu roteiro.');
-            window.open(`https://wa.me/${number}?text=${text}`, '_blank', 'noopener');
+            openLink(`https://wa.me/${number}?text=${text}`);
         } else if (cfg.url) {
             const url = new URL(cfg.url);
             url.searchParams.set('utm_source', 'lagosgo');
             url.searchParams.set('utm_medium', source);
-            window.open(url.toString(), '_blank', 'noopener');
+            openLink(url.toString());
         }
     };
 

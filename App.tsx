@@ -1,4 +1,4 @@
-import { bindNativeEvents, watchKeyboard } from './services/native';
+import { bindNativeEvents, watchKeyboard, setInternalNavigator, installLinkInterceptor } from './services/native';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ConsentBanner } from './components/ConsentBanner';
 import { AppTour } from './components/AppTour';
@@ -226,12 +226,15 @@ function AppContent() {
 
   // Ponte nativa (Capacitor): links profundos, botão voltar do Android e teclado virtual. No navegador não faz nada além do teclado.
   useEffect(() => {
+    const goTo = (path: string) => { window.history.pushState({}, '', path); setRoute(parseUrl()); window.scrollTo(0, 0); };
+    setInternalNavigator(goTo);   // links do próprio Lagos GO abrem dentro do app, no app e na web
     const unbindNative = bindNativeEvents({
-      goTo: (path) => { window.history.pushState({}, '', path); setRoute(parseUrl()); window.scrollTo(0, 0); },
+      goTo,
       canGoBack: () => window.history.length > 1 && window.location.pathname !== '/',
     });
     const unbindKb = watchKeyboard();
-    return () => { unbindNative(); unbindKb(); };
+    const unbindLinks = installLinkInterceptor();
+    return () => { unbindNative(); unbindKb(); unbindLinks(); setInternalNavigator(null); };
   }, []);
 
   // Guarda a tela protegida que pediu login, para voltar a ela depois de entrar.

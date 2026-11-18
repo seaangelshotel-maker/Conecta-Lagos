@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { openLink } from '../services/native';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Bot, Search, BarChart3, Target, PenTool, CheckCircle2, 
@@ -731,7 +732,7 @@ export const AIAgentTeam: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       onClick={() => {
                         const cityName = cities.find(c => c.id === selectedCityId)?.name || '';
                         const q = encodeURIComponent(`${finalData?.name} ${cityName} RJ foto real fachada`);
-                        window.open(`https://www.google.com/search?q=${q}&tbm=isch`, '_blank');
+                        openLink(`https://www.google.com/search?q=${q}&tbm=isch`);
                       }}
                       className="bg-ocean-600/20 text-ocean-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-ocean-500/30 hover:bg-ocean-500 hover:text-white transition-all flex items-center gap-2"
                     >

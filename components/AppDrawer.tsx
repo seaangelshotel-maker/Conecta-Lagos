@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { openLink } from '../services/native';
 import { Bell,
   Home, Compass, Ticket, Sparkles, HandHeart, CalendarDays, Map as MapIcon, Layers, Megaphone,
   User as UserIcon, LogIn, Share2, Star, Mail, ShieldCheck, FileText, X, ChevronRight, Menu, RefreshCw,
@@ -86,7 +87,7 @@ export const AppDrawer: React.FC<Props> = ({ currentUser, currentPage, onNavigat
     { label: 'Como funciona', icon: <Compass size={20} />, onClick: () => { setOpen(false); startAppTour(); } },
     { label: 'Anuncie sua empresa', icon: <Megaphone size={20} />, page: 'pricing-plans' },
     { label: 'Compartilhar o app', icon: <Share2 size={20} />, onClick: share },
-    ...(isNativeApp() ? [{ label: 'Avaliar na Play Store', icon: <Star size={20} />, onClick: () => window.open(PLAY_URL, '_blank') } as Item] : []),
+    ...(isNativeApp() ? [{ label: 'Avaliar na Play Store', icon: <Star size={20} />, onClick: () => openLink(PLAY_URL) } as Item] : []),
     { label: 'Fale com a gente', icon: <Mail size={20} />, onClick: () => window.location.href = SUPPORT_MAIL },
     { label: 'Atualizar o app', icon: <RefreshCw size={20} />, onClick: () => window.location.reload() },
     { label: 'Privacidade', icon: <ShieldCheck size={20} />, page: 'privacy' },

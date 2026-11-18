@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.lagosgo.app",
+      "sha256_cert_fingerprints": [
+        "81:C8:8F:6B:81:39:84:09:7D:BB:65:8C:5C:68:B4:AF:1E:88:81:72:62:60:F1:04:38:56:F2:64:6D:00:7D:FE"
+      ]
+    }
+  }
+]
