@@ -29,18 +29,38 @@ export const PULL_BLOCK_SELECTOR = '[data-no-pull], .leaflet-container, input, t
 export const isPullBlocked = (target: EventTarget | null): boolean =>
   !!target && typeof (target as Element).closest === 'function' && !!(target as Element).closest(PULL_BLOCK_SELECTOR);
 
+/** O toque começou dentro de uma faixa que rola para o lado (chips de categoria, carrosséis)? Ali arrastar é para rolar, não para atualizar. */
+const inHorizontalScroller = (target: EventTarget | null): boolean => {
+  for (let el = target as HTMLElement | null; el && el !== document.body; el = el.parentElement) {
+    if (el.scrollWidth > el.clientWidth + 4) {
+      const ox = getComputedStyle(el).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+  }
+  return false;
+};
+
 /** Puxar para atualizar (só no app instalado): puxe a tela para baixo estando no topo. */
 export const PullToRefresh: React.FC = () => {
   const [pull, setPull] = useState(0);
   const [busy, setBusy] = useState(false);
   const start = useRef<number | null>(null);
+  const startX = useRef(0);
+  const locked = useRef<'v' | 'h' | null>(null);
   const native = isNativeApp();
   useEffect(() => {
     if (!native) return;
-    const ts = (e: TouchEvent) => { start.current = window.scrollY <= 0 && e.touches[0].clientX > 24 && !isPullBlocked(e.target) ? e.touches[0].clientY : null; };
+    const ts = (e: TouchEvent) => {
+      start.current = window.scrollY <= 0 && e.touches[0].clientX > 24 && !isPullBlocked(e.target) && !inHorizontalScroller(e.target) ? e.touches[0].clientY : null;
+      startX.current = e.touches[0].clientX; locked.current = null;
+    };
     const tm = (e: TouchEvent) => {
       if (start.current == null) return;
       const d = e.touches[0].clientY - start.current;
+      const dx = Math.abs(e.touches[0].clientX - startX.current);
+      // trava a direção nos primeiros 12px: só vale puxar se for claramente para baixo (vertical)
+      if (!locked.current && (Math.abs(d) > 12 || dx > 12)) locked.current = d > 0 && Math.abs(d) > dx * 2 ? 'v' : 'h';
+      if (locked.current !== 'v') { setPull(0); if (locked.current === 'h') start.current = null; return; }
       if (d > 0 && window.scrollY <= 0) setPull(Math.min(d * 0.5, 90)); else setPull(0);
     };
     const te = () => {
