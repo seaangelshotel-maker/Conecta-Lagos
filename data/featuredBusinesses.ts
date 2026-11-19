@@ -146,16 +146,17 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     address: 'Rua Nilo Peçanha, 50, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
     phone: '(22) 99757-8113', whatsapp: '(22) 99757-8113',
     hours: allDays('18:55 - 23:50'),
-    description: 'Hamburgueria na Praia dos Anjos, em Arraial do Cabo. Pedidos pelo cardápio digital e pelo WhatsApp.',
-    sources: ['https://cardapio.ai/online/hamburgueria-gabis'], checkedAt: D,
+    description: 'Hamburgueria na Praia dos Anjos que batiza os lanches com lugares de Arraial do Cabo. O carro-chefe é o Deck dos Pescadores, um duplo x-bacon com duas carnes smash de 97 gramas, cheddar em dobro e bacon artesanal. Há também o Figueira (x-salada smash com pão de gergelim, cheddar, alface, tomate e maionese da casa), o Graçainha (dois burgers, cheddar duplo, onion rings, cebola caramelizada e bacon) e o Ilha do Farol (três carnes, três cheddars, três bacons e molho barbecue). Para dividir, a Batata Especial vem com creme de cheddar caseiro e bacon picadinho, e a casa monta combos com batata e refrigerante. Abre todos os dias à noite, a partir das 18h55, e recebe pedidos pelo cardápio digital e pelo WhatsApp.',
+    sources: ['https://cardapio.ai/online/hamburgueria-gabis'], checkedAt: '2026-11-19',
   },
   {
     name: 'Lorenzzo Burguer', cityId: AC, category: 'Gastronomia', subcategory: 'Hamburguerias',
     address: 'Rua Epitácio Pessoa, 47, Praia Grande, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia Grande',
     phone: '(22) 97401-8385', whatsapp: '(22) 97401-8385',
     instagram: 'https://www.instagram.com/hamburguerialorenzzo',
-    description: 'Hamburgueria na Praia Grande, em Arraial do Cabo. Pedidos pelo cardápio digital e pelo WhatsApp.',
-    sources: ['https://lorenzzo.ola.click/'], checkedAt: D,
+    amenities: ['delivery', 'kids'],
+    description: 'Hamburgueria artesanal na Praia Grande que também serve milk shakes, sorvetes e açaí. O destaque é o hambúrguer de 180 gramas, que sempre leva a maionese da casa: o Double Burguer traz dois discos com cheddar, bacon e cebola caramelizada; o Classic usa queijo prato; o Summer vem no pão australiano com barbecue; e O Vingador ganha anéis de cebola empanados. Há ainda o Casa Nostra, versões simples como X-bacon e, para os pequenos, o Burguer Kids com 120 gramas, queijo e ketchup. A Batata Lorenzzo é servida com cebola empanada e cheddar. O cardápio digital informa entrega gratuita, com previsão de cerca de 20 minutos, além de retirada e consumo no local.',
+    sources: ['https://lorenzzo.ola.click/', 'https://lorenzzo.ola.click/products', 'https://lorenzzo.ola.click/info'], checkedAt: '2026-11-19',
   },
   // ───────── Arraial do Cabo · Restaurantes
   {
@@ -163,8 +164,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     address: 'Av. Roberto Silveira, 6, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Praia dos Anjos',
     phone: '(22) 99767-8838',
     hours: { Domingo: '11:30 - 22:00', Segunda: '11:30 - 19:00', 'Terça': '11:30 - 19:00', Quarta: '11:30 - 19:00', Quinta: '11:30 - 19:00', Sexta: '11:30 - 22:00', 'Sábado': '11:30 - 22:00' },
-    description: 'Restobar na Praia dos Anjos, em Arraial do Cabo.',
-    sources: ['https://www.tripadvisor.com.br/Restaurant_Review-g1056623-d23693289-Reviews-Restobar_Dos_Anjos-Arraial_do_Cabo_State_of_Rio_de_Janeiro.html'], checkedAt: D,
+    description: 'Restobar aconchegante a poucos passos da Praia dos Anjos, na avenida que leva ao cais dos passeios de barco. A proposta é comida caseira feita com carinho, em uma casa que se enquadra entre a cozinha brasileira e a de bar, com serviço de almoço e jantar. Funciona todos os dias a partir das 11h30: fecha às 19h de segunda a quinta e fica aberto até as 22h de sexta a domingo, o que o torna uma boa parada para o almoço depois do mergulho ou do passeio. Ainda tem poucas avaliações públicas, então vale confirmar o dia pelo telefone.',
+    sources: ['https://www.tripadvisor.com.br/Restaurant_Review-g1056623-d23693289-Reviews-Restobar_Dos_Anjos-Arraial_do_Cabo_State_of_Rio_de_Janeiro.html'], checkedAt: '2026-11-19',
   },
   // ───────── Arraial do Cabo · Supermercados e Sorveterias/Açaí
   {
@@ -180,8 +181,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     address: 'Rua Dom Manuel, 119, Macedônia, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Macedônia',
     phone: '(22) 99725-6064', whatsapp: '(22) 99725-6064',
     instagram: 'https://www.instagram.com/acaiforte.docabo',
-    description: 'Açaiteria em Arraial do Cabo. Pedidos pelo cardápio digital e pelo WhatsApp.',
-    sources: ['https://acai-forte-do-cabo.ola.click/info'], checkedAt: D,
+    description: 'Açaiteria no bairro da Macedônia, em Arraial do Cabo, que vai além do copo. O açaí sai em tamanhos de 300 ml a 1 litro, com leite em pó, paçoca, granulado, chocoball, amendoim, jujuba, cobertura de chocolate, morango e banana entre os acompanhamentos, e ainda existem versões em barca e a roleta de açaí. A promoção do dia costuma juntar dois açaís de 400 ml ou de 1 litro. O cardápio também tem salgadinhos fritos, vendidos por unidade ou em caixas de 50 e 100 com Guaravita, lanches como o X-tudo com batata turbinada, combos e bebidas. Os pedidos são feitos pelo cardápio digital e pelo WhatsApp.',
+    sources: ['https://acai-forte-do-cabo.ola.click/products', 'https://acai-forte-do-cabo.ola.click/info'], checkedAt: '2026-11-19',
   },
   // ───────── Cabo Frio · Pousadas e Hotéis
   {
@@ -229,8 +230,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '(22) 3031-1146', whatsapp: '(22) 3031-1146',
     hours: allDays('18:00 - 00:00'),
     instagram: 'https://www.instagram.com/alttosushi/', website: 'https://passagemalttosushi.com.br',
-    description: 'Restaurante de culinária japonesa no bairro da Passagem, em Cabo Frio.',
-    sources: ['https://passagemalttosushi.com.br/'], checkedAt: D,
+    description: 'Cozinha japonesa autêntica na orla da Passagem, em Cabo Frio, no endereço da Casa Kanaloa. A casa trabalha com rodízio japonês completo e com cardápio à la carte, que mistura peças tradicionais e criações exclusivas, e promete frescor em cada peça. O site mostra o cardápio completo e abre reserva de mesa pelo WhatsApp, o que ajuda em noite de movimento. Funciona à noite, das 18h à meia-noite.',
+    sources: ['https://passagemalttosushi.com.br/'], checkedAt: '2026-11-19',
   },
   // ───────── Búzios · Pousadas
   {
@@ -263,8 +264,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '(22) 99845-4052', whatsapp: '(22) 99845-4052',
     hours: { Domingo: '12:00 - 23:00', Segunda: '12:00 - 00:00', 'Terça': '12:00 - 00:00', Quarta: '12:00 - 00:00', Quinta: '12:00 - 00:00', Sexta: '12:00 - 01:00', 'Sábado': '12:00 - 01:00' },
     instagram: 'https://www.instagram.com/xereletebuzios/', website: 'https://xereletebar.com',
-    description: 'Bar e restaurante na Orla Bardot, em Búzios.',
-    sources: ['https://xereletebar.com/'], checkedAt: D,
+    description: 'Casa histórica de 1930 na Orla Bardot, onde quatro amigos apaixonados por Búzios montaram um restaurante de espírito caiçara, simples, autêntico e afetuoso. A aposta é o peixe fresco, pescado pela própria equipe com a técnica ikejime, que preserva textura e sabor, além de pratos na brasa e ingredientes locais. O nome vem do xerelete, peixe costeiro que vive em cardume, ideia de convivência e encontro. Entre os pratos de destaque está o Ceviche do Xerê, com pesca do dia, leche de tigre de ají amarillo, sorbet de manga espada com pimenta dedo-de-moça, coentro e chips de batata-doce. O ambiente é integrado ao mar, em tons de azul e branco, e resgata a Búzios de antigamente. O site tem botão de reserva e anuncia programação de Ano Novo.',
+    sources: ['https://xereletebar.com/', 'https://www.instagram.com/xereletebuzios/'], checkedAt: '2026-11-19',
   },
   // ───────── Lote 3 · Pizzarias, Beach Club e Restaurantes
   {
@@ -272,8 +273,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     address: 'Orla Bardot, 500 (Av. José Bento Ribeiro Dantas), Búzios - RJ, 28950-000', neighborhood: 'Centro',
     phone: '(22) 2620-0158', whatsapp: '(22) 98809-7552',
     instagram: 'https://www.instagram.com/victtoriopizzariaeforneria/', website: 'https://victtorio.com.br',
-    description: 'Pizzaria e forneria na Orla Bardot, em Búzios.',
-    sources: ['https://victtorio.com.br/'], checkedAt: D,
+    amenities: ['bar', 'delivery'],
+    description: 'Pizzaria e forneria de frente para o mar na Orla Bardot, a região mais charmosa de Búzios. As pizzas levam ingredientes diferenciados e a casa ainda tem cardápio de frutos do mar, massas e risotos. Além do salão de requinte, o Victtorio mantém um Bar & Adega: balcão com bartenders que trabalham coquetéis e mixologia, e uma adega com mais de 200 rótulos de vinhos de várias regiões e países, com carta premiada pensada para harmonizar com as pizzas e os pratos. Também faz delivery. Fica na Orla Bardot, 500, perto dos principais passeios a pé de Búzios.',
+    sources: ['https://victtorio.com.br/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Beach Club Ville La Plage', cityId: BZ, category: 'Gastronomia', subcategory: 'Beach Clubs',
@@ -281,8 +283,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '(22) 99622-2315', whatsapp: '(22) 99622-2315',
     hours: allDays('09:00 - 18:00'),
     instagram: 'https://www.instagram.com/beachclublaplage', website: 'https://beachclub.villelaplage.com.br',
-    description: 'Beach club em Búzios, com Day Use todos os dias das 9h às 18h. A jacuzzi do Beach Club funciona das 10h às 18h.',
-    sources: ['https://beachclub.villelaplage.com.br/'], checkedAt: D,
+    amenities: ['pool'],
+    description: 'Beach club na Praia de João Fernandes, que se define como um oásis à beira-mar e vende o Day Use como principal experiência. A estrutura reúne piscina aquecida, jacuzzi, spa, serviço de praia e cozinha própria, para quem quer passar o dia inteiro ou só almoçar de frente para o mar. O Day Use inclui uma toalha por pessoa e acesso à piscina, à jacuzzi e a toda a área de lazer; crianças de até 2 anos não pagam. Funciona todos os dias, das 9h às 18h, e a jacuzzi abre das 10h às 18h (uso só para maiores de 18 anos). Atenção: a casa não faz reservas, e o acesso depende da disponibilidade na hora da chegada. O beach club é ligado ao hotel Ville La Plage, na mesma região.',
+    sources: ['https://beachclub.villelaplage.com.br/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Apreciatta Pizzaria', cityId: CF, category: 'Gastronomia', subcategory: 'Pizzarias',
