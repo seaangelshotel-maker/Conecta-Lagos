@@ -1,4 +1,5 @@
 
+import { withOpenPhoto } from '../data/openPhotos';
 import { registerNames } from './protectedNames';
 import { FEATURED_BUSINESSES } from '../data/featuredBusinesses';
 import { PUBLIC_PLACES } from '../data/publicPlaces';
@@ -1230,7 +1231,7 @@ export const getBlogPosts = async () => {
     if (_posts.length === 0) {
         const snap = await getDocs(query(collection(db, 'blog_posts'), orderBy('date', 'desc'), limit(100)));
         // Matérias do Guia (kind 'guia') têm página própria e não entram no Feed.
-        _posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost)).filter(p => p.kind !== 'guia');
+        _posts = snap.docs.map(d => withOpenPhoto({ id: d.id, ...d.data() } as BlogPost)).filter(p => p.kind !== 'guia');
         learnAll(_posts);
     }
     
@@ -2065,7 +2066,7 @@ export const getBlogPostById = async (id: string) => {
     const docRef = doc(db, 'blog_posts', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        const post = { id: docSnap.id, ...docSnap.data() } as BlogPost;
+        const post = withOpenPhoto({ id: docSnap.id, ...docSnap.data() } as BlogPost);
         learnI18n(post);
         
         // Dynamically map all post author IDs and names to Yuri's actual account

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { PhotoCredit } from '../components/PhotoCredit';
 import { ArrowLeft, ArrowRight, Clock, Loader2, MapPin, BookOpen, Share2 } from 'lucide-react';
 import { shareContent } from '../services/native';
 import { BlogPost, BusinessProfile, Coupon } from '../types';
@@ -96,6 +97,7 @@ export const GuideArticle: React.FC<Props> = ({ slug, onNavigate }) => {
           </div>
         </div>
       </header>
+      <div className="max-w-3xl mx-auto px-4 pt-2"><PhotoCredit credit={article.imageCredit} className="text-right" /></div>
 
       <main className="max-w-3xl mx-auto px-4 -mt-5 relative">
         <article className="bg-white rounded-3xl shadow-sm border border-slate-100 px-5 md:px-9 py-7">

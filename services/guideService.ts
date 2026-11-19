@@ -13,6 +13,8 @@ let _articles: BlogPost[] | null = null;
 
 const clean = <T extends object>(o: T): T => JSON.parse(JSON.stringify(o));
 
+import { withOpenPhoto } from '../data/openPhotos';
+
 const sortArticles = (list: BlogPost[]) =>
   [...list].sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || (b.date || '').localeCompare(a.date || ''));
 
@@ -20,7 +22,7 @@ const sortArticles = (list: BlogPost[]) =>
 export const getGuideArticles = async (includeDrafts = false, force = false): Promise<BlogPost[]> => {
   if (!_articles || force) {
     const snap = await getDocs(query(collection(db, 'blog_posts'), where('kind', '==', 'guia')));
-    _articles = sortArticles(snap.docs.map(d => ({ id: d.id, ...d.data() } as BlogPost)));
+    _articles = sortArticles(snap.docs.map(d => withOpenPhoto({ id: d.id, ...d.data() } as BlogPost)));
   }
   return includeDrafts ? _articles : _articles.filter(a => a.status !== 'draft');
 };
