@@ -12,6 +12,9 @@ interface SitemapStats { total: number; places: number; articles: number; posts:
 /** Metas de qualidade: o que o Google (e quem pesquisa) espera de uma ficha completa. */
 const GOALS = { description: 90, cover: 90, address: 80, phone: 70 };
 const MIN_DESC = 80;
+/** Padrão de ficha completa da curadoria (docs/CADASTRO_PADRAO.md). */
+const RICH_DESC = 450;
+const RICH_GALLERY = 5;
 
 const parseSitemap = (xml: string): SitemapStats => {
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
@@ -50,6 +53,7 @@ export const SeoDashboard: React.FC<{ onNavigate?: (page: string, params?: any) 
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showList, setShowList] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const host = typeof window !== 'undefined' ? window.location.host : '';
   const official = OFFICIAL_SITE_URL.replace(/^https?:\/\//, '');
@@ -112,11 +116,17 @@ export const SeoDashboard: React.FC<{ onNavigate?: (page: string, params?: any) 
       if (!isPhoto(b.coverImage)) miss.push('foto');
       if (!hasText(b.address)) miss.push('endereço');
       if (!hasText(b.phone) && !hasText(b.whatsapp)) miss.push('telefone');
+      // Padrão de curadoria: ficha rica (descrição longa, galeria de 5+ fotos, horário, Instagram, comodidades).
+      if ((b.description || '').trim().length >= MIN_DESC && (b.description || '').trim().length < RICH_DESC) miss.push('descrição curta');
+      if ((b.gallery || []).filter(isPhoto).length < RICH_GALLERY) miss.push('galeria (5+ fotos)');
+      if (!Object.values(b.openingHours || {}).some(hasText)) miss.push('horário');
+      if (!hasText(b.instagram)) miss.push('Instagram');
+      if (!(b.amenities || []).length) miss.push('comodidades');
       return { b, miss };
     })
     .filter(x => x.miss.length)
     .sort((a, c) => c.miss.length - a.miss.length)
-    .slice(0, 15), [businesses]);
+    .slice(0, showAll ? 500 : 15), [businesses, showAll]);
 
   const score = useMemo(() => {
     if (!checks.length) return 0;
@@ -213,6 +223,9 @@ export const SeoDashboard: React.FC<{ onNavigate?: (page: string, params?: any) 
                   </li>
                 ))}
               </ul>
+            )}
+            {showList && (
+              <button onClick={() => setShowAll(v => !v)} className="mt-2 text-xs font-black text-slate-500 uppercase" data-testid="seo-weak-toggle">{showAll ? 'Mostrar só as 15 piores' : 'Mostrar todas as fichas incompletas'}</button>
             )}
           </div>
         )}
