@@ -620,6 +620,17 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '(22) 2622-5205',
     amenities: ['breakfast'],
     description: 'Hotel de frente para a Prainha, em Arraial do Cabo, que une a estrutura de hotel ao jeito caseiro de uma hospedagem familiar, como a própria casa se apresenta. A Prainha é a praia mais indicada da cidade para banho e para passeios em família, e vários apartamentos têm vista para o mar. A hospedagem inclui café da manhã, servido das 7h30 às 10h. Há cinco categorias de apartamento: Standard, Luxo e Master (até 3 pessoas), Luxo Família (até 4) e Família (até 6), o que atende de casais a grupos grandes. Fica na Rua Alfredo Dante Fassini, 1, a cerca de 800 metros do centro de Arraial do Cabo.',
+    coverImage: 'https://media.omnibees.com/Images/4468/Property/1200x800/202022.jpg',
+    gallery: [
+      'https://media.omnibees.com/Images/4468/Property/1024x768/983199.jpg',
+      'https://media.omnibees.com/Images/4468/Property/1024x768/78609.jpg',
+      'https://media.omnibees.com/Images/4468/Property/1024x768/983198.jpg',
+      'https://media.omnibees.com/Images/4468/Property/1024x768/983195.jpg',
+      'https://media.omnibees.com/Images/4468/RoomTypes/1024x768/5766426.jpg',
+      'https://media.omnibees.com/Images/4468/RoomTypes/1024x768/202069.jpg',
+      'https://media.omnibees.com/Images/4468/RoomTypes/1024x768/578930.jpg',
+      'https://media.omnibees.com/Images/4468/RoomTypes/1024x768/983209.jpg',
+    ],
     sources: ['https://book.omnibees.com/chain/2610/hotel/4468?lang=en-US', 'https://www.google.com/maps/search/Ocean+View+Hotel+Prainha+Arraial+do+Cabo'], checkedAt: '2026-11-19',
   },
   {
