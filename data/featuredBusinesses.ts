@@ -609,10 +609,10 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Pousada da Prainha', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. Pastor Admardo Machado, 90, Prainha, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Prainha',
-    phone: '(22) 2622-2512', website: 'https://pousadadaprainha.com',
+    phone: '(22) 2622-2512', whatsapp: '(22) 2622-2512', instagram: 'https://www.instagram.com/pousadadaprainha/', website: 'https://pousadadaprainha.com',
     amenities: ['wifi', 'ac', 'parking', 'pool', 'breakfast', 'pet'],
     description: 'Pousada com perfil sustentável, entre os morros do Mirante e do Forno, a 150 metros das águas azuis da Prainha. A casa usa sistema inteligente de consumo de energia, aquecimento solar, captação de água da chuva e tratamento de esgoto, e diz cuidar da cultura local. Tem piscina ao ar livre (de 1,05 m a 1,30 m de profundidade), mesa de bilhar, café da manhã e Wi-Fi gratuitos, ar-condicionado e estacionamento gratuito. Animais de estimação são aceitos mediante pedido, com custo adicional. Atendimento em português, espanhol e inglês. Check-in das 14h às 23h e check-out das 7h às 12h. Fica a cerca de 1 km da rodoviária de Arraial do Cabo.',
-    sources: ['https://pousadadaprainha.com/', 'https://pousadadaprainha.com/a-pousada/', 'https://pousadadaprainha.com/suites-e-tarifas/'], checkedAt: '2026-11-19',
+    sources: ['https://pousadadaprainha.com/', 'https://pousadadaprainha.com/a-pousada/', 'https://pousadadaprainha.com/suites-e-tarifas/', 'https://www.instagram.com/pousadadaprainha/'], checkedAt: '2026-11-19.2',
   },
   {
     name: 'Ocean View Hotel', cityId: AC, category: 'Hospedagem', subcategory: 'Hotéis',
@@ -838,9 +838,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Pousada Villa Raphael', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'Rua Beatriz Rosa Sanchez Larragoiti Lucas, 4, 5 e 6, Praia da Ferradura, Armação dos Búzios - RJ, 28951-147', neighborhood: 'Ferradura',
-    phone: '(21) 2042-3554', website: 'https://villaraphael.com.br',
+    phone: '(21) 2042-3554', whatsapp: '(22) 99772-5131', email: 'reservas@villaraphael.com.br', instagram: 'https://www.instagram.com/villaraphaelbuzios/', website: 'https://villaraphael.com.br',
     description: 'Hotel pé na areia na Praia da Ferradura, que mistura arquitetura colonial, jardins entre coqueiros e o privilégio de estar diante do mar. O site fala em tranquilidade, requinte e serviço personalizado, com atmosfera de privacidade e exclusividade, e indica o lugar para quem valoriza beleza e momentos a dois. Além das acomodações, a estrutura oferece spa com massagens e tratamentos, quadra de beach tennis, academia para não perder a rotina de exercícios e restaurante próprio com menu pensado para os hóspedes. O site permite reservar com cupom, em português, inglês e espanhol, e fica na Rua Beatriz Rosa Sanchez Larragoiti Lucas, na Ferradura.',
-    sources: ['https://villaraphael.com.br/'], checkedAt: '2026-11-19',
+    sources: ['https://villaraphael.com.br/', 'https://www.instagram.com/villaraphaelbuzios/'], checkedAt: '2026-11-19.2',
   },
   {
     name: 'Pousada Manaaki', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
@@ -922,10 +922,10 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Pousada Praia João Fernandes', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'Rua Oito, R. Praia de João Fernandes, 1000, Armação dos Búzios - RJ, 28950-000', neighborhood: 'João Fernandes',
-    phone: '(22) 2623-4000', website: 'http://www.praiajoaofernandes.com.br/',
+    phone: '(22) 2623-4000', whatsapp: '(22) 99917-1538', website: 'http://www.praiajoaofernandes.com.br/',
     amenities: ['pool', 'breakfast', 'ac', 'tv', 'wifi'],
     description: 'Pousada a cerca de um minuto a pé das praias de João Fernandes e João Fernandinho, com dois terraços de vista e clima de relaxamento, indicada pelo site também para lua de mel e casamento. A estrutura tem duas piscinas ao ar livre, restaurante, espaço gourmet, banheira de hidromassagem, lounge compartilhado, recepção 24 horas e Wi-Fi gratuito na área da recepção. Todos os quartos têm TV de tela plana com sinal via satélite, ar-condicionado, secador de cabelo e frigobar, e o café da manhã diário já está incluso na diária. As categorias são Quádruplo Standard, Mata Atlântica, Standard Family, Luxo Family e Master Family. A casa monta ofertas de Réveillon, Carnaval e do Festival Gastronômico de Búzios.',
-    sources: ['https://www.praiajoaofernandes.com.br/'], checkedAt: '2026-11-19',
+    sources: ['https://www.praiajoaofernandes.com.br/'], checkedAt: '2026-11-19.2',
   },
   {
     name: 'Pousada Catavento', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
@@ -959,9 +959,10 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Hotel Pousada Figueiredo', cityId: AR, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. Sílvia Vasconcelos, 77, Centro, Araruama - RJ, 28979-219', neighborhood: 'Centro',
-    phone: '(22) 2665-5294', website: 'https://pousadafigueiredo.com/',
+    phone: '(22) 2665-5294', instagram: 'https://www.instagram.com/hotelpousadafigueiredo/', website: 'https://pousadafigueiredo.com/',
+    amenities: ['ac', 'room_service', 'breakfast', 'reception_24h'],
     description: 'Pousada no Centro de Araruama, na região das lagoas e das praias, com duas categorias de suíte. A Standard é a opção simples e funcional: ventilador, banheiro privativo e cama confortável, em configurações para uma, duas ou três pessoas. A Executiva traz ar-condicionado, frigobar e banheiro privativo, com variações para até quatro pessoas, e atende melhor casais, famílias e pequenos grupos. A reserva pode ser feita pelo site da própria pousada. Fica na R. Sílvia Vasconcelos, 77, boa base para quem visita Araruama a trabalho ou a passeio e quer hospedagem de bom custo-benefício.',
-    sources: ['https://pousadafigueiredo.com/', 'https://www.google.com/maps/search/Hotel+Pousada+Figueiredo+Araruama'], checkedAt: '2026-11-19',
+    sources: ['https://pousadafigueiredo.com/', 'https://www.google.com/maps/search/Hotel+Pousada+Figueiredo+Araruama', 'https://www.instagram.com/hotelpousadafigueiredo/'], checkedAt: '2026-11-19.2',
   },
   {
     name: 'Hotel Orla de Araruama', cityId: AR, category: 'Hospedagem', subcategory: 'Hotéis',

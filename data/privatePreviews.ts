@@ -77,6 +77,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/af836564b63e4e0cbe99cfd0f2964d97.jpeg",
     ],
     source: "https://www.caminhodosol.com.br" },
+  // Hotel Cave do Sol
+  'emp_sao_pedro_da_aldeia_hotel-cave-do-sol': { key: 'd735352ca8', coverImage: "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/13-scaled.png",
+    gallery: [
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/426724807.jpg",
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/282385679.jpg",
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/287666830.jpg",
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/20250322_085609-scaled.jpg",
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/10-1.png",
+      "https://hotelcavedosol.com.br/wp-content/uploads/2025/07/1-2.png",
+    ],
+    source: "https://hotelcavedosol.com.br" },
   // Chamos Hostel Cultural
   'emp_arraial_do_cabo_chamos-hostel-cultural': { key: '5983e4860b', coverImage: "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2023/11/image_50737409-1.jpg",
     gallery: [
@@ -87,6 +98,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2022/04/Imagens-14.png",
     ],
     source: "https://chamoshostelcultural.com" },
+  // Hotel Pousada Figueiredo
+  'emp_araruama_hotel-pousada-figueiredo': { key: '4635760e72', coverImage: "https://pousadafigueiredo.com/wp-content/uploads/2025/11/img-6672-845x684.jpg",
+    gallery: [
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/11/executivo-845x684.jpg",
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/11/cafe-da-manha.jpg",
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/09/img-20220303-wa0004-680x430.webp",
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/09/img-20220303-wa0037-680x430.webp",
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/09/2025-05-02-680x430.webp",
+      "https://pousadafigueiredo.com/wp-content/uploads/2025/11/img-6673-845x684.jpg",
+    ],
+    source: "https://pousadafigueiredo.com/" },
   // Pousada Luzes de Geribá
   'emp_buzios_pousada-luzes-de-geriba': { key: '79721bd5f2', coverImage: "https://www.luzesdegeriba.com.br/assets/img/fotos/piscina-fachada.jpg",
     gallery: [
@@ -118,6 +140,39 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://mardegeriba.com.br/img/a594f5a8.jpg",
     ],
     source: "https://mardegeriba.com.br" },
+  // Pousada da Prainha
+  'emp_arraial_do_cabo_pousada-da-prainha': { key: '71b554ae99', coverImage: "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA.jpg",
+    gallery: [
+      "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA-2.jpg",
+      "https://pousadadaprainha.com/wp-content/uploads/2023/10/WhatsApp-Image-2023-10-16-at-15.13.56.jpeg",
+      "https://pousadadaprainha.com/wp-content/uploads/2026/02/sala-de-estar-Copia.jpg",
+      "https://pousadadaprainha.com/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-13-at-10.31.05-2.jpeg",
+      "https://pousadadaprainha.com/wp-content/uploads/2026/02/RESTAURANTE.jpg",
+      "https://pousadadaprainha.com/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-13-at-10.31.52.jpeg",
+    ],
+    source: "https://pousadadaprainha.com" },
+  // Pousada Praia João Fernandes
+  'emp_buzios_pousada-praia-joao-fernandes': { key: '43ef925584', coverImage: "https://irp.cdn-website.com/6e5f4ac6/dms3rep/multi/opt/NIK_0279-1beaa3df-2304w.jpg",
+    gallery: [
+      "https://irp.cdn-website.com/6e5f4ac6/dms3rep/multi/opt/NIK_0257-2304w.jpg",
+      "https://irp.cdn-website.com//6e5f4ac6/dms3rep/multi/opt/f7fc12dd5ac08e9e2ff24bb852b96b2a-2304w.jpg",
+      "https://irp.cdn-website.com/6e5f4ac6/dms3rep/multi/opt/DSC_6824-Modf-Baixa-2304w.jpg",
+      "https://irp.cdn-website.com/6e5f4ac6/dms3rep/multi/opt/DSC_3321-2304w.jpg",
+      "https://irp.cdn-website.com/6e5f4ac6/dms3rep/multi/opt/DSC_6733-mod-Baixa-dc95289f-2304w.jpg",
+      "https://irp.cdn-website.com//6e5f4ac6/dms3rep/multi/opt/9a87b8a1b566759d0d8997d55daa4c7d+%282%29-1152w.jpg",
+    ],
+    source: "http://www.praiajoaofernandes.com.br/" },
+  // Pousada Villa Raphael
+  'emp_buzios_pousada-villa-raphael': { key: '690b0bf1b2', coverImage: "https://villaraphael.com.br/wp-content/uploads/2026/01/UH18-12-1.jpg",
+    gallery: [
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/UH18-9-1.jpg",
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/UH18-3-1.jpg",
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/UH18-5-1.jpg",
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/Areas-comuns-Villa-4.jpg",
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/Ambientes-diaVR-9.jpg",
+      "https://villaraphael.com.br/wp-content/uploads/2026/01/Ambientes-Noturnos-7.jpg",
+    ],
+    source: "https://villaraphael.com.br" },
 };
 
 export const getPrivatePreview = (businessId: string, key: string | null): PrivatePreview | null => {
