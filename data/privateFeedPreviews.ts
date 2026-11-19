@@ -107,12 +107,6 @@ export const FEED_PHOTO_PREVIEWS: Record<string, FeedPhotoPreview> = {
     imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia.dos.Anjos.Arraial.do.Cabo.jpg?width=1280',
     credit: { author: 'Msadp06', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia.dos.Anjos.Arraial.do.Cabo.jpg' },
   },
-};
-
-/** Devolve a prévia só se a chave do link bater (senão a página mostra a dica normal). */
-export const getFeedPhotoPreview = (postId: string, key: string | null): FeedPhotoPreview | null => {
-  const p = FEED_PHOTO_PREVIEWS[postId];
-  return p && key && key === p.key ? p : null;
   'guia_arraial-do-cabo-alem-das-praias': {
     key: '0ce2e9709a',
     imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Parque_Estadual_da_Costa_do_Sol_por_Cesar_Vieira_(04).jpg?width=1280',
@@ -163,4 +157,10 @@ export const getFeedPhotoPreview = (postId: string, key: string | null): FeedPho
     imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/O_caminho_do_azul.jpg?width=1280',
     credit: { author: 'Anabel Kovacs', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:O_caminho_do_azul.jpg' },
   },
+};
+
+/** Devolve a prévia só se a chave do link bater (senão a página mostra a dica normal). */
+export const getFeedPhotoPreview = (postId: string, key: string | null): FeedPhotoPreview | null => {
+  const p = FEED_PHOTO_PREVIEWS[postId];
+  return p && key && key === p.key ? p : null;
 };
