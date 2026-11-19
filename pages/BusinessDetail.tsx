@@ -19,9 +19,12 @@ import { CouponModal } from '../components/CouponModal';
 import { BusinessArticles } from '../components/RelatedContent';
 import { useNotification } from '../components/NotificationSystem';
 import { useLanguage, Translate } from '../hooks/useLanguage';
+import { getPrivatePreview } from '../data/privatePreviews';
 import { ReviewsSection } from '../components/ReviewsSection';
 
-export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, onNavigate }) => {
+export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, previewKey, onNavigate }) => {
+  const preview = previewKey ? getPrivatePreview(businessId, previewKey) : null;
+  const withPreview = (b: BusinessProfile | undefined) => (b && preview ? { ...b, coverImage: preview.coverImage || b.coverImage, gallery: preview.gallery || b.gallery } : b);
   const { notify } = useNotification();
   const { t } = useLanguage();
   const [business, setBusiness] = useState<BusinessProfile | undefined>(undefined);
@@ -49,7 +52,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             getReviewsByBusinessId(businessId),
             getBusinesses()
         ]);
-        setBusiness(busData);
+        setBusiness(withPreview(busData));
         setReviews(revs);
         if (busData) {
             const related = allBusinesses
@@ -84,7 +87,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             getReviewsByBusinessId(businessId),
             getBusinesses()
         ]);
-        setBusiness(busData);
+        setBusiness(withPreview(busData));
         setReviews(revs);
         if (busData) {
             const related = allBusinesses
@@ -232,6 +235,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             description={(business.description || '').substring(0, 160)}
             image={business.coverImage}
             url={`/business/${businessId}`}
+            noindex={!!preview}
         />
         <div className="relative h-[38vh] min-h-[300px] w-full bg-slate-950 flex items-center justify-center overflow-hidden">
             {business.coverImage ? (
@@ -403,7 +407,7 @@ export const BusinessDetail: React.FC<{ businessId: string; onNavigate: (page: s
             })()}
 
             {/* GALERIA DE FOTOS */}
-            {business.gallery && business.gallery.length > 0 && (plan?.showGallery !== false) && (
+            {business.gallery && business.gallery.length > 0 && (preview || plan?.showGallery !== false) && (
                 <div className="space-y-6 pt-2 pb-4">
                     <div className="flex flex-col items-center space-y-1 mb-6">
                         <h3 className="text-2xl md:text-3xl font-black text-ocean-950 tracking-tight">Galeria</h3>

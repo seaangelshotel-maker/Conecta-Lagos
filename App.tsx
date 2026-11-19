@@ -57,6 +57,9 @@ type Route = { page: string; params: any };
 const parseUrl = (): Route => {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
+  const previewMatch = path.match(/^\/previa\/([^/]+)/);
+  if (previewMatch) return { page: 'business-detail', params: { businessId: decodeURIComponent(previewMatch[1]), previewKey: new URLSearchParams(window.location.search).get('k') || '' } };
+
   const businessMatch = path.match(/^\/business\/([^/]+)/);
   if (businessMatch) return { page: 'business-detail', params: { businessId: decodeURIComponent(businessMatch[1]) } };
 
@@ -306,7 +309,7 @@ function AppContent() {
       case 'guide':
         return <BusinessGuide currentUser={user} initialCategory={pageParams?.category} initialSubcategory={pageParams?.subcategory} onNavigate={handleNavigate} />;
       case 'business-detail':
-        return <BusinessDetail businessId={pageParams?.businessId} onNavigate={handleNavigate} />;
+        return <BusinessDetail businessId={pageParams?.businessId} previewKey={pageParams?.previewKey} onNavigate={handleNavigate} />;
       case 'search':
         return <SearchPage initialCategory={pageParams?.category} initialQuery={pageParams?.query} initialCouponId={pageParams?.couponId} onNavigate={handleNavigate} />;
       case 'privacy':
