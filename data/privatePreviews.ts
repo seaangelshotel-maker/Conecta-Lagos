@@ -71,6 +71,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://images3.motor-reserva.com.br/curl/storage/5518/202602191771508143Prancheta3100.jpg",
     ],
     source: "https://casasbrancas.com.br" },
+  // Cliffside Luxury Inn
+  'emp_buzios_cliffside-luxury-inn': { key: '0fce62f8cf', coverImage: "https://static.wixstatic.com/media/c05cf9_bc036982c25347d8b77ce52157cfe72d~mv2.jpg",
+    gallery: [
+      "https://static.wixstatic.com/media/c05cf9_fd208d70565e40158c5f5c6ee34b524f~mv2.jpg",
+      "https://static.wixstatic.com/media/c05cf9_853f17aef56e4e44b97450a548626636~mv2.jpg",
+      "https://static.wixstatic.com/media/c05cf9_02dec56fad914894b0658723a29b1737~mv2.jpg",
+      "https://static.wixstatic.com/media/c05cf9_adbdcd2bd03d44ca83e85cbee5d15641~mv2.jpg",
+      "https://static.wixstatic.com/media/c05cf9_486f5031df43493fb8a26ecbfea552c4~mv2.jpg",
+      "https://static.wixstatic.com/media/c05cf9_1bffcc2a8e9f468f8d07e930f45a4cf4~mv2.jpg",
+    ],
+    source: "https://www.cliffsideluxuryinn.com.br" },
   // Pousada Enseada das Garças
   'emp_sao_pedro_da_aldeia_pousada-enseada-das-garcas': { key: '4b35d45fb5', coverImage: "https://www.enseadadasgarcas.com.br/arquivos/imagens/WEB6-8d34485-3e62ae303a0c3777f3f75837571.jpg",
     gallery: [
