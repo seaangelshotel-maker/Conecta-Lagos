@@ -35,12 +35,20 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_saquarema_bar-do-cajueiro-by-bodega-boa': { key: '06248a3581', source: "sem foto (aguardando envio do dono)" },
   // Cantinho do Peixe
   'emp_sao_pedro_da_aldeia_cantinho-do-peixe': { key: 'b14b84e7b7', source: "sem foto (aguardando envio do dono)" },
+  // Canto Restô
+  'emp_buzios_canto-resto': { key: '934f0961e4', source: "sem foto (aguardando envio do dono)" },
   // Casa da Picanha
   'emp_iguaba_grande_casa-da-picanha': { key: 'dfc4f88272', source: "sem foto (aguardando envio do dono)" },
   // Casa da Praia Itaúna
   'emp_saquarema_casa-da-praia-itauna': { key: '61b25f1df6', source: "sem foto (aguardando envio do dono)" },
+  // Esquina da Onda
+  'emp_arraial_do_cabo_esquina-da-onda': { key: '3ccf2a452a', source: "sem foto (aguardando envio do dono)" },
   // Estrela do Mar Saquarema
   'emp_saquarema_estrela-do-mar-saquarema': { key: '68af866ffb', source: "sem foto (aguardando envio do dono)" },
+  // Gabi's Hamburgueria
+  'emp_arraial_do_cabo_gabi-s-hamburgueria': { key: 'd851c507c9', source: "sem foto (aguardando envio do dono)" },
+  // Iguaba Palace Hotel
+  'emp_iguaba_grande_iguaba-palace-hotel': { key: 'c4e389cdd4', source: "sem foto (aguardando envio do dono)" },
   // Kentô Cozinha Oriental
   'emp_cabo_frio_kento-cozinha-oriental': { key: '794ab33469', source: "sem foto (aguardando envio do dono)" },
   // La Bodeguita Restaurante e Pizzaria
@@ -65,14 +73,20 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_arraial_do_cabo_pousada-hotel-praia-dos-anjos': { key: 'fea61b0893', source: "sem foto (aguardando envio do dono)" },
   // Pousada Melodia do Mar
   'emp_cabo_frio_pousada-melodia-do-mar': { key: '1bc6386ff0', source: "sem foto (aguardando envio do dono)" },
+  // Princesa Supermercados - Arraial do Cabo III
+  'emp_arraial_do_cabo_princesa-supermercados-arraial-do-cabo-iii': { key: '7b41982f6a', source: "sem foto (aguardando envio do dono)" },
   // Recanto Suítes
   'emp_araruama_recanto-suites': { key: '684fbb35ff', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Mar.
   'emp_cabo_frio_restaurante-mar': { key: 'e73779ac6c', source: "sem foto (aguardando envio do dono)" },
+  // Restaurante Mediterrâneo
+  'emp_araruama_restaurante-mediterraneo': { key: 'e330e072db', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Picanha do Gugu
   'emp_araruama_restaurante-picanha-do-gugu': { key: 'c9335b6224', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Saquasuco
   'emp_saquarema_restaurante-saquasuco': { key: '2a58ad07b1', source: "sem foto (aguardando envio do dono)" },
+  // Restobar Dos Anjos
+  'emp_arraial_do_cabo_restobar-dos-anjos': { key: '397b7d1c3a', source: "sem foto (aguardando envio do dono)" },
   // Rocka Restaurant & Beach Lounge
   'emp_buzios_rocka-restaurant-beach-lounge': { key: '8888d51ddd', source: "sem foto (aguardando envio do dono)" },
   // Smash do Cabo Hamburgueria
