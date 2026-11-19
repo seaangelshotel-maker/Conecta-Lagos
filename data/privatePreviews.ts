@@ -33,6 +33,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://pousadaalgodaodapraia.com.br/wp-content/uploads/2022/03/WhatsApp-Image-2022-03-15-at-16.22.24.jpeg",
       "https://pousadaalgodaodapraia.com.br/wp-content/uploads/2021/10/play03.png",
     ],
+    info: {"description": "Pousada de vista panorâmica para a Lagoa de Araruama, na Praia dos Amores, com atendimento personalizado e clima acolhedor. Os ambientes têm decoração rústica-elegante integrada à natureza e são cercados por jardins. Além dos quartos, há o restaurante Flor da Lagoa, piscina com churrasqueira, estacionamento privativo, café da manhã e sala para reuniões e eventos.", "amenities": ["pool", "parking", "breakfast"]},
     source: "https://pousadaalgodaodapraia.com.br" },
   // Ancho e Faca Churrascaria
   'emp_cabo_frio_ancho-e-faca-churrascaria': { key: '0bc95c77ed', source: "sem foto (aguardando envio do dono)" },
@@ -50,6 +51,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://arcosdocanal.com.br/wp-content/uploads/2026/03/drrinks.webp",
       "https://arcosdocanal.com.br/wp-content/uploads/2026/03/petit_gateau_artesanal.webp",
     ],
+    info: {"description": "Restaurante de gastronomia contemporânea no ponto alto da Passagem, o bairro histórico de Cabo Frio, com vista do canal e pôr do sol como cenário. A cozinha parte do frescor do mar e de ingredientes locais, com pratos como polvo, camarão e peixe do dia (filé de namorado), além de drinks e sobremesas como o petit gâteau artesanal. Abre todos os dias, do almoço até a meia-noite, na Rua Constantino Menelau, a poucos passos do Canal do Itajuru.", "amenities": [], "address": "Rua Constantino Menelau, 240 - Passagem, Cabo Frio - RJ", "whatsapp": "(22) 99792-4417", "openingHours": {"Domingo": "12:00 - 00:00", "Segunda": "12:00 - 00:00", "Terça": "12:00 - 00:00", "Quarta": "12:00 - 00:00", "Quinta": "12:00 - 00:00", "Sexta": "12:00 - 00:00", "Sábado": "12:00 - 00:00"}},
     source: "https://arcosdocanal.com.br" },
   // Pousada Arraial Caribe
   'emp_arraial_do_cabo_pousada-arraial-caribe': { key: 'f77e71154c', coverImage: "https://www.pousadaarraialcaribe.com.br/wp-content/uploads/2022/12/frente-AC.jpg",
@@ -78,6 +80,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://wamhoteis.com.br/wp-content/uploads/2025/08/Centro-de-Convencoes-Auditorio-scaled.webp",
       "https://wamhoteis.com.br/wp-content/uploads/2025/07/DSC03730-scaled.jpg",
     ],
+    info: {"description": "Resort de frente para a Praia de Tucuns, de ondas calmas, inaugurado em 2010 com 379 apartamentos distribuídos em vilas. A estrutura inclui duas piscinas, quatro bares, restaurante principal, o italiano Mamma Mia, sala de jogos, academia, quadras de areia e poliesportiva, mini golfe e boliche. É um resort pensado para ficar o dia inteiro no hotel, com alimentação e lazer no mesmo lugar, a cerca de 15 minutos de carro da Rua das Pedras.", "amenities": ["pool", "bar"], "address": "Av. dos Tucuns (Rua das Dunas), s/n - Praia de Tucuns, Búzios - RJ, 28950-000"},
     source: "https://wamhoteis.com.br/buzios-beach-resort/" },
   // Calamares
   'emp_arraial_do_cabo_calamares': { key: '31d1d1eae2', source: "sem foto (aguardando envio do dono)" },
@@ -89,6 +92,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/990df270ae6a41f8827d74a168a78012.jpg",
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/af836564b63e4e0cbe99cfd0f2964d97.jpeg",
     ],
+    info: {"description": "Pousada no alto de uma pequena colina, a 80 metros da Praia Grande, em Arraial do Cabo, com jardins, vista da cidade e do mar e suítes que combinam conforto e bom gosto. As acomodações vão da Suíte Standard Plus às coberturas Master de 45 m², com varanda, ar-condicionado, frigobar, cofre, Wi-Fi e TV a cabo. A casa tem restaurante próprio, o Sol na Cozinha, com cardápio que muda e aposta nos frutos do mar da região. Fica a cerca de duas horas da capital fluminense, perto das praias e dunas que fazem de Arraial um dos cenários mais bonitos da Região dos Lagos.", "amenities": ["ac", "wifi", "tv"]},
     source: "https://www.caminhodosol.com.br" },
   // Cantinho do Peixe
   'emp_sao_pedro_da_aldeia_cantinho-do-peixe': { key: 'b14b84e7b7', source: "sem foto (aguardando envio do dono)" },
@@ -107,6 +111,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://images3.motor-reserva.com.br/curl/storage/5518/202602191771508143Prancheta6c%C3%B3pia2100.jpg",
       "https://images3.motor-reserva.com.br/curl/storage/5518/202602191771508143Prancheta3100.jpg",
     ],
+    info: {"description": "Hotel em encosta de frente para a Baía da Armação, em Búzios, que começou em 1974 como uma pousada de 4 quartos e hoje tem 33 acomodações em 9 categorias, de arquitetura de inspiração mediterrânea. Entre elas está The Loft, cobertura de 160 m² com varanda panorâmica, e The Suíte, com piscina compacta no interior. O hotel tem restaurantes, spa, academia, recepção 24 horas e equipe multilíngue. Fica no Alto do Humaitá, a uma caminhada curta da Orla Bardot.", "amenities": ["ac"], "address": "Alto do Humaitá, 10 - Centro, Búzios - RJ, 28950-000"},
     source: "https://casasbrancas.com.br" },
   // Cliffside Luxury Inn
   'emp_buzios_cliffside-luxury-inn': { key: '0fce62f8cf', coverImage: "https://static.wixstatic.com/media/c05cf9_bc036982c25347d8b77ce52157cfe72d~mv2.jpg",
@@ -118,6 +123,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://static.wixstatic.com/media/c05cf9_486f5031df43493fb8a26ecbfea552c4~mv2.jpg",
       "https://static.wixstatic.com/media/c05cf9_1bffcc2a8e9f468f8d07e930f45a4cf4~mv2.jpg",
     ],
+    info: {"description": "Vila de vidro sobre um penhasco, projetada pelo arquiteto Otávio Raja Gabaglia, onde de qualquer ambiente se vê o mar e se ouve as ondas quebrando. A decoração em estilo brasileiro, com muita cor, é assinada por Emery de Lima Fata. A piscina de borda infinita fica à beira da falésia, e é ali que o café da manhã é servido todos os dias. Uma hospedagem de poucos quartos, pensada para quem quer privacidade, luxo e vista aberta para o oceano em Búzios.", "amenities": ["pool", "breakfast"]},
     source: "https://www.cliffsideluxuryinn.com.br" },
   // Pousada Enseada das Garças
   'emp_sao_pedro_da_aldeia_pousada-enseada-das-garcas': { key: '4b35d45fb5', coverImage: "https://www.enseadadasgarcas.com.br/arquivos/imagens/WEB6-8d34485-3e62ae303a0c3777f3f75837571.jpg",
@@ -126,6 +132,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.enseadadasgarcas.com.br/arquivos/imagens/Enseada-das--cedaa59f64452ce1df370e5ff90.jpg",
       "https://www.enseadadasgarcas.com.br/arquivos/imagens/fundo-7e1952-d24c3f9a04aa1459ace09627be2.jpg",
     ],
+    info: {"description": "Pousada em cores mediterrâneas, numa colina de São Pedro da Aldeia, de onde a vista da varanda dos bangalôs e da borda da piscina alcança ilhas, salinas, praias desertas e as cidades vizinhas. A proposta é o descanso, com decoração de bom gosto, boa gastronomia e passeio de traineira. Fica na Rua José Costa, 1088, Ponta da Areia, a cerca de 13 km de Cabo Frio, 22 km de Arraial do Cabo e 26 km de Búzios.", "amenities": ["pool"], "address": "Rua José Costa, 1088 - Ponta da Areia, São Pedro da Aldeia - RJ", "phone": "(22) 2627-0007"},
     source: "https://www.enseadadasgarcas.com.br" },
   // Estrela do Mar Saquarema
   'emp_saquarema_estrela-do-mar-saquarema': { key: '68af866ffb', source: "sem foto (aguardando envio do dono)" },
@@ -138,6 +145,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://experiencejoaofernandes.com.br/wp-content/uploads/2026/07/suite-master-139-1024x683.jpg",
       "https://experiencejoaofernandes.com.br/wp-content/uploads/2026/07/HEJF-OSSOS-1024x576-1.jpg",
     ],
+    info: {"description": "Hotel a 100 metros da Praia de João Fernandes, por um caminho plano e fácil, pensado para viajar em família. Tem piscinas aquecidas abertas das 9h às 22h, área kids monitorada, sala de games, academia e restaurante à la carte. Fica a 900 m da Praia dos Ossos, 1,2 km da Rua das Pedras e 2,3 km da rodoviária de Búzios, uma boa base para quem quer praia sem depender de carro o tempo todo.", "amenities": ["pool", "kids"], "address": "Rua Um, s/n, lotes 24, 25 e 26 - Praia de João Fernandes, Búzios - RJ, 28950-000"},
     source: "https://experiencejoaofernandes.com.br" },
   // Galápagos
   'emp_cabo_frio_galapagos': { key: '7c2414e6f7', source: "sem foto (aguardando envio do dono)" },
@@ -153,6 +161,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://insolitohotel.com/wp-content/uploads/2025/02/superior-1.webp",
       "https://insolitohotel.com/wp-content/uploads/2025/02/classic.webp",
     ],
+    info: {"description": "Hotel boutique de frente para a Praia da Ferradura, em Búzios, com praia e piscina privativas e suítes de vistas panorâmicas. Cada ala tem um tema ligado à cultura brasileira: há suítes Classic na Ala Terra Brasil e na Casa de Fotografia e Literatura, Master na Casa da Música e Deluxe de cerca de 40 m². Algumas suítes têm piscina própria. A propriedade é cheia de obras de arte e mobiliário exclusivo, e o hotel tem restaurante e centro de bem-estar (Wellness). Ideal para quem quer sossego, privacidade e atendimento personalizado.", "amenities": ["pool"]},
     source: "https://insolitohotel.com" },
   // Kentô Cozinha Oriental
   'emp_cabo_frio_kento-cozinha-oriental': { key: '794ab33469', source: "sem foto (aguardando envio do dono)" },
@@ -172,6 +181,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.malibupalace.com.br/images/slider1.jpg",
       "https://www.malibupalace.com.br/images/slider2.jpg",
     ],
+    info: {"description": "Hotel de frente para a Praia do Forte, a mais conhecida de Cabo Frio, com acomodações, restaurante, área de lazer e salões para convenções e eventos. A proposta é servir tanto a quem vem passar o fim de semana, feriado ou férias quanto a quem organiza encontros corporativos e festas, com espaços próprios para isso. O hotel fica na Avenida Macário Pinto Lopes, antiga Avenida do Contorno, a poucos passos da areia. Não aceita animais de estimação, nem de pequeno porte.", "amenities": [], "address": "Avenida Macário Pinto Lopes, 900 - Praia do Forte, Cabo Frio - RJ", "phone": "(22) 2647-8000"},
     source: "https://www.malibupalace.com.br" },
   // Maravista Hotel e Spa
   'emp_buzios_maravista-hotel-e-spa': { key: 'f5e5c85f20', coverImage: "https://maravista.com.br/wp-content/uploads/2025/10/Maravista-Hotel-e-Spa-02.jpg",
@@ -183,6 +193,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://maravista.com.br/wp-content/uploads/2026/01/Wedding-70.jpg",
       "https://maravista.com.br/wp-content/uploads/2025/12/maravista-buzios.jpg",
     ],
+    info: {"description": "Hotel e spa com acesso direto à Praia de Geribá, a mais famosa de Búzios, com dois quilômetros de areia branca e mar claro, ótimo para surfe, bodyboard, stand up paddle e windsurf. Funciona desde 1999 e tem suítes arejadas e bem decoradas, piscina e spa, além de estrutura para eventos e casamentos de frente para o mar. Fica na Rua Gerbert Perissé, a poucos passos da areia.", "amenities": ["pool"], "address": "Rua Gerbert Perissé, 1058 - Geribá, Búzios - RJ, 28950-000"},
     source: "https://maravista.com.br" },
   // Morada do Sol Suítes
   'emp_arraial_do_cabo_morada-do-sol-suites': { key: '43e3a3cd9e', coverImage: "https://www.moradadosolsuites.com.br/image/d235/6aaa07fe0e0ef34e95f55dcc/morada-do-sol-suites-suite-08",
@@ -223,6 +234,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://pousadadaprainha.com/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-13-at-10.31.51.jpeg",
       "https://pousadadaprainha.com/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-13-at-10.31.05-2.jpeg",
     ],
+    info: {"description": "Pousada de pátio interno com piscina ao ar livre (de 1,05 m a 1,30 m de profundidade), na Prainha, em Arraial do Cabo, perto de uma das praias mais procuradas da cidade. As suítes têm ar-condicionado e Wi-Fi gratuito, e a casa oferece mesa de bilhar e atendimento em português, espanhol e inglês. Animais de estimação são aceitos mediante pedido, com possível custo adicional. Fica na Rua Pastor Admardo Machado, 90 (antiga Rua D), no bairro da Prainha.", "amenities": ["ac", "wifi", "pool", "pet"], "address": "Rua Pastor Admardo Machado, 90 (antiga Rua D) - Prainha, Arraial do Cabo - RJ, 28930-000", "phone": "(22) 2622-2512"},
     source: "https://pousadadaprainha.com" },
   // Privilège Búzios
   'emp_buzios_privilege-buzios': { key: '5ab45f5655', source: "sem foto (aguardando envio do dono)" },
@@ -252,6 +264,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://static.wixstatic.com/media/bc4ad8_fe472323514d48c0bd063bf2ce265008~mv2.jpeg",
       "https://static.wixstatic.com/media/bc4ad8_18602706cf584f9f967563adefa6700b~mv2.jpeg",
     ],
+    info: {"description": "Hotel boutique em casarão histórico à beira do Canal do Itajuru, no bairro da Passagem, em Cabo Frio, frequentado pela família real nos tempos do Império e restaurado com cuidado. Os jardins misturam memória e paisagismo contemporâneo com flora tropical, e a piscina de ares mouriscos é um dos refúgios da casa. O clima é de serenidade, com a brisa do canal e o movimento dos barcos, a poucos passos do patrimônio cultural da cidade e das praias da região.", "amenities": ["pool"]},
     source: "https://www.solardoarco.com.br" },
   // The Bull Restaurant
   'emp_sao_pedro_da_aldeia_the-bull-restaurant': { key: 'd5a13b61a6', source: "sem foto (aguardando envio do dono)" },
