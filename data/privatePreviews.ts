@@ -40,7 +40,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Anchova na Brasa
   'emp_arraial_do_cabo_anchova-na-brasa': { key: 'a90e18a7d9', source: "sem foto (aguardando envio do dono)" },
   // Apreciatta Pizzaria
-  'emp_cabo_frio_apreciatta-pizzaria': { key: 'b40d628eda', source: "sem foto (aguardando envio do dono)" },
+  'emp_cabo_frio_apreciatta-pizzaria': { key: 'b40d628eda', info: {"description": "Pizzaria com unidades em Cabo Frio e São Pedro da Aldeia, que construiu um público fiel nas redes e trabalha com salão, mesas externas e entrega à noite. A unidade de Cabo Frio fica na Avenida Júlia Kubitschek, no Centro, e não aceita reservas. O cardápio completo está disponível no link da bio do Instagram oficial, @apreciattabr.", "amenities": ["delivery"], "address": "Av. Júlia Kubitschek, 26 - Centro, Cabo Frio - RJ, 28905-000", "phone": "(22) 2648-1178", "instagram": "https://www.instagram.com/apreciattabr"},
+    source: "sem foto (aguardando envio do dono)" },
   // Arcos do Canal
   'emp_cabo_frio_arcos-do-canal': { key: 'bf5974b9a5', coverImage: "https://arcosdocanal.com.br/wp-content/uploads/2026/03/arcos_do_canal-1.webp",
     gallery: [
@@ -63,13 +64,15 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     ],
     source: "https://www.pousadaarraialcaribe.com.br" },
   // Astral Beach Food
-  'emp_arraial_do_cabo_astral-beach-food': { key: '5eb7fb159f', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_astral-beach-food': { key: '5eb7fb159f', info: {"description": "Cozinha de praia com cara de alimento para a alma salgada: poke, sushi grande, burritos e hambúrgueres, com opções veganas no cardápio. Em Arraial do Cabo, funciona em loja e também por delivery e retirada, com pedidos pelo site e pelo WhatsApp.", "amenities": ["delivery"], "instagram": "https://www.instagram.com/astralbeach.food", "website": "https://astralbeach.com.br"},
+    source: "sem foto (aguardando envio do dono)" },
   // Bamba
   'emp_cabo_frio_bamba': { key: 'aab15f2916', source: "sem foto (aguardando envio do dono)" },
   // Bar do Cajueiro by Bodega Boa
   'emp_saquarema_bar-do-cajueiro-by-bodega-boa': { key: '06248a3581', source: "sem foto (aguardando envio do dono)" },
   // Bar e Restaurante Mané Paixão
-  'emp_cabo_frio_bar-e-restaurante-mane-paixao': { key: '8e1e1ee10c', source: "sem foto (aguardando envio do dono)" },
+  'emp_cabo_frio_bar-e-restaurante-mane-paixao': { key: '8e1e1ee10c', info: {"description": "Boteco clássico do Largo de São Benedito, na Passagem, em Cabo Frio, lembrado nos guias de viagem pela comida de botequim bem-feita e pelos escondidinhos servidos na telha. Ponto tradicional da região, bom para um almoço sem cerimônia ou um petisco no fim da tarde, perto das ruas de paralelepípedo do bairro.", "amenities": [], "address": "Largo de São Benedito - Passagem, Cabo Frio - RJ"},
+    source: "sem foto (aguardando envio do dono)" },
   // Brisa dos Anjos Suítes
   'emp_arraial_do_cabo_brisa-dos-anjos-suites': { key: 'd0ca6ec5f0', source: "sem foto (aguardando envio do dono)" },
   // Búzios Beach Resort
@@ -99,7 +102,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Casa da Picanha
   'emp_iguaba_grande_casa-da-picanha': { key: 'dfc4f88272', source: "sem foto (aguardando envio do dono)" },
   // Casa da Piedra
-  'emp_arraial_do_cabo_casa-da-piedra': { key: '533bad5110', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_casa-da-piedra': { key: '533bad5110', info: {"address": "R. Santa Cruz, 4 - Praia dos Anjos, Arraial do Cabo - RJ, 28930-000", "deliveryUrl": "https://casadapiedra.ola.click"},
+    source: "sem foto (aguardando envio do dono)" },
   // Casa da Praia Itaúna
   'emp_saquarema_casa-da-praia-itauna': { key: '61b25f1df6', source: "sem foto (aguardando envio do dono)" },
   // Casas Brancas Boutique Hotel & Spa
@@ -148,7 +152,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     info: {"description": "Hotel a 100 metros da Praia de João Fernandes, por um caminho plano e fácil, pensado para viajar em família. Tem piscinas aquecidas abertas das 9h às 22h, área kids monitorada, sala de games, academia e restaurante à la carte. Fica a 900 m da Praia dos Ossos, 1,2 km da Rua das Pedras e 2,3 km da rodoviária de Búzios, uma boa base para quem quer praia sem depender de carro o tempo todo.", "amenities": ["pool", "kids"], "address": "Rua Um, s/n, lotes 24, 25 e 26 - Praia de João Fernandes, Búzios - RJ, 28950-000"},
     source: "https://experiencejoaofernandes.com.br" },
   // Galápagos
-  'emp_cabo_frio_galapagos': { key: '7c2414e6f7', source: "sem foto (aguardando envio do dono)" },
+  'emp_cabo_frio_galapagos': { key: '7c2414e6f7', info: {"description": "Restaurante instalado num casarão colonial no Largo de São Benedito, o coração histórico da Passagem, bem em frente à igreja branca do século XVII. A cozinha é internacional e criativa, com pratos como peixe grelhado com alecrim e maracujá, risoto de camarão com aspargos e polvo reinterpretado. As mesas ao ar livre são charmosas e a casa é presença certa nos roteiros gastronômicos de Cabo Frio; reservar é recomendável.", "amenities": [], "address": "Largo de São Benedito, 11 - Passagem, Cabo Frio - RJ, 28906-340", "phone": "(22) 2643-4097"},
+    source: "sem foto (aguardando envio do dono)" },
   // Hotel Aconchego da Vila
   'emp_saquarema_hotel-aconchego-da-vila': { key: '7ecc78a76a', source: "sem foto (aguardando envio do dono)" },
   // Insólito Boutique Hotel & Spa
@@ -172,7 +177,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Lounge da Praia
   'emp_arraial_do_cabo_lounge-da-praia': { key: '5d026e3c75', source: "sem foto (aguardando envio do dono)" },
   // Místico Restaurant
-  'emp_buzios_mistico-restaurant': { key: '213b3a356d', source: "sem foto (aguardando envio do dono)" },
+  'emp_buzios_mistico-restaurant': { key: '213b3a356d', info: {"description": "Restaurante do Abracadabra Boutique Hotel, no alto do Morro do Humaitá, com vista panorâmica sobre o centro de Búzios e a praia. A cozinha autoral e contemporânea é assinada pelo chef Sávio Freitas, que trabalha ingredientes brasileiros e sazonais, e a casa costuma promover menus especiais e almoços temáticos. Reserva recomendada.", "amenities": [], "address": "Rua Alto do Humaitá, 13 - Morro do Humaitá, Armação dos Búzios - RJ", "phone": "(22) 2623-1217", "website": "https://www.abracadabrahotel.com.br"},
+    source: "sem foto (aguardando envio do dono)" },
   // Malibu Palace Hotel
   'emp_cabo_frio_malibu-palace-hotel': { key: 'b855991881', coverImage: "https://www.malibupalace.com.br/pluginAppObj/pluginAppObj_45/hot1.jpg",
     gallery: [
@@ -222,7 +228,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Pousada Melodia do Mar
   'emp_cabo_frio_pousada-melodia-do-mar': { key: '1bc6386ff0', source: "sem foto (aguardando envio do dono)" },
   // Pousada Porto Forte
-  'emp_cabo_frio_pousada-porto-forte': { key: 'd2aa14ffdb', source: "sem foto (aguardando envio do dono)" },
+  'emp_cabo_frio_pousada-porto-forte': { key: 'd2aa14ffdb', info: {"description": "Pousada no centro comercial de Cabo Frio, perto de bancos, lojas, farmácias, mercados, bares e da vida noturna da cidade, a poucos minutos a pé da Praia do Forte e do Canal Itajuru. Boa base para quem quer deixar o carro e resolver tudo a pé. Fica na Rua Professor Miguel Couto, no Centro.", "amenities": [], "address": "Rua Professor Miguel Couto, 192 - Centro, Cabo Frio - RJ, 28907-140", "phone": "(22) 2643-1970", "whatsapp": "(22) 99247-9093", "website": "https://www.pousadaportoforte.com.br", "instagram": "https://www.instagram.com/pousadaportoforte"},
+    source: "sem foto (aguardando envio do dono)" },
   // Pousada Vista Turquesa
   'emp_arraial_do_cabo_pousada-vista-turquesa': { key: 'a43ccba29d', source: "sem foto (aguardando envio do dono)" },
   // Pousada da Prainha
@@ -247,11 +254,13 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Restaurante Saquasuco
   'emp_saquarema_restaurante-saquasuco': { key: '2a58ad07b1', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Tio Dorp
-  'emp_arraial_do_cabo_restaurante-tio-dorp': { key: '05d6c87d09', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_restaurante-tio-dorp': { key: '05d6c87d09', info: {"description": "Restaurante de frutos do mar com deck voltado para o mar e vista da Praia dos Anjos durante a refeição. O cardápio mistura cozinha brasileira com toques mediterrâneos e ainda traz opções vegetarianas, como moqueca vegana e bobó de couve-flor. Fica na Praça Daniel Barreto, no centro de Arraial do Cabo, a poucos passos da orla.", "amenities": [], "address": "Praça Daniel Barreto, 10 - Praia dos Anjos, Arraial do Cabo - RJ", "phone": "(22) 2340-0246", "instagram": "https://www.instagram.com/restaurantetiodorp"},
+    source: "sem foto (aguardando envio do dono)" },
   // Rocka Restaurant & Beach Lounge
   'emp_buzios_rocka-restaurant-beach-lounge': { key: '8888d51ddd', source: "sem foto (aguardando envio do dono)" },
   // Santo Gole Bar e Grill
-  'emp_arraial_do_cabo_santo-gole-bar-e-grill': { key: 'b363a0e52d', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_santo-gole-bar-e-grill': { key: 'b363a0e52d', info: {"description": "Bar e grill na Praça Daniel Barreto, no coração da Praia dos Anjos, com música ao vivo todos os dias, mesas ao ar livre e uma carta de petiscos, frutos do mar, pratos, chope, drinks e cervejas. A casa abre no fim da tarde e costuma encher à noite, por isso vale chegar cedo nos fins de semana e feriados.", "amenities": [], "address": "Praça Daniel Barreto, 05 - Praia dos Anjos, Arraial do Cabo - RJ", "instagram": "https://www.instagram.com/santogolebaregrill"},
+    source: "sem foto (aguardando envio do dono)" },
   // Smash do Cabo Hamburgueria
   'emp_arraial_do_cabo_smash-do-cabo-hamburgueria': { key: '9f3b712231', source: "sem foto (aguardando envio do dono)" },
   // Hotel Solar do Arco
