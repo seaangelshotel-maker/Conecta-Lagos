@@ -606,8 +606,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Pousada da Prainha', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. Pastor Admardo Machado, 90, Prainha, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Prainha',
     phone: '(22) 2622-2512', website: 'https://pousadadaprainha.com',
-    description: 'Pousada com café da manhã incluído, na Prainha, em Arraial do Cabo.',
-    sources: ['https://www.google.com/maps/search/Pousada+da+Prainha+Arraial+do+Cabo', 'https://pousadadaprainha.com'], checkedAt: '2026-11-17',
+    amenities: ['wifi', 'ac', 'parking', 'pool', 'breakfast', 'pet'],
+    description: 'Pousada com perfil sustentável, entre os morros do Mirante e do Forno, a 150 metros das águas azuis da Prainha. A casa usa sistema inteligente de consumo de energia, aquecimento solar, captação de água da chuva e tratamento de esgoto, e diz cuidar da cultura local. Tem piscina ao ar livre (de 1,05 m a 1,30 m de profundidade), mesa de bilhar, café da manhã e Wi-Fi gratuitos, ar-condicionado e estacionamento gratuito. Animais de estimação são aceitos mediante pedido, com custo adicional. Atendimento em português, espanhol e inglês. Check-in das 14h às 23h e check-out das 7h às 12h. Fica a cerca de 1 km da rodoviária de Arraial do Cabo.',
+    sources: ['https://pousadadaprainha.com/', 'https://pousadadaprainha.com/a-pousada/', 'https://pousadadaprainha.com/suites-e-tarifas/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Ocean View Hotel', cityId: AC, category: 'Hospedagem', subcategory: 'Hotéis',
@@ -634,8 +635,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Pousada Sentinelas do Mar', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'Rua de Castro Neto, Pontal do Atalaia, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Pontal do Atalaia',
     phone: '(22) 99993-9162', website: 'https://sentinelasdomar.com.br',
-    description: 'Hospedagem com café da manhã incluído no Pontal do Atalaia, em Arraial do Cabo.',
-    sources: ['https://www.google.com/maps/search/Pousada+Sentinelas+do+Mar+Arraial+do+Cabo', 'https://sentinelasdomar.com.br'], checkedAt: '2026-11-17',
+    amenities: ['ac', 'tv', 'pool', 'breakfast'],
+    description: 'Pousada de 15 acomodações no Pontal do Atalaia, cujo nome homenageia os vigias que, das pedras, avisavam os pescadores sobre os cardumes. A marca da casa é a piscina de borda infinita com vista para o mar. Os quartos têm frigobar, ar-condicionado e TV; as categorias VIP trazem banheira de hidromassagem com vista para o mar (a VIP 3 também com varanda) e as Master têm vista para o mar, algumas com varanda. A diária inclui café da manhã em buffet, servido das 7h30 às 10h. A estrutura também recebe casamentos e celebrações. O site, em português e inglês, tem reserva online. Fica na Rua José de Castro Neto, lote S6.',
+    sources: ['https://www.sentinelasdomar.com.br/', 'https://www.sentinelasdomar.com.br/pousada', 'https://www.google.com/maps/search/Pousada+Sentinelas+do+Mar+Arraial+do+Cabo'], checkedAt: '2026-11-19',
   },
   {
     name: 'Pousada Caravela', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',
