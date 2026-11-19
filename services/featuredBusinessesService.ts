@@ -60,7 +60,11 @@ export const needsPhotosOnly = (doc: any, f: FeaturedBusiness): boolean =>
     !!doc && !doc.isClaimed && !doc.ownerId && !!f.coverImage &&
     (doc.coverImage !== f.coverImage || (!!f.gallery?.length && JSON.stringify(doc.gallery || []) !== JSON.stringify(f.gallery)));
 
-const sameJson = (a: any, b: any) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+/** Compara valores ignorando a ordem das chaves de objetos (o Firestore devolve mapas em outra ordem). */
+const stable = (v: any): any => Array.isArray(v) ? v.map(stable)
+    : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k, stable(v[k])]))
+    : v;
+const sameJson = (a: any, b: any) => JSON.stringify(stable(a ?? null)) === JSON.stringify(stable(b ?? null));
 
 /** Tudo o que a lista de aprovados define para a empresa (fotos, crédito e informação). */
 export const approvedFields = (a: ApprovedPhotos): Record<string, any> => ({
