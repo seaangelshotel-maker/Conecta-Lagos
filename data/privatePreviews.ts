@@ -74,7 +74,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_cabo_frio_bar-e-restaurante-mane-paixao': { key: '8e1e1ee10c', info: {"description": "Boteco clássico do Largo de São Benedito, na Passagem, em Cabo Frio, lembrado nos guias de viagem pela comida de botequim bem-feita e pelos escondidinhos servidos na telha. Ponto tradicional da região, bom para um almoço sem cerimônia ou um petisco no fim da tarde, perto das ruas de paralelepípedo do bairro.", "amenities": [], "address": "Largo de São Benedito - Passagem, Cabo Frio - RJ"},
     source: "sem foto (aguardando envio do dono)" },
   // Brisa dos Anjos Suítes
-  'emp_arraial_do_cabo_brisa-dos-anjos-suites': { key: 'd0ca6ec5f0', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_brisa-dos-anjos-suites': { key: 'd0ca6ec5f0', info: {"description": "Suítes na Rua Benjamin Constant, no centro de Arraial do Cabo, a poucos minutos a pé da Praia dos Anjos, do estádio e do comércio local. Os quartos têm ar-condicionado e banheiro privativo, e a casa é conhecida entre os hóspedes pelo atendimento próximo do proprietário e pelo café da manhã simples e caprichado. Boa opção para quem quer conforto sem pagar por estrutura de resort.", "amenities": [], "address": "Rua Benjamin Constant, 98 - Centro, Arraial do Cabo - RJ, 28930-000", "whatsapp": "(22) 99803-9049"},
+    source: "sem foto (aguardando envio do dono)" },
   // Búzios Beach Resort
   'emp_buzios_buzios-beach-resort': { key: 'fcd77cde72', coverImage: "https://wamhoteis.com.br/wp-content/uploads/2025/08/EmdpHLRQ.webp",
     gallery: [
@@ -86,7 +87,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     info: {"description": "Resort de frente para a Praia de Tucuns, de ondas calmas, inaugurado em 2010 com 379 apartamentos distribuídos em vilas. A estrutura inclui duas piscinas, quatro bares, restaurante principal, o italiano Mamma Mia, sala de jogos, academia, quadras de areia e poliesportiva, mini golfe e boliche. É um resort pensado para ficar o dia inteiro no hotel, com alimentação e lazer no mesmo lugar, a cerca de 15 minutos de carro da Rua das Pedras.", "amenities": ["pool", "bar"], "address": "Av. dos Tucuns (Rua das Dunas), s/n - Praia de Tucuns, Búzios - RJ, 28950-000"},
     source: "https://wamhoteis.com.br/buzios-beach-resort/" },
   // Calamares
-  'emp_arraial_do_cabo_calamares': { key: '31d1d1eae2', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_calamares': { key: '31d1d1eae2', info: {"description": "Beach club e restaurante de frente para a Praia Grande, em Arraial do Cabo, conhecido pelo pôr do sol e pelo ambiente animado, com música ao vivo, petiscos, drinks e cardápio de frutos do mar. Funciona com mesas e espreguiçadeiras na areia, ideal para ficar o fim de tarde inteiro. Fica na Avenida Litorânea.", "amenities": [], "address": "Avenida Litorânea - Praia Grande, Arraial do Cabo - RJ"},
+    source: "sem foto (aguardando envio do dono)" },
   // Pousada Caminho do Sol
   '8mbOtad5nxVNMThEZdu1': { key: 'f8d8bef581', coverImage: "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/59ed3641f55345a7898acfb3fd36bea5.jpg",
     gallery: [
@@ -155,7 +157,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_cabo_frio_galapagos': { key: '7c2414e6f7', info: {"description": "Restaurante instalado num casarão colonial no Largo de São Benedito, o coração histórico da Passagem, bem em frente à igreja branca do século XVII. A cozinha é internacional e criativa, com pratos como peixe grelhado com alecrim e maracujá, risoto de camarão com aspargos e polvo reinterpretado. As mesas ao ar livre são charmosas e a casa é presença certa nos roteiros gastronômicos de Cabo Frio; reservar é recomendável.", "amenities": [], "address": "Largo de São Benedito, 11 - Passagem, Cabo Frio - RJ, 28906-340", "phone": "(22) 2643-4097"},
     source: "sem foto (aguardando envio do dono)" },
   // Hotel Aconchego da Vila
-  'emp_saquarema_hotel-aconchego-da-vila': { key: '7ecc78a76a', source: "sem foto (aguardando envio do dono)" },
+  'emp_saquarema_hotel-aconchego-da-vila': { key: '7ecc78a76a', info: {"description": "Hotel recém-reformado na orla da Praia da Vila, em Saquarema, a poucos passos da Vila e do Canhão. Tem piscina com vista para o mar, terraço, bar e estacionamento privativo, e os quartos têm ar-condicionado. Os hóspedes elogiam o café da manhã, a localização e os quartos com vista para o mar. Fica na Avenida Ministro Salgado Filho, 340.", "amenities": [], "address": "Avenida Ministro Salgado Filho, 340 - Praia da Vila, Saquarema - RJ, 28990-000"},
+    source: "sem foto (aguardando envio do dono)" },
   // Insólito Boutique Hotel & Spa
   'emp_buzios_insolito-boutique-hotel-spa': { key: 'fc940ae877', coverImage: "https://insolitohotel.com/wp-content/uploads/2025/04/DJI_20250221182508_0533_D-1-1.jpg",
     gallery: [
@@ -214,7 +217,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Pousada Atalaia Boutique
   'emp_arraial_do_cabo_pousada-atalaia-boutique': { key: '207a85adaf', source: "sem foto (aguardando envio do dono)" },
   // Pousada Caravela
-  'emp_arraial_do_cabo_pousada-caravela': { key: '2aa86733e8', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_pousada-caravela': { key: '2aa86733e8', info: {"description": "Pousada na Praia Grande, a cerca de 500 metros da areia e a uma caminhada curta da Praça da Independência e do centro de Arraial do Cabo. Os quartos são para casais e famílias, a recepção funciona 24 horas e a estrutura inclui piscina ao ar livre. Fica na Rua Wenceslau Braz e atende bem a quem quer chegar a pé aos restaurantes e ao ponto de saída dos passeios.", "amenities": [], "address": "Rua Wenceslau Braz, 98 - Praia Grande, Arraial do Cabo - RJ, 28930-000"},
+    source: "sem foto (aguardando envio do dono)" },
   // Pousada Catavento
   'emp_saquarema_pousada-catavento': { key: '733adbe92d', source: "sem foto (aguardando envio do dono)" },
   // Pousada das Andorinhas
@@ -224,7 +228,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Pousada Hotel Praia dos Anjos
   'emp_arraial_do_cabo_pousada-hotel-praia-dos-anjos': { key: 'fea61b0893', source: "sem foto (aguardando envio do dono)" },
   // Pousada Manaaki
-  'emp_buzios_pousada-manaaki': { key: 'c1548148e6', source: "sem foto (aguardando envio do dono)" },
+  'emp_buzios_pousada-manaaki': { key: 'c1548148e6', info: {"description": "Pousada de ambiente aconchegante entre a Praia Rasa e a Baía Formosa, em Búzios, com piscina externa, jardim, redes para descanso, bar e área de convivência. Oferece massagens sob reserva e café da manhã, num clima tranquilo, longe da agitação do centro. Fica na Avenida Greta Blanc do Rio, perto do campo de golfe.", "amenities": [], "address": "Avenida Greta Blanc do Rio, 82 - Praia Rasa, Armação dos Búzios - RJ, 28950-000"},
+    source: "sem foto (aguardando envio do dono)" },
   // Pousada Melodia do Mar
   'emp_cabo_frio_pousada-melodia-do-mar': { key: '1bc6386ff0', source: "sem foto (aguardando envio do dono)" },
   // Pousada Porto Forte
