@@ -618,8 +618,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Ocean View Hotel', cityId: AC, category: 'Hospedagem', subcategory: 'Hotéis',
     address: 'Av. Alfredo Dante Fassini, 01, Prainha, Arraial do Cabo - RJ, 28930-000', neighborhood: 'Prainha',
     phone: '(22) 2622-5205',
-    description: 'Hotel 3 estrelas na Prainha, em Arraial do Cabo.',
-    sources: ['https://www.google.com/maps/search/Ocean+View+Hotel+Prainha+Arraial+do+Cabo'], checkedAt: '2026-11-17',
+    amenities: ['breakfast'],
+    description: 'Hotel de frente para a Prainha, em Arraial do Cabo, que une a estrutura de hotel ao jeito caseiro de uma hospedagem familiar, como a própria casa se apresenta. A Prainha é a praia mais indicada da cidade para banho e para passeios em família, e vários apartamentos têm vista para o mar. A hospedagem inclui café da manhã, servido das 7h30 às 10h. Há cinco categorias de apartamento: Standard, Luxo e Master (até 3 pessoas), Luxo Família (até 4) e Família (até 6), o que atende de casais a grupos grandes. Fica na Rua Alfredo Dante Fassini, 1, a cerca de 800 metros do centro de Arraial do Cabo.',
+    sources: ['https://book.omnibees.com/chain/2610/hotel/4468?lang=en-US', 'https://www.google.com/maps/search/Ocean+View+Hotel+Prainha+Arraial+do+Cabo'], checkedAt: '2026-11-19',
   },
   {
     name: 'Pousada Vista Turquesa', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',
