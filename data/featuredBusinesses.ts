@@ -866,9 +866,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Pousada das Andorinhas', cityId: IG, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. Dr. Wilson, 167, Iguaba Pequena, Iguaba Grande - RJ, 28960-000', neighborhood: 'Iguaba Pequena',
-    phone: '(22) 99900-2251', website: 'https://pousadadasandorinhas.com.br/',
+    phone: '(22) 99900-2251',
     description: 'Pousada em Iguaba Pequena, em Iguaba Grande.',
-    sources: ['https://www.google.com/maps/search/Pousada+das+Andorinhas+Iguaba+Grande', 'https://pousadadasandorinhas.com.br/'], checkedAt: '2026-11-17',
+    sources: ['https://www.google.com/maps/search/Pousada+das+Andorinhas+Iguaba+Grande'], checkedAt: '2026-11-17',
   },
   {
     name: 'Restaurante Anexo Praia Búzios', cityId: BZ, category: 'Gastronomia', subcategory: 'Restaurantes',
