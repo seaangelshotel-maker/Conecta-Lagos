@@ -399,8 +399,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Místico Restaurant', cityId: BZ, category: 'Gastronomia', subcategory: 'Restaurantes',
     address: 'R. Morro do Humaitá, 13, Loteamento Triângulo de Búzios, Armação dos Búzios - RJ, 28950-000', neighborhood: 'Triângulo',
     phone: '(22) 99765-5256',
-    description: 'Restaurante de cozinha autoral, dentro do Abracadabra Boutique Hotel, no Morro do Humaitá, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Místico+Restaurant+Búzios'], checkedAt: '2026-11-17',
+    description: 'Restaurante do hotel boutique Abracadabra, no Alto do Humaitá, em Búzios, frequentemente citado entre os mais recomendados da cidade e conhecido pelo pôr do sol. Sob o comando do chef Sávio Freitas, a cozinha mantém o foco no mar. O nome evoca mistério, mas, segundo a imprensa gastronômica, a proposta da casa caminha no sentido contrário, de clareza. Fica na Rua Morro do Humaitá, no centro.',
+    sources: ['https://www.timeout.com/pt/rio-de-janeiro/noticias/chef-savio-freitas-em-buzios-faz-um-ano-a-frente-do-mistico-mantendo-o-foco-no-mar-030426', 'https://www.queroviajarmais.com/restaurantes-em-buzios/', 'https://www.google.com/maps/search/Místico+Restaurant+Búzios'], checkedAt: '2026-11-19',
   },
   {
     name: 'Restaurante La Gare', cityId: BZ, category: 'Gastronomia', subcategory: 'Restaurantes',
@@ -422,8 +422,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Rocka Restaurant & Beach Lounge', cityId: BZ, category: 'Gastronomia', subcategory: 'Beach Clubs',
     address: 'Av. Geribá, quadra CLT10, Geribá, Armação dos Búzios - RJ, 28950-000', neighborhood: 'Geribá',
     phone: '',
-    description: 'Restaurante mediterrâneo e beach lounge no deck, junto à Praia de Geribá, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Rocka+Beach+Lounge+Búzios'], checkedAt: '2026-11-17',
+    description: 'Restaurante e beach lounge de frente para a Praia Brava, em Búzios, lembrado em guias de viagem como um dos melhores restaurantes de praia da cidade. A cozinha é de frutos do mar e peixes. Fica na Praia Brava, 13, praia mais afastada do centro de Búzios; vale conferir o funcionamento antes de ir.',
+    sources: ['https://www.viajenaviagem.com/?p=157452', 'https://www.google.com/maps/search/Rocka+Beach+Lounge+Restaurante+Búzios'], checkedAt: '2026-11-19',
   },
   {
     name: 'Silk Beach Club Búzios', cityId: BZ, category: 'Gastronomia', subcategory: 'Beach Clubs',
@@ -466,8 +466,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Hotel Experience João Fernandes', cityId: BZ, category: 'Hospedagem', subcategory: 'Hotéis',
     address: '', neighborhood: 'João Fernandes',
     phone: '',
-    description: 'Hotel na região da Praia de João Fernandes, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Experience+João+Fernandes+Búzios'], checkedAt: '2026-11-17',
+    amenities: ['pool'],
+    description: 'Hotel-pousada a cerca de 100 metros da Praia de João Fernandes, com vista para o mar e a estrutura de hotel aliada a um atendimento mais próximo, como a própria casa define. Tem piscina ao ar livre, jardim e sauna; os apartamentos têm ar-condicionado, varanda, TV, frigobar e cofre, e o café da manhã é em buffet. O hotel fica na Rua Um, lotes 24 a 26, a uma caminhada curta da Praia de João Fernandes e a menos de 2 km da Orla Bardot, no centro.',
+    sources: ['https://book.omnibees.com/chain/2871/hotel/2093?lang=en-US', 'https://www.frommers.com/destinations/buzios/hotels/hotel-pousada-experience-joo-fernandes', 'https://www.google.com/maps/search/Hotel+Experience+João+Fernandes+Búzios'], checkedAt: '2026-11-19',
   },
   {
     name: 'Maravista Hotel e Spa', cityId: BZ, category: 'Hospedagem', subcategory: 'Hotéis',
@@ -487,8 +488,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Búzios Beach Resort', cityId: BZ, category: 'Hospedagem', subcategory: 'Hotéis',
     address: 'Rua das Dunas, Praia de Tucuns, s/n, Bosque, Armação dos Búzios - RJ', neighborhood: 'Tucuns',
     phone: '',
-    description: 'Resort 4 estrelas na Praia de Tucuns, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Búzios+Beach+Resort+Tucuns'], checkedAt: '2026-11-17',
+    description: 'Resort na Praia de Tucuns, em Búzios, a cerca de 100 metros da praia, uma das mais tranquilas da região. A estrutura reúne apartamentos e bangalôs, entre eles unidades de frente para o mar com deck exclusivo e acesso direto à piscina, além do restaurante Hibiscus. Fica na região de Armação. Para detalhes de categorias e disponibilidade, o contato é com a recepção.',
+    sources: ['https://www.melhoresdestinos.com.br/resort-buzios.html', 'https://www.dicasdeviagem.com/resorts-em-buzios/', 'https://www.google.com/maps/search/Búzios+Beach+Resort'], checkedAt: '2026-11-19',
   },
 
   // ───────── Cabo Frio · pré-cadastro (Google Maps, 2026-11-17). Telefone de 1 fonte; Instagram e horário por dia ficam para completar.
