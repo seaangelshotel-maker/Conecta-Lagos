@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { planRank } from '../services/planRules';
 import { amenityAppliesTo, businessKind } from "../data/amenityCatalog";
 import {
   Search,
@@ -49,6 +50,7 @@ import {
   getBusinessesPaginated,
   getBlogPosts,
   getRealRating,
+  getPricingPlans,
   formatDayHours,
   todayKey,
   hasOpeningHours,
@@ -105,6 +107,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
   const [cities, setCities] = useState<City[]>([]);
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [amenities, setAmenities] = useState<AppAmenity[]>([]);
+  const [plans, setPlans] = useState<Array<{ id?: string; price?: number }>>([]);
   const [collections, setCollections] = useState<any[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
 
@@ -246,14 +249,16 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
   useEffect(() => {
     const loadStructuralData = async () => {
       try {
-        const [cats, cts, nbs, cols, ams, posts] = await Promise.all([
+        const [cats, cts, nbs, cols, ams, posts, pricing] = await Promise.all([
           getCategories(),
           getCities(),
           getNeighborhoods(),
           getCollections(),
           getAmenities(),
           getBlogPosts(),
+          getPricingPlans().catch(() => []),
         ]);
+        setPlans(pricing as any[]);
 
         setCategories(cats);
         setCities(cts);
@@ -435,8 +440,13 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
             (getRealRating(b)?.count || 0) - (getRealRating(a)?.count || 0),
         );
       } else {
-        // default/recommended: prioritize featured first, then sort by rating, then by review count
+        // Recomendados: primeiro quem paga o plano mais alto (planos disputam entre si), depois destaque,
+        // nota e número de avaliações. Quem não paga fica atrás, disputando só entre si.
         result.sort((a, b) => {
+          const planA = planRank(a, plans);
+          const planB = planRank(b, plans);
+          if (planB !== planA) return planB - planA;
+
           const featA = a.isFeatured ? 1 : 0;
           const featB = b.isFeatured ? 1 : 0;
           if (featB !== featA) return featB - featA;
@@ -461,6 +471,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
     nearby,
     loc.where,
     businesses,
+    plans,
     cities,
     neighborhoods,
     sortBy,

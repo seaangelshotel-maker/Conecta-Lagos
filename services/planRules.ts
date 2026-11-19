@@ -49,3 +49,19 @@ export const brl = (n: number): string => n.toLocaleString('pt-BR', { style: 'cu
 export const CANCEL_WINDOW_DAYS = 7;
 export const CANCEL_WINDOW_TITLE = `${CANCEL_WINDOW_DAYS} dias para desistir`;
 export const CANCEL_WINDOW_TEXT = `Contratou e mudou de ideia? Cancele em até ${CANCEL_WINDOW_DAYS} dias e receba o valor de volta (art. 49 do Código de Defesa do Consumidor). É só pedir pelo WhatsApp do Lagos GO.`;
+
+/**
+ * Posição da empresa no ranking do guia, pelo plano que ela paga.
+ * Quanto mais caro o plano (valor por mês), mais alto ela aparece; empresas de planos diferentes disputam
+ * entre si por aqui, e quem não paga (sem plano, plano vencido, cadastro só importado) fica no zero e
+ * disputa só entre si, por nota. Dentro do mesmo plano, quem desempata é o destaque e depois a nota.
+ */
+export const planRank = (
+  b: Pick<PlanBiz, 'plan' | 'subscriptionEndsAt'>,
+  plans: Array<{ id?: string; price?: number }>,
+  now: number = Date.now(),
+): number => {
+  if (!b.plan || b.plan === FREE_PLAN_ID || isPlanExpired(b, now)) return 0;
+  const price = plans.find(p => p.id === b.plan)?.price;
+  return typeof price === 'number' && price > 0 ? price : 0;
+};

@@ -35,3 +35,14 @@ test('prazo de desistência de 7 dias (CDC art. 49) está definido e citado no t
   assert.match(CANCEL_WINDOW_TEXT, /7 dias/);
   assert.match(CANCEL_WINDOW_TEXT, /art\. 49/);
 });
+
+import { planRank } from '../services/planRules';
+test('planRank: plano mais caro fica acima; sem plano, free e vencido ficam em zero', () => {
+  const plans = [{ id: 'basic', price: 49.9 }, { id: 'pro', price: 99.9 }, { id: 'premium', price: 199.9 }];
+  assert.ok(planRank({ plan: 'premium' }, plans) > planRank({ plan: 'pro' }, plans));
+  assert.ok(planRank({ plan: 'pro' }, plans) > planRank({ plan: 'basic' }, plans));
+  assert.ok(planRank({ plan: 'basic' }, plans) > 0);
+  assert.equal(planRank({}, plans), 0);
+  assert.equal(planRank({ plan: 'free' }, plans), 0);
+  assert.equal(planRank({ plan: 'pro', subscriptionEndsAt: '2020-01-01' }, plans), 0);
+});
