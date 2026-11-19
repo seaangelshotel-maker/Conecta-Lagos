@@ -169,7 +169,16 @@ export const visibleAmenities = (defs: AppAmenity[], scope: BusinessProfile[], c
     .sort((a, b) => b.count - a.count || a.def.label.localeCompare(b.def.label));
 };
 
-export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
+/** Regra do guia: quem tem foto de capa aparece antes de quem não tem (ordem estável). */
+export const prioritizeWithCover = (list: BusinessProfile[]): BusinessProfile[] =>
+  list.map((b, i) => [b, i] as const)
+    .sort((x, y) => (x[0].coverImage ? 0 : 1) - (y[0].coverImage ? 0 : 1) || x[1] - y[1])
+    .map(x => x[0]);
+
+export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] =>
+  prioritizeWithCover(filterBusinessesRaw(all, st));
+
+const filterBusinessesRaw = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
   let list = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
   if (st.cityId) list = list.filter(b => b.cityId === st.cityId);
   if (st.categoryId) {
