@@ -925,15 +925,16 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Hotel Pousada Figueiredo', cityId: AR, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. Sílvia Vasconcelos, 77, Centro, Araruama - RJ, 28979-219', neighborhood: 'Centro',
-    phone: '(22) 2665-5294', website: 'http://pousadafigueiredo.com.br/',
-    description: 'Hotel pousada no Centro de Araruama.',
-    sources: ['https://www.google.com/maps/search/Hotel+Pousada+Figueiredo+Araruama', 'http://pousadafigueiredo.com.br/'], checkedAt: '2026-11-17',
+    phone: '(22) 2665-5294', website: 'https://pousadafigueiredo.com/',
+    description: 'Pousada no Centro de Araruama, na região das lagoas e das praias, com duas categorias de suíte. A Standard é a opção simples e funcional: ventilador, banheiro privativo e cama confortável, em configurações para uma, duas ou três pessoas. A Executiva traz ar-condicionado, frigobar e banheiro privativo, com variações para até quatro pessoas, e atende melhor casais, famílias e pequenos grupos. A reserva pode ser feita pelo site da própria pousada. Fica na R. Sílvia Vasconcelos, 77, boa base para quem visita Araruama a trabalho ou a passeio e quer hospedagem de bom custo-benefício.',
+    sources: ['https://pousadafigueiredo.com/', 'https://www.google.com/maps/search/Hotel+Pousada+Figueiredo+Araruama'], checkedAt: '2026-11-19',
   },
   {
     name: 'Hotel Orla de Araruama', cityId: AR, category: 'Hospedagem', subcategory: 'Hotéis',
     address: 'R. Francisco de Andrade, 130, Centro, Araruama - RJ, 28970-000', neighborhood: 'Centro',
     phone: '(22) 2665-1335', website: 'https://www.hotelorladeararuama.com.br/',
-    description: 'Hotel no Centro de Araruama.',
-    sources: ['https://www.google.com/maps/search/Hotel+Orla+De+Araruama', 'https://www.hotelorladeararuama.com.br/'], checkedAt: '2026-11-17',
+    amenities: ['wifi', 'ac', 'pool', 'breakfast'],
+    description: 'Hotel de frente para a laguna de Araruama, no Centro, com varanda de vista para a água. Os quartos são descritos pelo próprio hotel como espaçosos, confortáveis e seguros, todos climatizados, e a hospedagem inclui café da manhã. Wi-Fi gratuito e piscina ao ar livre completam as comodidades. O entorno concentra restaurantes, bares, lojas e quiosques, com shoppings e comércio por perto, e o acesso a transporte para outras cidades da Região dos Lagos é fácil. Fica na R. Francisco de Andrade, 130, e funciona bem para quem quer se hospedar a pé de tudo no centro de Araruama.',
+    sources: ['https://www.hotelorladeararuama.com.br/', 'https://www.google.com/maps/search/Hotel+Orla+De+Araruama'], checkedAt: '2026-11-19',
   },
 ];
