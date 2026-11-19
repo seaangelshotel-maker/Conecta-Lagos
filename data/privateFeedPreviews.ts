@@ -31,6 +31,82 @@ export interface FeedPhotoPreview {
 }
 
 export const FEED_PHOTO_PREVIEWS: Record<string, FeedPhotoPreview> = {
+  // Licença aberta (Wikimedia Commons): basta o crédito. Fotos escolhidas olhando cada uma (ver docs/FOTOS_FEED.md).
+  'guia_praia-do-farol': {
+    key: '201411b9dd',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Farol_-_Arraial_do_Cabo.JPG?width=1280',
+    credit: { author: 'Edulonde', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia_do_Farol_-_Arraial_do_Cabo.JPG' },
+  },
+  'guia_praia-do-forno': {
+    key: 'bbebcdfe5c',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Forno_-_Arraial.jpg?width=1280',
+    credit: { author: 'Leonardo Shinagawa', license: 'CC BY 2.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia_do_Forno_-_Arraial.jpg' },
+  },
+  'guia_praia-grande-por-do-sol-estrutura-e-experiencias': {
+    key: '7ccd92aca5',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia_Grande_-_Arraial_do_Cabo_-_panoramio.jpg?width=1280',
+    credit: { author: 'TMbux', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia_Grande_-_Arraial_do_Cabo_-_panoramio.jpg' },
+  },
+  'guia_praias-de-arraial-do-cabo': {
+    key: 'b6b20d5188',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Pontal_(Arraial_do_Cabo).JPG?width=1280',
+    credit: { author: 'Eduardo P', license: 'Domínio público', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia_do_Pontal_(Arraial_do_Cabo).JPG' },
+  },
+  'guia_prainhas-do-pontal-do-atalaia': {
+    key: '4ff5d0413a',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pontal_do_Atalaia,_Parque_Estadual_da_Costa_do_Sol,_N%C3%BAcleo_Atalaia_-_Dama_Branca.JPG?width=1280',
+    credit: { author: 'Daniel Souza Lima', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Pontal_do_Atalaia,_Parque_Estadual_da_Costa_do_Sol,_N%C3%BAcleo_Atalaia_-_Dama_Branca.JPG' },
+  },
+  'guia_mergulho-em-arraial-do-cabo': {
+    key: 'ad5e5fffc7',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mergulho_IEAPM_para_levantamento_de_bentos_(52503707427).jpg?width=1280',
+    credit: { author: 'Marinha do Brasil', license: 'CC BY-SA 2.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Mergulho_IEAPM_para_levantamento_de_bentos_(52503707427).jpg' },
+  },
+  'guia_passeio-de-barco-em-arraial-do-cabo': {
+    key: '1d755c6d5d',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pairando_no_mar_azul.jpg?width=1280',
+    credit: { author: 'Anabel Kovacs', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Pairando_no_mar_azul.jpg' },
+  },
+  'guia_a-historia-de-arraial-do-cabo': {
+    key: '123aba2583',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Favela_doa_Pescadores_Praia_Grande_-_panoramio_(1).jpg?width=1280',
+    credit: { author: 'TMbux', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Favela_doa_Pescadores_Praia_Grande_-_panoramio_(1).jpg' },
+  },
+  'mirantes-imperdiveis': {
+    key: 'fdd3e9ad76',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia_Brava_-_Pontal_do_Atalaia.jpg?width=1280',
+    credit: { author: 'Renan do Carmo de Souza', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia_Brava_-_Pontal_do_Atalaia.jpg' },
+  },
+  'compras-ruabiquinis': {
+    key: '20d1ccd843',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Rua_dos_Biqu%C3%ADnis_em_Cabo_Frio.JPG?width=1280',
+    credit: { author: 'Esalq', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Rua_dos_Biqu%C3%ADnis_em_Cabo_Frio.JPG' },
+  },
+  'gastronomia-buzios-orlabardot': {
+    key: 'f86493c5bc',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/B%C3%BAzios_RJ_Brasil_-_Orla_Bardot_-_panoramio_(1).jpg?width=1280',
+    credit: { author: 'Josue Marinho', license: 'CC BY 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:B%C3%BAzios_RJ_Brasil_-_Orla_Bardot_-_panoramio_(1).jpg' },
+  },
+  'festas-luau-praia': {
+    key: '24a5d2b47d',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pontal_do_Atalaia_(Arraial_do_Cabo_-_RJ).jpg?width=1280',
+    credit: { author: 'Gladstone Peixoto Moraes', license: 'Domínio público', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Pontal_do_Atalaia_(Arraial_do_Cabo_-_RJ).jpg' },
+  },
+  'gastronomia-bairro-passagem': {
+    key: '333f5576d7',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Passagem,_Cabo_Frio_-_RJ,_Brazil_-_panoramio.jpg?width=1280',
+    credit: { author: 'Newton paz peres', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Passagem,_Cabo_Frio_-_RJ,_Brazil_-_panoramio.jpg' },
+  },
+  'guia_guia-completo-de-arraial-do-cabo': {
+    key: '491db5efe3',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Prainha_Arraial_do_Cabo.jpg?width=1280',
+    credit: { author: 'Noel Portugal', license: 'CC BY 2.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Prainha_Arraial_do_Cabo.jpg' },
+  },
+  'guia_quando-visitar-arraial-do-cabo': {
+    key: '5b65a3c7f2',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia.dos.Anjos.Arraial.do.Cabo.jpg?width=1280',
+    credit: { author: 'Msadp06', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia.dos.Anjos.Arraial.do.Cabo.jpg' },
+  },
 };
 
 /** Devolve a prévia só se a chave do link bater (senão a página mostra a dica normal). */
