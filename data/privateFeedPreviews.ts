@@ -113,4 +113,54 @@ export const FEED_PHOTO_PREVIEWS: Record<string, FeedPhotoPreview> = {
 export const getFeedPhotoPreview = (postId: string, key: string | null): FeedPhotoPreview | null => {
   const p = FEED_PHOTO_PREVIEWS[postId];
   return p && key && key === p.key ? p : null;
+  'guia_arraial-do-cabo-alem-das-praias': {
+    key: '0ce2e9709a',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Parque_Estadual_da_Costa_do_Sol_por_Cesar_Vieira_(04).jpg?width=1280',
+    credit: { author: 'Cesar Vieira', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Parque_Estadual_da_Costa_do_Sol_por_Cesar_Vieira_(04).jpg' },
+  },
+  'guia_arraial-do-cabo-em-2-dias': {
+    key: 'ab630fcf44',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Prainhas_do_Pontal_e_Ilha_do_Farol_em_Arraial_do_Cabo,RJ.jpg?width=1280',
+    credit: { author: 'Eduardo Cerqueira dos Santos', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Prainhas_do_Pontal_e_Ilha_do_Farol_em_Arraial_do_Cabo,RJ.jpg' },
+  },
+  'guia_arraial-do-cabo-em-3-dias': {
+    key: '9b8babde9e',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pontal_do_Atalaia_(Arraial_do_Cabo_-_RJ).jpg?width=1280',
+    credit: { author: 'Gladstone Peixoto Moraes', license: 'Domínio público', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Pontal_do_Atalaia_(Arraial_do_Cabo_-_RJ).jpg' },
+  },
+  'guia_arraial-do-cabo-para-casais': {
+    key: 'a2c910b5d9',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/P%C3%B4r_do_Sol_na_praia_grande,_Arraial_do_Cabo.jpg?width=1280',
+    credit: { author: 'Renan do Carmo de Souza', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:P%C3%B4r_do_Sol_na_praia_grande,_Arraial_do_Cabo.jpg' },
+  },
+  'guia_arraial-do-cabo-para-familias-com-criancas': {
+    key: '73a8f2786e',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Praia.dos.Anjos.Arraial.do.Cabo.jpg?width=1280',
+    credit: { author: 'Msadp06', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Praia.dos.Anjos.Arraial.do.Cabo.jpg' },
+  },
+  'guia_o-que-fazer-em-arraial-do-cabo-quando-chove': {
+    key: 'a78a9b91f0',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Museu_Oceanogr%C3%A1fico,_em_Arraial_do_Cabo_RJ_(52247823379).jpg?width=1280',
+    credit: { author: 'Marinha do Brasil', license: 'CC BY-SA 2.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Museu_Oceanogr%C3%A1fico,_em_Arraial_do_Cabo_RJ_(52247823379).jpg' },
+  },
+  'guia_os-arredores-de-arraial-do-cabo': {
+    key: '40fefbca17',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Entrance_to_Gruta_Azul_on_Ilha_do_Cabo_Frio,_Arraial_do_Cabo,_Brazil.jpg?width=1280',
+    credit: { author: 'Wilfredor', license: 'CC0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Entrance_to_Gruta_Azul_on_Ilha_do_Cabo_Frio,_Arraial_do_Cabo,_Brazil.jpg' },
+  },
+  'guia_praias-trilhas-e-natureza-explore-com-responsabilidade': {
+    key: 'd153855d97',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Arraial_do_Cabo-RJ_Trilha_do_Vigia_Praia_Grande.jpg?width=1280',
+    credit: { author: 'Adriane Rado', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Arraial_do_Cabo-RJ_Trilha_do_Vigia_Praia_Grande.jpg' },
+  },
+  'festival-gastronomico-cabofrio': {
+    key: '8a41900784',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/PlayaForteSaoMateo1-CaboFrio-Brasil-feb2016.jpg?width=1280',
+    credit: { author: 'Ezarate', license: 'CC BY-SA 3.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:PlayaForteSaoMateo1-CaboFrio-Brasil-feb2016.jpg' },
+  },
+  'guia-sobrevivencia-temporada': {
+    key: 'b0ef6672ca',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/O_caminho_do_azul.jpg?width=1280',
+    credit: { author: 'Anabel Kovacs', license: 'CC BY-SA 4.0', sourceUrl: 'https://commons.wikimedia.org/wiki/File:O_caminho_do_azul.jpg' },
+  },
 };
