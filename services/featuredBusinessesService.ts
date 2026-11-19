@@ -12,7 +12,7 @@ import { getCurrentUser, getCategories, getCities, saveCity } from './dataServic
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
 import { bumpContentVersion } from './contentVersion';
-import { APPROVED_PHOTOS } from '../data/approvedPhotos';
+import { APPROVED_PHOTOS, ApprovedPhotos } from '../data/approvedPhotos';
 import {
     FEATURED_BUSINESSES, FEATURED_BATCH, FEATURED_TAXONOMY, FEATURED_NEW_CITIES, FREE_TRIAL_DAYS, FREE_TRIAL_PLAN, FeaturedBusiness,
 } from '../data/featuredBusinesses';
@@ -47,7 +47,7 @@ export interface FeaturedPreview {
     asDraft: FeaturedBusiness[];
     alreadyExists: number;
     /** Já importadas, ainda sem dono, com informação mais nova no arquivo (checkedAt maior): serão enriquecidas. */
-    toUpdate: { doc: any; data: FeaturedBusiness; photosOnly?: boolean }[];
+    toUpdate: { doc: any; data: FeaturedBusiness; photosOnly?: boolean; approved?: Record<string, any> }[];
 }
 
 /** Só enriquece empresa deste lote que ainda não foi reivindicada e cuja conferência no arquivo é mais nova que a gravada. */
@@ -59,6 +59,23 @@ export const needsEnrichment = (doc: any, f: FeaturedBusiness): boolean =>
 export const needsPhotosOnly = (doc: any, f: FeaturedBusiness): boolean =>
     !!doc && !doc.isClaimed && !doc.ownerId && !!f.coverImage &&
     (doc.coverImage !== f.coverImage || (!!f.gallery?.length && JSON.stringify(doc.gallery || []) !== JSON.stringify(f.gallery)));
+
+const sameJson = (a: any, b: any) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/** Tudo o que a lista de aprovados define para a empresa (fotos, crédito e informação). */
+export const approvedFields = (a: ApprovedPhotos): Record<string, any> => ({
+    ...(a.coverImage ? { coverImage: a.coverImage } : {}),
+    ...(a.gallery?.length ? { gallery: a.gallery } : {}),
+    ...(a.imageCredit ? { imageCredit: a.imageCredit } : {}),
+    ...Object.fromEntries(Object.entries(a.info || {}).filter(([, v]) => v !== undefined)),
+});
+
+/** Só o que MUDA em relação ao cadastro; empresa já reivindicada (com dono) não é alterada. Nulo = nada a fazer. */
+export const approvedPatch = (doc: any, a: ApprovedPhotos): Record<string, any> | null => {
+    if (!doc || doc.isClaimed || doc.ownerId) return null;
+    const patch = Object.fromEntries(Object.entries(approvedFields(a)).filter(([k, v]) => !sameJson(doc[k], v)));
+    return Object.keys(patch).length ? patch : null;
+};
 
 /** Campos que a atualização grava (nunca mexe em plano, avaliações, dono; foto só se autorizada e informada no arquivo). */
 export const enrichmentPatch = (f: FeaturedBusiness, wasDraft: boolean, nowIso: string, endsAt: string) => {
@@ -86,7 +103,7 @@ export const previewFeaturedImport = async (): Promise<FeaturedPreview> => {
     const snap = await getDocs(collection(db, 'businesses'));
     const existing = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
     const toCreate: FeaturedBusiness[] = [];
-    const toUpdate: { doc: any; data: FeaturedBusiness; photosOnly?: boolean }[] = [];
+    const toUpdate: { doc: any; data: FeaturedBusiness; photosOnly?: boolean; approved?: Record<string, any> }[] = [];
     let alreadyExists = 0;
     for (const f of FEATURED_BUSINESSES) {
         const hit = existing.find(b =>
@@ -94,12 +111,14 @@ export const previewFeaturedImport = async (): Promise<FeaturedPreview> => {
             ((b.cityId || '') === f.cityId && normalize(b.name || '') === normalize(f.name)));
         if (hit) { alreadyExists += 1; if (needsEnrichment(hit, f)) toUpdate.push({ doc: hit, data: f }); else if (needsPhotosOnly(hit, f)) toUpdate.push({ doc: hit, data: f, photosOnly: true }); } else toCreate.push(f);
     }
-    // Fotos autorizadas pelo dono (por id do cadastro): troca só as fotos, em empresa ainda sem dono
-    for (const [id, ph] of Object.entries(APPROVED_PHOTOS)) {
+    // Fotos, crédito e correções de informação aprovados (por id do cadastro)
+    for (const [id, a] of Object.entries(APPROVED_PHOTOS)) {
         const hit = existing.find(b => b.id === id);
-        if (hit && !toUpdate.some(u => u.doc.id === id) && needsPhotosOnly(hit, ph as unknown as FeaturedBusiness)) {
-            toUpdate.push({ doc: hit, data: ph as unknown as FeaturedBusiness, photosOnly: true });
-        }
+        if (!hit || hit.isClaimed || hit.ownerId) continue;
+        const already = toUpdate.find(u => u.doc.id === id);
+        if (already) { already.approved = approvedFields(a); continue; }   // lote + aprovados: o aprovado prevalece
+        const patch = approvedPatch(hit, a);
+        if (patch) toUpdate.push({ doc: hit, data: {} as FeaturedBusiness, photosOnly: true, approved: patch });
     }
     return {
         toCreate,
@@ -187,9 +206,10 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
         onProgress?.(done, preview.toCreate.length + preview.toUpdate.length);
     }
     for (const u of preview.toUpdate) {
-        await updateDoc(doc(db, 'businesses', u.doc.id), u.photosOnly
-            ? { coverImage: u.data.coverImage || '', ...(u.data.gallery?.length ? { gallery: u.data.gallery } : {}), updatedAt: nowIso }
-            : enrichmentPatch(u.data, u.doc.status === 'draft', nowIso, endsAt));
+        const base = u.photosOnly
+            ? { ...(u.data?.coverImage ? { coverImage: u.data.coverImage } : {}), ...(u.data?.gallery?.length ? { gallery: u.data.gallery } : {}), updatedAt: nowIso }
+            : enrichmentPatch(u.data, u.doc.status === 'draft', nowIso, endsAt);
+        await updateDoc(doc(db, 'businesses', u.doc.id), { ...base, ...(u.approved || {}), updatedAt: nowIso });
         updated += 1; done += 1;
         onProgress?.(done, preview.toCreate.length + preview.toUpdate.length);
     }

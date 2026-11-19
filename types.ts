@@ -84,6 +84,8 @@ export interface User {
 export interface BusinessProfile {
   /** Traduções prontas (en/es/fr) dos textos, gravadas ao salvar. */
   i18n?: { src: string[]; en: string[]; es: string[]; fr: string[] };
+  /** Crédito da foto de capa quando é de terceiros (ex.: Wikimedia Commons). */
+  imageCredit?: ImageCredit;
   id: string;
   ownerId?: string;
   name: string;

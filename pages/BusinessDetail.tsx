@@ -21,6 +21,7 @@ import { BusinessArticles } from '../components/RelatedContent';
 import { useNotification } from '../components/NotificationSystem';
 import { useLanguage, Translate } from '../hooks/useLanguage';
 import { getPrivatePreview } from '../data/privatePreviews';
+import { PhotoCredit } from '../components/PhotoCredit';
 import { ReviewsSection } from '../components/ReviewsSection';
 
 export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, previewKey, onNavigate }) => {
@@ -249,6 +250,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
             )}
             {/* Deep Dark Gradient Overlay to ensure flawless text legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-black/30" />
+            {business.imageCredit && <div className="absolute bottom-1 right-3 z-10 max-w-[70%]"><PhotoCredit credit={business.imageCredit} className="text-right !text-white/75" /></div>}
             
             {/* Elegant Floating Header Buttons */}
             <div className="absolute top-6 left-0 w-full px-6 flex justify-between z-20">
