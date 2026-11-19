@@ -5,6 +5,7 @@
  * Quando o dono autorizar/enviar as fotos, o link é apagado daqui.
  */
 import type { BusinessProfile } from '../types';
+import { PRIVATE_PLACE_PREVIEWS } from './privatePlacePreviews';
 
 export interface PrivatePreview {
   key: string;
@@ -312,6 +313,6 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
 };
 
 export const getPrivatePreview = (businessId: string, key: string | null): PrivatePreview | null => {
-  const p = PRIVATE_PREVIEWS[businessId];
+  const p = PRIVATE_PREVIEWS[businessId] || PRIVATE_PLACE_PREVIEWS[businessId];
   return p && key && key === p.key ? p : null;
 };
