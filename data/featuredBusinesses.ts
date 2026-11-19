@@ -753,8 +753,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Belisquê Restaurante e Choperia', cityId: AR, category: 'Gastronomia', subcategory: 'Restaurantes',
     address: 'Praça Antonio Raposo - Av. Brasil, s/n, Centro, Araruama - RJ, 28970-000', neighborhood: 'Centro',
     phone: '(22) 98179-4494', website: 'https://belisque.com.br',
-    description: 'Restaurante e choperia na Praça Antonio Raposo, no Centro de Araruama.',
-    sources: ['https://www.google.com/maps/search/Belisquê+Restaurante+e+Choperia+Araruama', 'https://belisque.com.br'], checkedAt: '2026-11-17',
+    amenities: ['kids', 'delivery', 'bar'],
+    description: 'Restaurante e choperia na Praça Antonio Raposo, em Araruama, com a grelha como assinatura: picanha, filé mignon, contra-filé, carré de cordeiro e o cupim confitado, marinado por 12 horas em tempero da casa com base de vinho e finalizado com molho especial. O cardápio também tem entradas para compartilhar, saladas, burgers (a partir das 16h, com fritas), cafeteria, sobremesas e menu infantil para crianças até 14 anos. O chope é Brahma e Heineken servido em caneca zero grau, ao lado de carta de drinks e vinhos, e há happy hour de terça a domingo, das 17h às 20h. De terça a sexta há pratos executivos no almoço. Aceita reservas e faz delivery pelo site.',
+    sources: ['https://www.belisque.com.br/', 'https://www.google.com/maps/search/Belisquê+Restaurante+Araruama'], checkedAt: '2026-11-19',
   },
   {
     name: 'Restaurante Picanha do Gugu', cityId: AR, category: 'Gastronomia', subcategory: 'Restaurantes',
@@ -766,9 +767,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
   {
     name: 'Outros500 Bar & Restaurante', cityId: SP, category: 'Gastronomia', subcategory: 'Restaurantes',
     address: 'Av. São Pedro, 10, Centro, São Pedro da Aldeia - RJ, 28941-176', neighborhood: 'Centro',
-    phone: '(22) 99202-2723', website: 'https://outros500loungebar.com.br',
+    phone: '(22) 99202-2723',
     description: 'Bar e restaurante de cozinha brasileira no Centro de São Pedro da Aldeia, com entrega.',
-    sources: ['https://www.google.com/maps/search/Outros500+Bar+Restaurante+São+Pedro+da+Aldeia', 'https://outros500loungebar.com.br'], checkedAt: '2026-11-17',
+    sources: ['https://www.google.com/maps/search/Outros500+Bar+Restaurante+São+Pedro+da+Aldeia'], checkedAt: '2026-11-19',
   },
   {
     name: 'Estrela do Mar Saquarema', cityId: SQ, category: 'Gastronomia', subcategory: 'Restaurantes',
@@ -908,8 +909,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Pousada Catavento', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'R. dos Tatuís, 82, Itaúna, Saquarema - RJ, 28990-000', neighborhood: 'Itaúna',
     phone: '(22) 99961-4858', website: 'http://www.pousadacataventosaquarema.com.br/',
-    description: 'Pousada em Itaúna, em Saquarema.',
-    sources: ['https://www.google.com/maps/search/Pousada+Catavento+Saquarema', 'http://www.pousadacataventosaquarema.com.br/'], checkedAt: '2026-11-17',
+    amenities: ['wifi', 'ac', 'tv', 'pool', 'parking', 'breakfast', 'bar', 'kids'],
+    description: 'Pousada de Saquarema que aposta num ambiente caseiro e familiar: o lema da casa é que os hóspedes queiram voltar. Todas as suítes têm ar-condicionado, ventilador de teto, TV e frigobar. A estrutura reúne piscina, bar, sala de estar, salão de jogos, parquinho infantil, copa bebê, café da manhã, Wi-Fi gratuito em toda a pousada e estacionamento, o que a torna prática para famílias com crianças pequenas. O site também divulga pacotes de Réveillon e Carnaval, tem página de eventos e um guia dos atrativos da cidade, como a Praia de Itaúna, a Lagoa de Saquarema e o centro de vôlei da CBV.',
+    sources: ['https://www.pousadacataventosaquarema.com.br/', 'https://www.google.com/maps/search/Pousada+Catavento+Saquarema'], checkedAt: '2026-11-19',
   },
   {
     name: 'Hotel Aconchego da Vila', cityId: SQ, category: 'Hospedagem', subcategory: 'Hotéis',
