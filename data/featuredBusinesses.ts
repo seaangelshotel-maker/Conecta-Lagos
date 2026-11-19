@@ -890,8 +890,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Pousada Praia João Fernandes', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'Rua Oito, R. Praia de João Fernandes, 1000, Armação dos Búzios - RJ, 28950-000', neighborhood: 'João Fernandes',
     phone: '(22) 2623-4000', website: 'http://www.praiajoaofernandes.com.br/',
-    description: 'Pousada na Praia de João Fernandes, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Pousada+Praia+João+Fernandes+Búzios', 'http://www.praiajoaofernandes.com.br/'], checkedAt: '2026-11-17',
+    amenities: ['pool', 'breakfast', 'ac', 'tv', 'wifi'],
+    description: 'Pousada a cerca de um minuto a pé das praias de João Fernandes e João Fernandinho, com dois terraços de vista e clima de relaxamento, indicada pelo site também para lua de mel e casamento. A estrutura tem duas piscinas ao ar livre, restaurante, espaço gourmet, banheira de hidromassagem, lounge compartilhado, recepção 24 horas e Wi-Fi gratuito na área da recepção. Todos os quartos têm TV de tela plana com sinal via satélite, ar-condicionado, secador de cabelo e frigobar, e o café da manhã diário já está incluso na diária. As categorias são Quádruplo Standard, Mata Atlântica, Standard Family, Luxo Family e Master Family. A casa monta ofertas de Réveillon, Carnaval e do Festival Gastronômico de Búzios.',
+    sources: ['https://www.praiajoaofernandes.com.br/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Pousada Catavento', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
