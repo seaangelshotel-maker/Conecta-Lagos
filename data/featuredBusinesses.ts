@@ -41,6 +41,9 @@ export interface FeaturedBusiness {
   /** Horário publicado pela empresa, por dia (chaves: Domingo, Segunda, Terça, Quarta, Quinta, Sexta, Sábado). Vazio se não publicado. */
   hours?: Record<string, string>;
   description: string;
+  /** Fotos autorizadas pelo dono (só entram com autorização). Endereços das imagens, não cópias. */
+  coverImage?: string;
+  gallery?: string[];
   /** Páginas onde os dados foram conferidos */
   sources: string[];
   /** Data da conferência (AAAA-MM-DD) */
@@ -638,6 +641,12 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     phone: '(22) 99993-9162', website: 'https://sentinelasdomar.com.br',
     amenities: ['ac', 'tv', 'pool', 'breakfast'],
     description: 'Pousada de 15 acomodações no Pontal do Atalaia, cujo nome homenageia os vigias que, das pedras, avisavam os pescadores sobre os cardumes. A marca da casa é a piscina de borda infinita com vista para o mar. Os quartos têm frigobar, ar-condicionado e TV; as categorias VIP trazem banheira de hidromassagem com vista para o mar (a VIP 3 também com varanda) e as Master têm vista para o mar, algumas com varanda. A diária inclui café da manhã em buffet, servido das 7h30 às 10h. A estrutura também recebe casamentos e celebrações. O site, em português e inglês, tem reserva online. Fica na Rua José de Castro Neto, lote S6.',
+    coverImage: 'https://static.wixstatic.com/media/9f7454_635ecb1d93ea4a20afcfeec1193b45f4~mv2.png/v1/fill/w_1200,h_700,al_c,q_80/foto.jpg',
+    gallery: [
+      'https://static.wixstatic.com/media/9f7454_09c1c90503fb4baeaf84bc3416b30670~mv2.png/v1/fill/w_1000,h_750,al_c,q_80/foto.jpg',
+      'https://static.wixstatic.com/media/9f7454_d824e6f9cb354c61ac57b366791b2980~mv2.png/v1/fill/w_1000,h_750,al_c,q_80/foto.jpg',
+      'https://static.wixstatic.com/media/9f7454_125e93a435464a468300f96cfa7aa9ebf002.jpg/v1/fill/w_1000,h_750,al_c,q_80/foto.jpg',
+    ],
     sources: ['https://www.sentinelasdomar.com.br/', 'https://www.sentinelasdomar.com.br/pousada', 'https://www.google.com/maps/search/Pousada+Sentinelas+do+Mar+Arraial+do+Cabo'], checkedAt: '2026-11-19',
   },
   {

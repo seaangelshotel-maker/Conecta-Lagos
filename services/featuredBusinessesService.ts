@@ -52,9 +52,9 @@ export interface FeaturedPreview {
 /** Só enriquece empresa deste lote que ainda não foi reivindicada e cuja conferência no arquivo é mais nova que a gravada. */
 export const needsEnrichment = (doc: any, f: FeaturedBusiness): boolean =>
     !!doc && !doc.isClaimed && !doc.ownerId && String(doc.importBatch || '').startsWith('empresas-destaque') &&
-    (f.checkedAt || '') > String(doc.checkedAt || '');
+    ((f.checkedAt || '') > String(doc.checkedAt || '') || (!!f.coverImage && !doc.coverImage));
 
-/** Campos que a atualização grava (nunca mexe em plano, fotos, avaliações, dono). */
+/** Campos que a atualização grava (nunca mexe em plano, avaliações, dono; foto só se autorizada e informada no arquivo). */
 export const enrichmentPatch = (f: FeaturedBusiness, wasDraft: boolean, nowIso: string, endsAt: string) => {
     const complete = isComplete(f);
     return {
@@ -68,6 +68,9 @@ export const enrichmentPatch = (f: FeaturedBusiness, wasDraft: boolean, nowIso: 
         sources: f.sources, checkedAt: f.checkedAt,
         missingFields: missingFields(f),
         updatedAt: nowIso,
+        // fotos autorizadas pelo dono, quando informadas no arquivo (empresa ainda sem dono)
+        ...(f.coverImage ? { coverImage: f.coverImage } : {}),
+        ...(f.gallery?.length ? { gallery: f.gallery } : {}),
         // rascunho que ficou completo passa a ir ao ar, com os mesmos 3 meses grátis das demais
         ...(wasDraft && complete ? { status: 'approved', plan: FREE_TRIAL_PLAN, subscriptionEndsAt: endsAt, courtesyTrial: true, courtesyTrialStartedAt: nowIso } : {}),
     };
@@ -139,8 +142,8 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
             address: b.address,
             neighborhoodName: b.neighborhood || '',
             cityId: b.cityId,
-            coverImage: '',
-            gallery: [],
+            coverImage: b.coverImage || '',
+            gallery: b.gallery || [],
             phone: b.phone || '',
             whatsapp: b.whatsapp || '',
             email: b.email || '',
