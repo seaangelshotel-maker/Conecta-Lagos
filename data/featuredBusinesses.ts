@@ -705,8 +705,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Hotel Cave do Sol', cityId: SP, category: 'Hospedagem', subcategory: 'Hotéis',
     address: 'Rua José Costa, 1087, Ponta da Areia, São Pedro da Aldeia - RJ, 28940-000', neighborhood: 'Ponta da Areia',
     phone: '(21) 3900-6964', website: 'https://hotelcavedosol.com.br',
-    description: 'Hotel com café da manhã incluído na Ponta da Areia, em São Pedro da Aldeia.',
-    sources: ['https://www.google.com/maps/search/Hotel+Cave+do+Sol+São+Pedro+da+Aldeia', 'https://hotelcavedosol.com.br'], checkedAt: '2026-11-17',
+    amenities: ['breakfast'],
+    description: 'Hotel de ambiente tranquilo e charmoso na Ponta da Areia, em São Pedro da Aldeia, que se apresenta como a casa do hóspede à beira do Lago de Araruama. O site promete uma manhã com vista deslumbrante, café da manhã acolhedor e suítes preparadas para o descanso, em uma região da Região dos Lagos mais calma que os polos de praia. A página oficial tem galeria de fotos, seção Descubra com dicas do entorno, reservas por data com escolha de quartos, adultos e crianças, e versões em português, inglês e espanhol. O atendimento é por telefone, WhatsApp, Instagram e Facebook, na Rua José Costa, 1087.',
+    sources: ['https://hotelcavedosol.com.br/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Village Itaúna Inn', cityId: SQ, category: 'Hospedagem', subcategory: 'Pousadas',
