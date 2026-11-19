@@ -60,6 +60,10 @@ const parseUrl = (): Route => {
   const previewMatch = path.match(/^\/previa\/([^/]+)/);
   if (previewMatch) return { page: 'business-detail', params: { businessId: decodeURIComponent(previewMatch[1]), previewKey: new URLSearchParams(window.location.search).get('k') || '' } };
 
+  // Prévia privada de dica do feed com foto e crédito (ver data/privateFeedPreviews.ts)
+  const feedPreviewMatch = path.match(/^\/previa-dica\/([^/]+)/);
+  if (feedPreviewMatch) return { page: 'blog-detail', params: { postId: decodeURIComponent(feedPreviewMatch[1]), previewKey: new URLSearchParams(window.location.search).get('k') || '' } };
+
   const businessMatch = path.match(/^\/business\/([^/]+)/);
   if (businessMatch) return { page: 'business-detail', params: { businessId: decodeURIComponent(businessMatch[1]) } };
 
@@ -331,7 +335,7 @@ function AppContent() {
       case 'blog':
         return <Blog onNavigate={handleNavigate} />;
       case 'blog-detail':
-        return <BlogDetail postId={pageParams?.postId} onNavigate={handleNavigate} />;
+        return <BlogDetail postId={pageParams?.postId} previewKey={pageParams?.previewKey} onNavigate={handleNavigate} />;
       case 'journalist-profile':
         return <JournalistPublicPage journalistId={pageParams?.journalistId} onNavigate={handleNavigate} />;
       case 'collections':

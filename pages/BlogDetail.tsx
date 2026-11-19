@@ -3,15 +3,19 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Share2, Clock, Check, X, Instagram, Globe, Award, Heart, MapPin, Sparkles, Navigation, ChevronRight, MessageSquare, Send, Zap } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BlogPost, PublicProfile } from '../types';
+import { PhotoCredit } from '../components/PhotoCredit';
+import { getFeedPhotoPreview } from '../data/privateFeedPreviews';
 import { getBlogPostById, getPublicProfileById, getPublicProfiles, getCurrentUser, getBlogPostComments, addBlogPostComment, setBlogPostConnection, getBlogPosts } from '../services/dataService';
 import { useNotification } from '../components/NotificationSystem';
 
 interface BlogDetailProps {
   postId: string;
+  /** Chave do link de prévia privada (/previa-dica/<id>?k=...). Vazia no uso normal. */
+  previewKey?: string;
   onNavigate: (page: string, params?: any) => void;
 }
 
-export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) => {
+export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, previewKey, onNavigate }) => {
   const { notify } = useNotification();
   const [post, setPost] = useState<BlogPost | undefined>(undefined);
   const [recommendedPosts, setRecommendedPosts] = useState<BlogPost[]>([]);
@@ -152,7 +156,9 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
           getBlogPostById(postId),
           getBlogPosts()
       ]);
-      setPost(data);
+      // Prévia privada: troca a foto e o crédito pelos da prévia (só com a chave certa)
+      const photoPreview = previewKey ? getFeedPhotoPreview(postId, previewKey) : null;
+      setPost(data && photoPreview ? { ...data, imageUrl: photoPreview.imageUrl, imageCredit: photoPreview.credit } : data);
       if (data) {
           const related = allPosts.filter(p => p.id !== postId && p.category === data.category).slice(0, 4);
           setRecommendedPosts(related);
@@ -199,7 +205,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
     } catch (e) {
       console.warn("Could not load like state", e);
     }
-  }, [postId]);
+  }, [postId, previewKey]);
 
   if (!post) {
       return (
@@ -324,6 +330,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
         image={post.imageUrl}
         type="article"
         url={`/blog/${postId}`}
+        noindex={!!(previewKey && getFeedPhotoPreview(postId, previewKey))}
       />
 
       {/* STUNNING HERO HEADER PHOTO - Exact Screen Mockup #2 Match */}
@@ -383,8 +390,11 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ postId, onNavigate }) =>
         </div>
       </div>
 
+      {/* Crédito da foto (quando a foto é de terceiros) */}
+      <div className="max-w-3xl mx-auto px-4 pt-2"><PhotoCredit credit={post.imageCredit} className="text-right" /></div>
+
       {/* CONTENT & HIGHLIGHT PANEL */}
-      <div className="max-w-3xl mx-auto px-4 pt-8 pb-12">
+      <div className="max-w-3xl mx-auto px-4 pt-4 pb-12">
         <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100">
           
           {/* AUTHOR MINI PROFILE (Matching mockup style card) */}

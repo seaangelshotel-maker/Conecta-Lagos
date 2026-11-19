@@ -325,7 +325,22 @@ export interface Review {
   replyAt?: string;
 }
 
+/**
+ * Crédito de uma foto de terceiros (ex.: Wikimedia Commons, licença aberta, ou foto cedida por um dono).
+ * Aparece como legenda discreta sob a foto da dica: "Foto: <autor> · <licença>".
+ */
+export interface ImageCredit {
+  /** Quem fez a foto (nome como na fonte) */
+  author: string;
+  /** Licença, ex.: "CC BY-SA 4.0". Para foto cedida: "Uso autorizado". */
+  license: string;
+  /** Página da foto na fonte (para o leitor conferir) */
+  sourceUrl?: string;
+}
+
 export interface BlogPost {
+  /** Crédito da foto de capa quando ela é de terceiros. */
+  imageCredit?: ImageCredit;
   /** Traduções prontas (en/es/fr) dos textos, gravadas ao salvar. */
   i18n?: { src: string[]; en: string[]; es: string[]; fr: string[] };
   id: string;
