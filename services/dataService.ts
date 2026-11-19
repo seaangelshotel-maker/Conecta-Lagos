@@ -1259,11 +1259,11 @@ export const getBlogPosts = async () => {
     // Todos os posts do Feed são exibidos com o Yuri Guida como autor.
     const yuriId = await resolveYuriAuthorId();
     _posts = _posts.map(post => {
-        return { 
+        return withOpenPhoto({ 
             ...post, 
             authorId: yuriId, 
             author: 'Yuri Guida' 
-        };
+        });
     });
 
     return _posts;
@@ -2060,7 +2060,7 @@ export const getBlogPostById = async (id: string) => {
         const yuriId = await resolveYuriAuthorId();
         cached.authorId = yuriId;
         cached.author = 'Yuri Guida';
-        return cached;
+        return withOpenPhoto(cached);
     }
     
     const docRef = doc(db, 'blog_posts', id);
