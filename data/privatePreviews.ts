@@ -15,7 +15,7 @@ const omni = (hotel: number, kind: 'Property' | 'RoomTypes', id: string, size = 
 
 export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Pousada Sentinelas do Mar autorizou as fotos e já está pública (19/11/2026)
-  'emp_arraial_do_cabo_ocean-view-hotel': {
+  'c65FBUpQhACCBCZOUNhe': {
     key: 'ov4h8m2tq6',
     coverImage: omni(4468, 'Property', '202022', '1200x800'),
     gallery: [
