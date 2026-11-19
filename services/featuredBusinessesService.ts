@@ -84,7 +84,7 @@ export const previewFeaturedImport = async (): Promise<FeaturedPreview> => {
     const snap = await getDocs(collection(db, 'businesses'));
     const existing = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
     const toCreate: FeaturedBusiness[] = [];
-    const toUpdate: { doc: any; data: FeaturedBusiness }[] = [];
+    const toUpdate: { doc: any; data: FeaturedBusiness; photosOnly?: boolean }[] = [];
     let alreadyExists = 0;
     for (const f of FEATURED_BUSINESSES) {
         const hit = existing.find(b =>
