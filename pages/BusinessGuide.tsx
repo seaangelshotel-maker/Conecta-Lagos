@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { prioritizeWithCover } from "../services/discoverLogic";
 import { planRank } from '../services/planRules';
 import { amenityAppliesTo, businessKind } from "../data/amenityCatalog";
 import {
@@ -460,7 +461,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
       }
     }
 
-    setFiltered(result);
+    setFiltered(prioritizeWithCover(result));
   }, [
     query,
     selectedCategory,
