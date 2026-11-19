@@ -160,6 +160,7 @@ export const buildRobots = (base: string) => [
   'Disallow: /create-business',
   'Disallow: /search',
   'Disallow: /subscribe',
+  'Disallow: /previa/',
   'Disallow: /ajuda/gerenciar/',
   'Disallow: /ajuda/editar/',
   'Disallow: /api/',
