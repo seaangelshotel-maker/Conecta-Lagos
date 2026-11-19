@@ -729,6 +729,8 @@ export type EventSource = 'official' | 'admin' | 'merchant';
 
 export interface AppEvent {
   id: string;
+  /** Crédito da foto quando a capa é uma foto ilustrativa de terceiros (ver data/eventPhotos.ts). */
+  imageCredit?: ImageCredit;
   title: string;
   description?: string;
   category: EventCategory;

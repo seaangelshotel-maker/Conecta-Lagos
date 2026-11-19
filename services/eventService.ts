@@ -6,6 +6,7 @@
  * - Admin cria/edita/publica qualquer evento, importa o calendário oficial e define cotas.
  * As regras de segurança (firestore.rules) repetem as travas que não dependem de contagem.
  */
+import { withEventPhoto } from '../data/eventPhotos';
 import { useEffect, useState } from 'react';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
@@ -41,7 +42,7 @@ export const getPublishedEvents = async (force = false): Promise<AppEvent[]> => 
   if (!force && _public && Date.now() - _publicAt < TTL_MS) return _public;
   if (_pending && !force) return _pending;
   _pending = getDocs(query(collection(db, COL), where('status', '==', 'published')))
-    .then(s => s.docs.map(d => ({ ...(d.data() as AppEvent), id: d.id })))
+    .then(s => s.docs.map(d => withEventPhoto({ ...(d.data() as AppEvent), id: d.id })))
     .catch(() => [] as AppEvent[])
     .then(list => { _public = list; _publicAt = Date.now(); _pending = null; return list; });
   return _pending;
@@ -68,7 +69,7 @@ export const getEventById = async (id: string): Promise<AppEvent | null> => {
   if (cached) return cached;
   try {
     const s = await getDoc(doc(db, COL, id));
-    return s.exists() ? ({ ...(s.data() as AppEvent), id: s.id }) : null;
+    return s.exists() ? withEventPhoto({ ...(s.data() as AppEvent), id: s.id }) : null;
   } catch { return null; }
 };
 

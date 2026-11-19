@@ -121,6 +121,8 @@ export const EventDetail: React.FC<Props> = ({ eventId, currentUser, onNavigate 
           {when && <span className={`absolute right-4 bottom-4 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${phase === 'ongoing' ? 'bg-red-500 text-white' : 'bg-white/90 text-ocean-950'}`}>{when}</span>}
         </div>
 
+        {ev.imageCredit && <p className="px-4 pt-1.5 text-right text-[10px] text-slate-400" data-testid="photo-credit">Foto ilustrativa: {ev.imageCredit.author} · {ev.imageCredit.license}</p>}
+
         <div className="px-4 pt-5 space-y-5">
           {note && (
             <div role="status" className="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-bold p-3.5 flex gap-2.5"><AlertTriangle size={18} className="shrink-0 mt-0.5" />
