@@ -13,6 +13,17 @@ export interface PrivatePreview {
 
 export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Sentinelas do Mar e Ocean View autorizaram as fotos e já estão públicos (19/11/2026)
+  // Pousada Águas do Forte
+  'emp_cabo_frio_pousada-aguas-do-forte': { key: 'a00de425bf', coverImage: "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/IMG_3087.jpg",
+    gallery: [
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/Pousada-Aguas-do-Forte-20.jpg",
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/IMG_5095.jpg",
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/Pousada-Aguas-do-Forte-3.jpg",
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/Pousada-Aguas-do-Forte-16.jpg",
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2015/10/Pousada-Aguas-do-Forte-8.jpg",
+      "https://www.pousadaaguasdoforte.com.br/wp-content/uploads/2017/01/slide4.jpg",
+    ],
+    source: "https://www.pousadaaguasdoforte.com.br" },
   // Pousada Areia do Forte
   'emp_cabo_frio_pousada-areia-do-forte': { key: '99272742a8', coverImage: "https://pousadaareiadoforte.com.br/wp-content/uploads/elementor/thumbs/fachada-qwae950ue0wbk5w56rprvsy59v8x5zzl07ki9h9pic.jpg",
     gallery: [
@@ -35,6 +46,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://irp.cdn-website.com/6d1962e6/dms3rep/multi/opt/70-2304w.jpg",
     ],
     source: "https://www.pousadaarraialinn.com.br" },
+  // Pousada Arraial Tropical
+  'emp_arraial_do_cabo_pousada-arraial-tropical': { key: '5fff627366', coverImage: "https://pousadaarraialtropical.com.br/assets/suite-hidro.jpg",
+    gallery: [
+      "https://pousadaarraialtropical.com.br/assets/suite-premium.jpg",
+      "https://pousadaarraialtropical.com.br/assets/suite-deluxe.jpg",
+      "https://pousadaarraialtropical.com.br/assets/cafe-buffet-1.jpg",
+      "https://pousadaarraialtropical.com.br/assets/hidro-banheira.jpg",
+      "https://pousadaarraialtropical.com.br/assets/patio.jpg",
+      "https://pousadaarraialtropical.com.br/assets/hero.jpg",
+    ],
+    source: "https://pousadaarraialtropical.com.br" },
   // Pousada Brisa do Forte
   'emp_cabo_frio_pousada-brisa-do-forte': { key: 'c2ff7e2c83', coverImage: "https://irp.cdn-website.com/e573b37b/dms3rep/multi/opt/WhatsApp-Image-2017-10-04-at-11.48.15-800h.jpeg",
     gallery: [
@@ -55,6 +77,16 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/af836564b63e4e0cbe99cfd0f2964d97.jpeg",
     ],
     source: "https://www.caminhodosol.com.br" },
+  // Chamos Hostel Cultural
+  'emp_arraial_do_cabo_chamos-hostel-cultural': { key: '5983e4860b', coverImage: "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2023/11/image_50737409-1.jpg",
+    gallery: [
+      "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2024/03/84D0F2C3-2722-48AA-A1C5-E452230F6E79-1-scaled.jpg",
+      "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2026/02/WhatsApp-Image-2025-10-27-at-22.53.28.jpeg",
+      "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2026/02/WhatsApp-Image-2026-02-21-at-8.25.05-PM.jpeg",
+      "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2022/04/Imagens-13.png",
+      "https://i0.wp.com/chamoshostelcultural.com/wp-content/uploads/2022/04/Imagens-14.png",
+    ],
+    source: "https://chamoshostelcultural.com" },
   // Pousada Luzes de Geribá
   'emp_buzios_pousada-luzes-de-geriba': { key: '79721bd5f2', coverImage: "https://www.luzesdegeriba.com.br/assets/img/fotos/piscina-fachada.jpg",
     gallery: [
@@ -75,6 +107,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://hotelmardecabofrio.com.br/wp-content/uploads/2023/09/20230831_121947-scaled.jpg",
     ],
     source: "https://hotelmardecabofrio.com.br" },
+  // Pousada Mar de Geribá
+  'emp_buzios_pousada-mar-de-geriba': { key: '616f55f358', coverImage: "https://mardegeriba.com.br/img/hero.jpg",
+    gallery: [
+      "https://mardegeriba.com.br/img/948d9df7.jpg",
+      "https://mardegeriba.com.br/img/00e6b370.jpg",
+      "https://mardegeriba.com.br/img/ce1e10aa.jpg",
+      "https://mardegeriba.com.br/img/0fb37311.jpg",
+      "https://mardegeriba.com.br/img/27b58f90.jpg",
+      "https://mardegeriba.com.br/img/a594f5a8.jpg",
+    ],
+    source: "https://mardegeriba.com.br" },
 };
 
 export const getPrivatePreview = (businessId: string, key: string | null): PrivatePreview | null => {
