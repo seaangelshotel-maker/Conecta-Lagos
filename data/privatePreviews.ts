@@ -162,6 +162,16 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://irp.cdn-website.com//6e5f4ac6/dms3rep/multi/opt/9a87b8a1b566759d0d8997d55daa4c7d+%282%29-1152w.jpg",
     ],
     source: "http://www.praiajoaofernandes.com.br/" },
+  // Victtorio Pizzaria & Forneria
+  'emp_buzios_victtorio-pizzaria-forneria': { key: '062df0e4d0', coverImage: "https://victtorio.com.br/wp-content/uploads/2022/07/Victtorio_elloestudiocriativo-4.jpg",
+    gallery: [
+      "https://victtorio.com.br/wp-content/uploads/2022/07/Victtorio_elloestudiocriativo-8.jpg",
+      "https://victtorio.com.br/wp-content/uploads/2022/07/Victtorio_elloestudiocriativo-6.jpg",
+      "https://victtorio.com.br/wp-content/uploads/2022/07/Victtorio_elloestudiocriativo-7.jpg",
+      "https://victtorio.com.br/wp-content/uploads/2022/07/Adega.png",
+      "https://victtorio.com.br/wp-content/uploads/2022/07/Victtorio-3.png",
+    ],
+    source: "https://victtorio.com.br" },
   // Pousada Villa Raphael
   'emp_buzios_pousada-villa-raphael': { key: '690b0bf1b2', coverImage: "https://villaraphael.com.br/wp-content/uploads/2026/01/UH18-12-1.jpg",
     gallery: [
@@ -173,6 +183,17 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://villaraphael.com.br/wp-content/uploads/2026/01/Ambientes-Noturnos-7.jpg",
     ],
     source: "https://villaraphael.com.br" },
+  // Xerelete Bar e Restaurante
+  'emp_buzios_xerelete-bar-e-restaurante': { key: '30d2b68d18', coverImage: "https://xereletebar.com/wp-content/uploads/2026/03/Xerelete-bar-restaurante-em-buzios-orla-bardot-5-scaled.jpg",
+    gallery: [
+      "https://xereletebar.com/wp-content/uploads/2026/03/cardapio-xerelete-restaurante-em-buzios-5.jpg",
+      "https://xereletebar.com/wp-content/uploads/elementor/thumbs/eventos-em-buzios-xerelete-bar-restaurante-7-e1774572676591-rl3nwk6ztkpszvhmvtk35esxhegj06sf5xfqnltzr4.jpg",
+      "https://xereletebar.com/wp-content/uploads/2026/03/cardapio-xerelete-restaurante-em-buzios-7-scaled.jpg",
+      "https://xereletebar.com/wp-content/uploads/2026/03/cardapio-xerelete-restaurante-em-buzios-3.jpg",
+      "https://xereletebar.com/wp-content/uploads/2026/03/cardapio-xerelete-restaurante-em-buzios-1.jpg",
+      "https://xereletebar.com/wp-content/uploads/2026/03/xerelete-restaurante-em-buzios-orla-bardot-2-scaled.jpg",
+    ],
+    source: "https://xereletebar.com" },
 };
 
 export const getPrivatePreview = (businessId: string, key: string | null): PrivatePreview | null => {
