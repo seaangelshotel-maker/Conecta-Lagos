@@ -305,6 +305,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://cache.ayrton.net.br/imports/02cba4b5-f2cf-46d2-90fd-12ea3df498a6.jpeg",
       "https://cache.ayrton.net.br/imports/4edf5f69-f44f-4dcb-97a7-06eff2719ab6.jpeg",
     ],
+    info: {"description": "Condomínio de casas para locação por temporada na Praia de Itaúna, em Saquarema, pensado para quem quer relaxar, aproveitar a praia e se sentir em casa, com a privacidade de uma casa inteira em vez de um quarto de pousada. Fica na Rua dos Vermelhos, em Itaúna, bairro conhecido pelas ondas e pelo clima surfista. As reservas e consultas de disponibilidade são feitas direto pelo site oficial.", "amenities": [], "address": "R. dos Vermelhos, 459 - Itaúna, Saquarema - RJ, 28990-882", "whatsapp": "(21) 98297-4015", "phone": "(21) 98297-4015"},
     source: "https://villageitaunainn.com.br" },
 };
 
