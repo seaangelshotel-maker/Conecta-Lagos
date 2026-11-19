@@ -888,5 +888,165 @@ export const APPROVED_PHOTOS: Record<string, ApprovedPhotos> = {
       "license": "CC BY-SA 3.0",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia_da_Azedinha_03.jpg"
     }
+  },
+  "OL6TZTOZMuefdsHDUGIq": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Praia.dos.Anjos.Arraial.do.Cabo.jpg?width=1280",
+    "imageCredit": {
+      "author": "Msadp06",
+      "license": "CC BY-SA 4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia.dos.Anjos.Arraial.do.Cabo.jpg"
+    }
+  },
+  "9K9O3hoHo0M2Zt1kysPC": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Museu_Oceanogr%C3%A1fico,_em_Arraial_do_Cabo_RJ_(52247823379).jpg?width=1280",
+    "imageCredit": {
+      "author": "Marinha do Brasil",
+      "license": "CC BY-SA 2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Museu_Oceanogr%C3%A1fico,_em_Arraial_do_Cabo_RJ_(52247823379).jpg"
+    }
+  },
+  "pub_buzios_estatua-de-juscelino-kubitschek": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/ThiagoFreitas_Estatua_de_Juscelino_Kubitschek_Armacao_dos_Buzios_RJ_(27180961608).jpg?width=1280",
+    "imageCredit": {
+      "author": "MTur Destinos",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:ThiagoFreitas_Estatua_de_Juscelino_Kubitschek_Armacao_dos_Buzios_RJ_(27180961608).jpg"
+    }
+  },
+  "pub_cabo_frio_capela-de-nossa-senhora-da-guia": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/CaboFrio_Chapel_of_Nossa_Senhora_da_Guia.JPG?width=1280",
+    "imageCredit": {
+      "author": "Frenz 69",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:CaboFrio_Chapel_of_Nossa_Senhora_da_Guia.JPG"
+    }
+  },
+  "pub_cabo_frio_igreja-de-sao-benedito": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/CaboFrio_Igreja_de_S%C3%A3o_Benedito.JPG?width=1280",
+    "imageCredit": {
+      "author": "Frenz 69",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:CaboFrio_Igreja_de_S%C3%A3o_Benedito.JPG"
+    }
+  },
+  "pub_cabo_frio_mirantes-da-praia-das-conchas": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Mirante_da_Praia_das_Conchas_-_Cabo_Frio._(6894111536).jpg?width=1280",
+    "imageCredit": {
+      "author": "Marinelson Almeida",
+      "license": "CC BY 2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mirante_da_Praia_das_Conchas_-_Cabo_Frio._(6894111536).jpg"
+    }
+  },
+  "pub_cabo_frio_passarela-e-mirantes-do-forte": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Forte_de_S%C3%A3o_Mateus_do_Cabo_Frio_01.jpg?width=1280",
+    "imageCredit": {
+      "author": "Halley Pacheco de Oliveira",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Forte_de_S%C3%A3o_Mateus_do_Cabo_Frio_01.jpg"
+    }
+  },
+  "TIgND0KE0BqGRJq5XN5c": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Pontal_(Arraial_do_Cabo).JPG?width=1280",
+    "imageCredit": {
+      "author": "Eduardo P",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia_do_Pontal_(Arraial_do_Cabo).JPG"
+    }
+  },
+  "HKfoI9JHyyQVuXqsgpxb": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Prainha_Arraial_do_Cabo.jpg?width=1280",
+    "imageCredit": {
+      "author": "Noel Portugal",
+      "license": "CC BY 2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prainha_Arraial_do_Cabo.jpg"
+    }
+  },
+  "HFDqT61LCgznhV0FLqEy": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Praia_das_Conchas_em_Cabo_Frio.JPG?width=1280",
+    "imageCredit": {
+      "author": "Esalq",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia_das_Conchas_em_Cabo_Frio.JPG"
+    }
+  },
+  "KFcex4ruU64009ddTyNx": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Per%C3%B3,_no_Parque_Estadual_da_costa_do_Sol_em_Cabo_Frio-RJ.JPG?width=1280",
+    "imageCredit": {
+      "author": "Eduardo Cerqueira dos Santos",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia_do_Per%C3%B3,_no_Parque_Estadual_da_costa_do_Sol_em_Cabo_Frio-RJ.JPG"
+    }
+  },
+  "QznImY9rWZZxk3mGpUpZ": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Fenda_de_Nossa_Senhora_da_Concei%C3%A7%C3%A3o.jpg?width=1280",
+    "imageCredit": {
+      "author": "Lorraineoli",
+      "license": "CC BY-SA 4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fenda_de_Nossa_Senhora_da_Concei%C3%A7%C3%A3o.jpg"
+    }
+  },
+  "YyqC6RzefQKmxEnx8V03": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Convento_e_Igreja_de_Nossa_Senhora_dos_Anjos_01.jpg?width=1280",
+    "imageCredit": {
+      "author": "Halley Pacheco de Oliveira",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Convento_e_Igreja_de_Nossa_Senhora_dos_Anjos_01.jpg"
+    }
+  },
+  "i1lnZjubrZnJZLQdciA7": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Praia_do_Siqueira_-_Parque_Estadual_da_Costa_do_Sol_-_Cabo_Frio,RJ.JPG?width=1280",
+    "imageCredit": {
+      "author": "Eduardo Cerqueira dos Santos",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praia_do_Siqueira_-_Parque_Estadual_da_Costa_do_Sol_-_Cabo_Frio,RJ.JPG"
+    }
+  },
+  "oCQHKACV6VRkdFJIq6rj": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/S%C3%A3o_Bento,_Cabo_Frio_-_RJ,_Brazil_-_panoramio.jpg?width=1280",
+    "imageCredit": {
+      "author": "Newton paz peres",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:S%C3%A3o_Bento,_Cabo_Frio_-_RJ,_Brazil_-_panoramio.jpg"
+    }
+  },
+  "xujTPc43IbEuuSVo1aq4": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/GrutaAzulArraialdoCaboBrasil-feb2016.jpg?width=1280",
+    "imageCredit": {
+      "author": "Ezarate",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:GrutaAzulArraialdoCaboBrasil-feb2016.jpg"
+    }
+  },
+  "8BRL8yQLLUKis13rZbtA": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Canal_do_Itajuru_05.jpg?width=1280",
+    "imageCredit": {
+      "author": "Halley Pacheco de Oliveira",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Canal_do_Itajuru_05.jpg"
+    }
+  },
+  "90dvvjysg7xSLL37OaIw": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Rua_dos_Biqu%C3%ADnis_em_Cabo_Frio.JPG?width=1280",
+    "imageCredit": {
+      "author": "Esalq",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rua_dos_Biqu%C3%ADnis_em_Cabo_Frio.JPG"
+    }
+  },
+  "LBkhfzRRUt29ChItkSeW": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Ilha_do_Japon%C3%AAs_em_Cabo_Frio,_Regi%C3%A3o_dos_lagos-RJ.JPG?width=1280",
+    "imageCredit": {
+      "author": "Eduardo Cerqueira dos Santos",
+      "license": "CC BY-SA 3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ilha_do_Japon%C3%AAs_em_Cabo_Frio,_Regi%C3%A3o_dos_lagos-RJ.JPG"
+    }
+  },
+  "NatqpP54P8F3lBcSYLs3": {
+    "coverImage": "https://commons.wikimedia.org/wiki/Special:FilePath/Igreja_de_Nossa_Senhora_dos_Rem%C3%A9dios_em_Arraial_do_Cabo_.jpg?width=1280",
+    "imageCredit": {
+      "author": "marcusrg",
+      "license": "CC BY 2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Igreja_de_Nossa_Senhora_dos_Rem%C3%A9dios_em_Arraial_do_Cabo_.jpg"
+    }
   }
 };
