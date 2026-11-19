@@ -55,9 +55,6 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_arraial_do_cabo_pimenta-rosa-gastronomia': { key: '065db3d5bb', source: "sem foto (aguardando envio do dono)" },
   // Pousada Atalaia Boutique
   'emp_arraial_do_cabo_pousada-atalaia-boutique': { key: '207a85adaf', source: "sem foto (aguardando envio do dono)" },
-  // Pousada Canto da Baleia
-  'emp_arraial_do_cabo_pousada-canto-da-baleia': { key: '1551f81f40', info: {"description": "Pousada simples a poucos passos da Praia dos Anjos, em Arraial do Cabo, com jardim, piscina, restaurante e bar, estacionamento sem custo e recepção 24 horas. Fica perto da Praia do Forno, da Praia Grande e da Igreja de Nossa Senhora dos Remédios, a uma curta caminhada do centro e do porto de onde saem os passeios de barco. As acomodações têm ar-condicionado e TV, e parte delas tem varanda. É uma opção tradicional para quem quer ficar perto da praia e do movimento do centro.", "address": "Rua Kioto, 30, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000"},
-    source: "sem foto (aguardando envio do dono)" },
   // Pousada Catavento
   'emp_saquarema_pousada-catavento': { key: '733adbe92d', source: "sem foto (aguardando envio do dono)" },
   // Pousada das Andorinhas
@@ -74,17 +71,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_cabo_frio_restaurante-mar': { key: 'e73779ac6c', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Picanha do Gugu
   'emp_araruama_restaurante-picanha-do-gugu': { key: 'c9335b6224', source: "sem foto (aguardando envio do dono)" },
-  // Restaurante Picolino
-  'emp_cabo_frio_restaurante-picolino': { key: 'eba0e0d29f', info: {"description": "Casarão da área histórica de Cabo Frio, num sobrado com varanda sobre o Boulevard Canal, e uma das casas mais tradicionais da cidade. O cardápio, com capa desenhada pelo cartunista Jaguar, é conhecido pelos frutos do mar e por pratos como arroz de pato, carpaccio de polvo, steak tartare e moqueca, com feijoada aos fins de semana e profiteroles de sobremesa. A dica é pedir uma mesa na varanda do andar de cima, de onde se vê o canal. Convém confirmar o horário antes de ir, porque ele varia entre baixa e alta temporada.", "address": "Rua Marechal Floriano, 319, São Bento, Cabo Frio - RJ, 28906-330", "phone": "(22) 2647-6222", "instagram": "https://www.instagram.com/restaurantepicolino"},
-    source: "sem foto (aguardando envio do dono)" },
-  // Restaurante Saint Tropez
-  'emp_arraial_do_cabo_restaurante-saint-tropez': { key: 'e1cbf61d55', info: {"description": "Casa tradicional da Praça do Cova, na Praia dos Anjos, comandada por um chef francês que vive em Arraial do Cabo desde 1980 e mistura a mão francesa com o tempero e a fartura brasileiros. O cardápio é extenso, com carnes, massas, sopas, saladas, panquecas, pizzas e frutos do mar, e o frango à cubana com banana e abacaxi empanados é um dos pratos lembrados. As porções costumam servir bem mais de uma pessoa, então vale combinar o pedido na mesa. Fica numa esquina da praça, ótima para o almoço depois do passeio de barco.", "address": "Praça Daniel Barreto, 2, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000", "phone": "(22) 2622-1222"},
-    source: "sem foto (aguardando envio do dono)" },
   // Restaurante Saquasuco
   'emp_saquarema_restaurante-saquasuco': { key: '2a58ad07b1', source: "sem foto (aguardando envio do dono)" },
-  // Restaurante Wellington
-  'emp_araruama_restaurante-wellington': { key: '48a8c04644', info: {"address": "Rua Bernardo Vasconcelos, 660, Centro, Araruama - RJ", "phone": "(22) 2664-7924"},
-    source: "sem foto (aguardando envio do dono)" },
   // Rocka Restaurant & Beach Lounge
   'emp_buzios_rocka-restaurant-beach-lounge': { key: '8888d51ddd', source: "sem foto (aguardando envio do dono)" },
   // Smash do Cabo Hamburgueria
