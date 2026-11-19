@@ -25,7 +25,7 @@ import { ReviewsSection } from '../components/ReviewsSection';
 
 export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string; onNavigate: (page: string, params?: any) => void }> = ({ businessId, previewKey, onNavigate }) => {
   const preview = previewKey ? getPrivatePreview(businessId, previewKey) : null;
-  const withPreview = (b: BusinessProfile | undefined) => (b && preview ? { ...b, coverImage: preview.coverImage || b.coverImage, gallery: preview.gallery || b.gallery } : b);
+  const withPreview = (b: BusinessProfile | undefined) => (b && preview ? { ...b, ...(preview.info || {}), coverImage: preview.coverImage || b.coverImage, gallery: preview.gallery || b.gallery } : b);
   const { notify } = useNotification();
   const { t } = useLanguage();
   const [business, setBusiness] = useState<BusinessProfile | undefined>(undefined);

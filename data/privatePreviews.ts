@@ -4,15 +4,26 @@
  * As imagens são exibidas direto do site oficial da própria empresa (não são copiadas nem guardadas aqui).
  * Quando o dono autorizar/enviar as fotos, o link é apagado daqui.
  */
+import type { BusinessProfile } from '../types';
+
 export interface PrivatePreview {
   key: string;
   coverImage?: string;
   gallery?: string[];
   source: string;
+  /**
+   * Correções/complementos de INFORMAÇÃO mostrados só na prévia (a ficha oficial não muda até o dono aprovar).
+   * Cada campo só entra com fonte conferida (site oficial, Instagram, Booking...). Ver docs/CADASTRO_PADRAO.md.
+   */
+  info?: Partial<Pick<BusinessProfile, 'description' | 'address' | 'phone' | 'whatsapp' | 'instagram' | 'website' | 'openingHours' | 'amenities' | 'bookingUrl' | 'deliveryUrl'>>;
 }
 
 export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Sentinelas do Mar e Ocean View autorizaram as fotos e já estão públicos (19/11/2026)
+  // Água na Boca
+  'emp_iguaba_grande_agua-na-boca': { key: 'c92dfdf5c0', source: "sem foto (aguardando envio do dono)" },
+  // Açaí Forte do Cabo
+  'emp_arraial_do_cabo_acai-forte-do-cabo': { key: 'f0f83ab67c', source: "sem foto (aguardando envio do dono)" },
   // Pousada Algodão da Praia
   'emp_araruama_pousada-algodao-da-praia': { key: '2c23a360f5', coverImage: "https://pousadaalgodaodapraia.com.br/wp-content/uploads/2023/01/DJI_0253-1.jpg",
     gallery: [
@@ -23,6 +34,12 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://pousadaalgodaodapraia.com.br/wp-content/uploads/2021/10/play03.png",
     ],
     source: "https://pousadaalgodaodapraia.com.br" },
+  // Ancho e Faca Churrascaria
+  'emp_cabo_frio_ancho-e-faca-churrascaria': { key: '0bc95c77ed', source: "sem foto (aguardando envio do dono)" },
+  // Anchova na Brasa
+  'emp_arraial_do_cabo_anchova-na-brasa': { key: 'a90e18a7d9', source: "sem foto (aguardando envio do dono)" },
+  // Apreciatta Pizzaria
+  'emp_cabo_frio_apreciatta-pizzaria': { key: 'b40d628eda', source: "sem foto (aguardando envio do dono)" },
   // Arcos do Canal
   'emp_cabo_frio_arcos-do-canal': { key: 'bf5974b9a5', coverImage: "https://arcosdocanal.com.br/wp-content/uploads/2026/03/arcos_do_canal-1.webp",
     gallery: [
@@ -43,6 +60,16 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.pousadaarraialcaribe.com.br/wp-content/uploads/2022/12/area-externa-AC.jpg",
     ],
     source: "https://www.pousadaarraialcaribe.com.br" },
+  // Astral Beach Food
+  'emp_arraial_do_cabo_astral-beach-food': { key: '5eb7fb159f', source: "sem foto (aguardando envio do dono)" },
+  // Bamba
+  'emp_cabo_frio_bamba': { key: 'aab15f2916', source: "sem foto (aguardando envio do dono)" },
+  // Bar do Cajueiro by Bodega Boa
+  'emp_saquarema_bar-do-cajueiro-by-bodega-boa': { key: '06248a3581', source: "sem foto (aguardando envio do dono)" },
+  // Bar e Restaurante Mané Paixão
+  'emp_cabo_frio_bar-e-restaurante-mane-paixao': { key: '8e1e1ee10c', source: "sem foto (aguardando envio do dono)" },
+  // Brisa dos Anjos Suítes
+  'emp_arraial_do_cabo_brisa-dos-anjos-suites': { key: 'd0ca6ec5f0', source: "sem foto (aguardando envio do dono)" },
   // Búzios Beach Resort
   'emp_buzios_buzios-beach-resort': { key: 'fcd77cde72', coverImage: "https://wamhoteis.com.br/wp-content/uploads/2025/08/EmdpHLRQ.webp",
     gallery: [
@@ -52,6 +79,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://wamhoteis.com.br/wp-content/uploads/2025/07/DSC03730-scaled.jpg",
     ],
     source: "https://wamhoteis.com.br/buzios-beach-resort/" },
+  // Calamares
+  'emp_arraial_do_cabo_calamares': { key: '31d1d1eae2', source: "sem foto (aguardando envio do dono)" },
   // Pousada Caminho do Sol
   '8mbOtad5nxVNMThEZdu1': { key: 'f8d8bef581', coverImage: "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/59ed3641f55345a7898acfb3fd36bea5.jpg",
     gallery: [
@@ -61,6 +90,14 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/af836564b63e4e0cbe99cfd0f2964d97.jpeg",
     ],
     source: "https://www.caminhodosol.com.br" },
+  // Cantinho do Peixe
+  'emp_sao_pedro_da_aldeia_cantinho-do-peixe': { key: 'b14b84e7b7', source: "sem foto (aguardando envio do dono)" },
+  // Casa da Picanha
+  'emp_iguaba_grande_casa-da-picanha': { key: 'dfc4f88272', source: "sem foto (aguardando envio do dono)" },
+  // Casa da Piedra
+  'emp_arraial_do_cabo_casa-da-piedra': { key: '533bad5110', source: "sem foto (aguardando envio do dono)" },
+  // Casa da Praia Itaúna
+  'emp_saquarema_casa-da-praia-itauna': { key: '61b25f1df6', source: "sem foto (aguardando envio do dono)" },
   // Casas Brancas Boutique Hotel & Spa
   'emp_buzios_casas-brancas-boutique-hotel-spa': { key: 'd62b599d39', coverImage: "https://images3.motor-reserva.com.br/curl/storage/5518/202409241727196045ohotel1.jpg",
     gallery: [
@@ -90,6 +127,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.enseadadasgarcas.com.br/arquivos/imagens/fundo-7e1952-d24c3f9a04aa1459ace09627be2.jpg",
     ],
     source: "https://www.enseadadasgarcas.com.br" },
+  // Estrela do Mar Saquarema
+  'emp_saquarema_estrela-do-mar-saquarema': { key: '68af866ffb', source: "sem foto (aguardando envio do dono)" },
   // Hotel Experience João Fernandes
   'emp_buzios_hotel-experience-joao-fernandes': { key: '3d94c9d42b', coverImage: "https://experiencejoaofernandes.com.br/wp-content/uploads/2026/07/vista-aerea-10-1024x576-1-1.jpg",
     gallery: [
@@ -100,6 +139,10 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://experiencejoaofernandes.com.br/wp-content/uploads/2026/07/HEJF-OSSOS-1024x576-1.jpg",
     ],
     source: "https://experiencejoaofernandes.com.br" },
+  // Galápagos
+  'emp_cabo_frio_galapagos': { key: '7c2414e6f7', source: "sem foto (aguardando envio do dono)" },
+  // Hotel Aconchego da Vila
+  'emp_saquarema_hotel-aconchego-da-vila': { key: '7ecc78a76a', source: "sem foto (aguardando envio do dono)" },
   // Insólito Boutique Hotel & Spa
   'emp_buzios_insolito-boutique-hotel-spa': { key: 'fc940ae877', coverImage: "https://insolitohotel.com/wp-content/uploads/2025/04/DJI_20250221182508_0533_D-1-1.jpg",
     gallery: [
@@ -111,6 +154,16 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://insolitohotel.com/wp-content/uploads/2025/02/classic.webp",
     ],
     source: "https://insolitohotel.com" },
+  // Kentô Cozinha Oriental
+  'emp_cabo_frio_kento-cozinha-oriental': { key: '794ab33469', source: "sem foto (aguardando envio do dono)" },
+  // La Bodeguita Restaurante e Pizzaria
+  'emp_araruama_la-bodeguita-restaurante-e-pizzaria': { key: '7148c904af', source: "sem foto (aguardando envio do dono)" },
+  // Lorenzzo Burguer
+  'emp_arraial_do_cabo_lorenzzo-burguer': { key: 'fdf2d5fc59', source: "sem foto (aguardando envio do dono)" },
+  // Lounge da Praia
+  'emp_arraial_do_cabo_lounge-da-praia': { key: '5d026e3c75', source: "sem foto (aguardando envio do dono)" },
+  // Místico Restaurant
+  'emp_buzios_mistico-restaurant': { key: '213b3a356d', source: "sem foto (aguardando envio do dono)" },
   // Malibu Palace Hotel
   'emp_cabo_frio_malibu-palace-hotel': { key: 'b855991881', coverImage: "https://www.malibupalace.com.br/pluginAppObj/pluginAppObj_45/hot1.jpg",
     gallery: [
@@ -137,6 +190,30 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.moradadosolsuites.com.br/image/d235/6aaa06ca0e0ef34e95f391ff/morada-do-sol-suites-suite-07",
     ],
     source: "https://www.moradadosolsuites.com.br" },
+  // Outros500 Bar & Restaurante
+  'emp_sao_pedro_da_aldeia_outros500-bar-restaurante': { key: '654c3718a1', source: "sem foto (aguardando envio do dono)" },
+  // Pimenta Rosa Gastronomia
+  'emp_arraial_do_cabo_pimenta-rosa-gastronomia': { key: '065db3d5bb', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Atalaia Boutique
+  'emp_arraial_do_cabo_pousada-atalaia-boutique': { key: '207a85adaf', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Caravela
+  'emp_arraial_do_cabo_pousada-caravela': { key: '2aa86733e8', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Catavento
+  'emp_saquarema_pousada-catavento': { key: '733adbe92d', source: "sem foto (aguardando envio do dono)" },
+  // Pousada das Andorinhas
+  'emp_iguaba_grande_pousada-das-andorinhas': { key: 'c40c536eb0', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Fruto de Itaúna
+  'emp_saquarema_pousada-fruto-de-itauna': { key: '111ee2dcbf', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Hotel Praia dos Anjos
+  'emp_arraial_do_cabo_pousada-hotel-praia-dos-anjos': { key: 'fea61b0893', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Manaaki
+  'emp_buzios_pousada-manaaki': { key: 'c1548148e6', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Melodia do Mar
+  'emp_cabo_frio_pousada-melodia-do-mar': { key: '1bc6386ff0', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Porto Forte
+  'emp_cabo_frio_pousada-porto-forte': { key: 'd2aa14ffdb', source: "sem foto (aguardando envio do dono)" },
+  // Pousada Vista Turquesa
+  'emp_arraial_do_cabo_pousada-vista-turquesa': { key: 'a43ccba29d', source: "sem foto (aguardando envio do dono)" },
   // Pousada da Prainha
   'Efp75piLz0FZvNyprlvD': { key: '84d03c5862', coverImage: "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA.jpg",
     gallery: [
@@ -147,6 +224,24 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://pousadadaprainha.com/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-13-at-10.31.05-2.jpeg",
     ],
     source: "https://pousadadaprainha.com" },
+  // Privilège Búzios
+  'emp_buzios_privilege-buzios': { key: '5ab45f5655', source: "sem foto (aguardando envio do dono)" },
+  // Recanto Suítes
+  'emp_araruama_recanto-suites': { key: '684fbb35ff', source: "sem foto (aguardando envio do dono)" },
+  // Restaurante Mar.
+  'emp_cabo_frio_restaurante-mar': { key: 'e73779ac6c', source: "sem foto (aguardando envio do dono)" },
+  // Restaurante Picanha do Gugu
+  'emp_araruama_restaurante-picanha-do-gugu': { key: 'c9335b6224', source: "sem foto (aguardando envio do dono)" },
+  // Restaurante Saquasuco
+  'emp_saquarema_restaurante-saquasuco': { key: '2a58ad07b1', source: "sem foto (aguardando envio do dono)" },
+  // Restaurante Tio Dorp
+  'emp_arraial_do_cabo_restaurante-tio-dorp': { key: '05d6c87d09', source: "sem foto (aguardando envio do dono)" },
+  // Rocka Restaurant & Beach Lounge
+  'emp_buzios_rocka-restaurant-beach-lounge': { key: '8888d51ddd', source: "sem foto (aguardando envio do dono)" },
+  // Santo Gole Bar e Grill
+  'emp_arraial_do_cabo_santo-gole-bar-e-grill': { key: 'b363a0e52d', source: "sem foto (aguardando envio do dono)" },
+  // Smash do Cabo Hamburgueria
+  'emp_arraial_do_cabo_smash-do-cabo-hamburgueria': { key: '9f3b712231', source: "sem foto (aguardando envio do dono)" },
   // Hotel Solar do Arco
   'emp_cabo_frio_hotel-solar-do-arco': { key: 'f8aa1550fa', coverImage: "https://static.wixstatic.com/media/bc4ad8_7d60bc1b79f3458d9eb84404d5ec64a5~mv2.jpeg",
     gallery: [
@@ -158,6 +253,12 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://static.wixstatic.com/media/bc4ad8_18602706cf584f9f967563adefa6700b~mv2.jpeg",
     ],
     source: "https://www.solardoarco.com.br" },
+  // The Bull Restaurant
+  'emp_sao_pedro_da_aldeia_the-bull-restaurant': { key: 'd5a13b61a6', source: "sem foto (aguardando envio do dono)" },
+  // The Duck Rock Pub
+  'emp_cabo_frio_the-duck-rock-pub': { key: '6cf47f5825', source: "sem foto (aguardando envio do dono)" },
+  // Toshi Conceito
+  'emp_sao_pedro_da_aldeia_toshi-conceito': { key: '161e005906', source: "sem foto (aguardando envio do dono)" },
   // Pousada Villa Mares
   'emp_sao_pedro_da_aldeia_pousada-villa-mares': { key: '01ca4db0e5', coverImage: "https://villamares.com.br/wp-content/uploads/2021/09/Villa-Mares-05.jpg",
     gallery: [
