@@ -11,6 +11,7 @@ import {
   ChevronLeft, ChevronRight, Store, Sparkles, Plus, Minus
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
+import { AmenityIcons } from '../components/AmenityIcons';
 import { BusinessProfile, AMENITIES_LABELS, Coupon, User, PricingPlan, Review } from '../types';
 import { getBusinessById, getCoupons, getCurrentUser, toggleFavorite, incrementBusinessView, redeemCoupon, trackAction, checkIfOpen, formatDayHours, todayKey, hasOpeningHours, createCompanyRequest, getPricingPlans, getReviewsByBusinessId, isSubscriptionExpired, getBusinesses } from '../services/dataService';
 import { CouponCard } from '../components/CouponCard';
@@ -362,17 +363,8 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                 )}
             </div>
 
-            {/* COMODIDADES VISUAIS */}
-            {business.amenities && business.amenities.length > 0 && (
-                <div className="flex flex-wrap gap-2.5 md:gap-3">
-                    {business.amenities.map(am => (
-                        <div key={am} className="flex items-center gap-2.5 bg-white px-4 py-2.5 rounded-full border border-slate-100 shadow-sm shadow-slate-200/30 hover:border-ocean-200 transition-all cursor-default group">
-                            <div className="w-2 h-2 rounded-full bg-ocean-400 group-hover:bg-ocean-500 transition-colors flex-shrink-0" />
-                            <span className="text-[13px] font-extrabold text-slate-600 group-hover:text-ocean-700 transition-colors">{AMENITIES_LABELS[am] || am}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+            {/* COMODIDADES VISUAIS (com ícone) */}
+            <AmenityIcons amenities={business.amenities} />
 
             {/* VITRINE DO CARDÁPIO */}
             {(plan?.showMenu !== false) && business.menu && business.menu.some(sec => sec.items?.length) && (() => {
