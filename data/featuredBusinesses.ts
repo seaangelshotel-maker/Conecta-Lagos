@@ -806,8 +806,8 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     name: 'Pousada Villa Raphael', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
     address: 'Rua Beatriz Rosa Sanchez Larragoiti Lucas, 4, 5 e 6, Praia da Ferradura, Armação dos Búzios - RJ, 28951-147', neighborhood: 'Ferradura',
     phone: '(21) 2042-3554', website: 'https://villaraphael.com.br',
-    description: 'Pousada na Praia da Ferradura, em Búzios.',
-    sources: ['https://www.google.com/maps/search/Villa+Raphael+Hotel+Búzios', 'https://villaraphael.com.br'], checkedAt: '2026-11-17',
+    description: 'Hotel pé na areia na Praia da Ferradura, que mistura arquitetura colonial, jardins entre coqueiros e o privilégio de estar diante do mar. O site fala em tranquilidade, requinte e serviço personalizado, com atmosfera de privacidade e exclusividade, e indica o lugar para quem valoriza beleza e momentos a dois. Além das acomodações, a estrutura oferece spa com massagens e tratamentos, quadra de beach tennis, academia para não perder a rotina de exercícios e restaurante próprio com menu pensado para os hóspedes. O site permite reservar com cupom, em português, inglês e espanhol, e fica na Rua Beatriz Rosa Sanchez Larragoiti Lucas, na Ferradura.',
+    sources: ['https://villaraphael.com.br/'], checkedAt: '2026-11-19',
   },
   {
     name: 'Pousada Manaaki', cityId: BZ, category: 'Hospedagem', subcategory: 'Pousadas',
