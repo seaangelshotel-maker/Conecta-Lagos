@@ -57,7 +57,8 @@ export const needsEnrichment = (doc: any, f: FeaturedBusiness): boolean =>
 
 /** Empresa antiga (fora do lote), ainda sem dono, cujo arquivo traz fotos autorizadas diferentes das gravadas: troca só as fotos. */
 export const needsPhotosOnly = (doc: any, f: FeaturedBusiness): boolean =>
-    !!doc && !doc.isClaimed && !doc.ownerId && !!f.coverImage && doc.coverImage !== f.coverImage;
+    !!doc && !doc.isClaimed && !doc.ownerId && !!f.coverImage &&
+    (doc.coverImage !== f.coverImage || (!!f.gallery?.length && JSON.stringify(doc.gallery || []) !== JSON.stringify(f.gallery)));
 
 /** Campos que a atualização grava (nunca mexe em plano, avaliações, dono; foto só se autorizada e informada no arquivo). */
 export const enrichmentPatch = (f: FeaturedBusiness, wasDraft: boolean, nowIso: string, endsAt: string) => {

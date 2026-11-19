@@ -299,7 +299,6 @@ export const APPROVED_PHOTOS: Record<string, ApprovedPhotos> = {
     gallery: [
       "https://viladeste.com.br/wp-content/uploads/2023/02/Vila-deste-6-Reduzida-3x2-83.jpg",
       "https://viladeste.com.br/wp-content/uploads/2023/02/Vila-deste-6-Reduzida-3x2-126-1920x1080.jpg",
-      "https://viladeste.com.br/wp-content/uploads/2023/02/Vila-deste-6-ALTA-3x2-14.jpg",
     ]
   },
   // Beach Club Ville La Plage
