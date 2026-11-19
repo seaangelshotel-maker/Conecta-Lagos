@@ -94,8 +94,9 @@ export const FEATURED_BUSINESSES: FeaturedBusiness[] = [
     address: 'Praça da Independência, 25, Arraial do Cabo - RJ',
     phone: '(22) 99839-7677', whatsapp: '(22) 99839-7677',
     website: 'https://www.pousadafernandes.com.br',
-    description: 'Pousada em Arraial do Cabo, na Praça da Independência.',
-    sources: ['https://www.pousadafernandes.com.br/contato'], checkedAt: D,
+    amenities: ['wifi', 'ac', 'tv', 'breakfast'],
+    description: 'Casa de acolhimento familiar na Praça da Independência, a poucos passos da Prainha, da Praia Grande e do Pontal, as águas mais claras de Arraial do Cabo. A pousada se apresenta como um refúgio íntimo, de luz natural e manhãs silenciosas, e dá destaque ao café da manhã, que os hóspedes citam como ponto alto da estadia. A Suíte Standard vem em três configurações: dupla (cama de casal), tripla (casal mais solteiro) e quádrupla (casal e dois solteiros), todas com ar-condicionado, Wi-Fi, Smart TV, frigobar, banheiro privativo e roupa de cama premium. O site oferece reserva direta. Fica no centro, perto do porto de onde saem os passeios de barco.',
+    sources: ['https://www.pousadafernandes.com.br/', 'https://www.pousadafernandes.com.br/contato'], checkedAt: '2026-11-18',
   },
   {
     name: 'Pousada Arraial Tropical', cityId: AC, category: 'Hospedagem', subcategory: 'Pousadas',

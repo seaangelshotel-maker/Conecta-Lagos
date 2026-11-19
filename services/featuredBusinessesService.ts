@@ -6,7 +6,7 @@
  * - Empresa INCOMPLETA entra como rascunho (status 'draft'): o público não vê, o admin completa depois.
  * - Não duplica: IDs fixos e comparação de nome na mesma cidade; rodar de novo é seguro.
  */
-import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from './firebase';
 import { getCurrentUser, getCategories, getCities, saveCity } from './dataService';
 import { ensureCategory } from './seedService';
@@ -45,24 +45,52 @@ export interface FeaturedPreview {
     publishNow: FeaturedBusiness[];
     asDraft: FeaturedBusiness[];
     alreadyExists: number;
+    /** Já importadas, ainda sem dono, com informação mais nova no arquivo (checkedAt maior): serão enriquecidas. */
+    toUpdate: { doc: any; data: FeaturedBusiness }[];
 }
+
+/** Só enriquece empresa deste lote que ainda não foi reivindicada e cuja conferência no arquivo é mais nova que a gravada. */
+export const needsEnrichment = (doc: any, f: FeaturedBusiness): boolean =>
+    !!doc && !doc.isClaimed && !doc.ownerId && String(doc.importBatch || '').startsWith('empresas-destaque') &&
+    (f.checkedAt || '') > String(doc.checkedAt || '');
+
+/** Campos que a atualização grava (nunca mexe em plano, fotos, avaliações, dono). */
+export const enrichmentPatch = (f: FeaturedBusiness, wasDraft: boolean, nowIso: string, endsAt: string) => {
+    const complete = isComplete(f);
+    return {
+        description: f.description,
+        address: f.address,
+        neighborhoodName: f.neighborhood || '',
+        phone: f.phone || '', whatsapp: f.whatsapp || '', email: f.email || '',
+        instagram: f.instagram || '', website: f.website || '',
+        amenities: f.amenities || [],
+        openingHours: f.hours || {},
+        sources: f.sources, checkedAt: f.checkedAt,
+        missingFields: missingFields(f),
+        updatedAt: nowIso,
+        // rascunho que ficou completo passa a ir ao ar, com os mesmos 3 meses grátis das demais
+        ...(wasDraft && complete ? { status: 'approved', plan: FREE_TRIAL_PLAN, subscriptionEndsAt: endsAt, courtesyTrial: true, courtesyTrialStartedAt: nowIso } : {}),
+    };
+};
 
 export const previewFeaturedImport = async (): Promise<FeaturedPreview> => {
     const snap = await getDocs(collection(db, 'businesses'));
     const existing = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
     const toCreate: FeaturedBusiness[] = [];
+    const toUpdate: { doc: any; data: FeaturedBusiness }[] = [];
     let alreadyExists = 0;
     for (const f of FEATURED_BUSINESSES) {
         const hit = existing.find(b =>
             b.id === featuredDocId(f) ||
             ((b.cityId || '') === f.cityId && normalize(b.name || '') === normalize(f.name)));
-        if (hit) alreadyExists += 1; else toCreate.push(f);
+        if (hit) { alreadyExists += 1; if (needsEnrichment(hit, f)) toUpdate.push({ doc: hit, data: f }); } else toCreate.push(f);
     }
     return {
         toCreate,
         publishNow: toCreate.filter(isComplete),
         asDraft: toCreate.filter(b => !isComplete(b)),
         alreadyExists,
+        toUpdate,
     };
 };
 
@@ -72,7 +100,7 @@ export const trialEndsAt = (from = new Date()) => {
     return d.toISOString();
 };
 
-export const runFeaturedImport = async (onProgress?: (done: number, total: number) => void): Promise<{ published: number; drafts: number }> => {
+export const runFeaturedImport = async (onProgress?: (done: number, total: number) => void): Promise<{ published: number; drafts: number; updated: number }> => {
     const user = getCurrentUser();
     if (!user || user.role !== UserRole.SUPER_ADMIN) throw new Error('Apenas o administrador pode importar empresas.');
 
@@ -97,7 +125,7 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
     const now = new Date();
     const nowIso = now.toISOString();
     const endsAt = trialEndsAt(now);
-    let published = 0, drafts = 0, done = 0;
+    let published = 0, drafts = 0, done = 0, updated = 0;
 
     for (const b of preview.toCreate) {
         const id = featuredDocId(b);
@@ -140,9 +168,14 @@ export const runFeaturedImport = async (onProgress?: (done: number, total: numbe
         });
         if (complete) published += 1; else drafts += 1;
         done += 1;
-        onProgress?.(done, preview.toCreate.length);
+        onProgress?.(done, preview.toCreate.length + preview.toUpdate.length);
+    }
+    for (const u of preview.toUpdate) {
+        await updateDoc(doc(db, 'businesses', u.doc.id), enrichmentPatch(u.data, u.doc.status === 'draft', nowIso, endsAt));
+        updated += 1; done += 1;
+        onProgress?.(done, preview.toCreate.length + preview.toUpdate.length);
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
-    if (published + drafts > 0) await bumpContentVersion();
-    return { published, drafts };
+    if (published + drafts + updated > 0) await bumpContentVersion();
+    return { published, drafts, updated };
 };

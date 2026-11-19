@@ -20,7 +20,7 @@ export const FeaturedBusinessesImport: React.FC = () => {
     const [preview, setPreview] = useState<FeaturedPreview | null>(null);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-    const [result, setResult] = useState<{ published: number; drafts: number } | null>(null);
+    const [result, setResult] = useState<{ published: number; drafts: number; updated: number } | null>(null);
 
     const loadPreview = async () => {
         setLoading(true);
@@ -30,13 +30,13 @@ export const FeaturedBusinessesImport: React.FC = () => {
     };
 
     const run = async () => {
-        if (!preview || preview.toCreate.length === 0) return;
+        if (!preview || preview.toCreate.length + preview.toUpdate.length === 0) return;
         setLoading(true);
-        setProgress({ done: 0, total: preview.toCreate.length });
+        setProgress({ done: 0, total: preview.toCreate.length + preview.toUpdate.length });
         try {
             const r = await runFeaturedImport((done, total) => setProgress({ done, total }));
             setResult(r);
-            notify('success', `${r.published} empresas no ar e ${r.drafts} rascunhos.`);
+            notify('success', `${r.published} no ar, ${r.drafts} rascunhos, ${r.updated} atualizadas.`);
             setPreview(await previewFeaturedImport());
         } catch (e: any) { notify('error', e?.message || 'Erro ao importar.'); }
         finally { setLoading(false); setProgress(null); }
@@ -67,7 +67,8 @@ export const FeaturedBusinessesImport: React.FC = () => {
                     <div className="flex flex-wrap gap-3 text-sm">
                         <span className="bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg">{preview.publishNow.length} vão ao ar</span>
                         <span className="bg-amber-50 text-amber-700 font-bold px-3 py-1.5 rounded-lg">{preview.asDraft.length} em rascunho (dados faltando)</span>
-                        <span className="bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-lg">{preview.alreadyExists} já existem (pulados)</span>
+                        <span className="bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-lg">{preview.alreadyExists} já existem</span>
+                        <span className="bg-sky-50 text-sky-700 font-bold px-3 py-1.5 rounded-lg">{preview.toUpdate.length} com informação nova para atualizar</span>
                     </div>
 
                     <ul className="space-y-1 max-h-72 overflow-auto text-sm">
@@ -91,14 +92,14 @@ export const FeaturedBusinessesImport: React.FC = () => {
                     {progress && <p className="text-sm text-slate-500">Gravando {progress.done} de {progress.total}…</p>}
                     {result && (
                         <p className="text-sm text-emerald-700 font-bold flex items-center gap-2">
-                            <CheckCircle2 size={16} /> {result.published} no ar com {FREE_TRIAL_DAYS} dias grátis · {result.drafts} rascunhos.
+                            <CheckCircle2 size={16} /> {result.published} no ar com {FREE_TRIAL_DAYS} dias grátis · {result.drafts} rascunhos · {result.updated} atualizadas.
                         </p>
                     )}
 
-                    <button onClick={run} disabled={loading || preview.toCreate.length === 0}
+                    <button onClick={run} disabled={loading || preview.toCreate.length + preview.toUpdate.length === 0}
                         className="bg-ocean-600 text-white font-black px-5 py-3 rounded-xl text-sm flex items-center gap-2 disabled:opacity-50">
                         {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-                        {preview.toCreate.length === 0 ? 'Nada novo para importar' : `Importar ${preview.toCreate.length} empresas`}
+                        {preview.toCreate.length + preview.toUpdate.length === 0 ? 'Nada novo para importar' : `Importar ${preview.toCreate.length} novas e atualizar ${preview.toUpdate.length}`}
                     </button>
                 </div>
             )}
