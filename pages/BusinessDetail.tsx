@@ -240,7 +240,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
         />
         <div className="relative h-[38vh] min-h-[300px] w-full bg-slate-950 flex items-center justify-center overflow-hidden">
             {business.coverImage ? (
-                <img src={business.coverImage} className="w-full h-full object-cover opacity-90 transition-transform duration-700 hover:scale-102" alt={business.name} />
+                <img src={business.coverImage} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-90 transition-transform duration-700 hover:scale-102" alt={business.name} />
             ) : (
                 <div className="flex flex-col items-center text-slate-500 z-10">
                     <Store size={48} className="mb-2 opacity-50" />
@@ -409,7 +409,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                         {business.gallery.map((img, idx) => (
                             <button type="button" key={idx} onClick={() => setLightboxIndex(idx)} aria-label={`Abrir foto ${idx + 1} de ${business.gallery!.length}`}
                                 className={`group relative snap-center shrink-0 w-[78%] sm:w-64 md:w-auto aspect-[4/5] md:aspect-[4/3] rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/60 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ${idx === 0 && business.gallery!.length > 3 ? 'md:col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
-                                <img src={img} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={`${business.name} galeria ${idx + 1}`} />
+                                <img src={img} referrerPolicy="no-referrer" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={`${business.name} galeria ${idx + 1}`} />
                                 <span className="absolute bottom-3 right-3 text-[10px] font-black text-white bg-black/45 backdrop-blur px-2.5 py-1 rounded-full">{idx + 1}/{business.gallery!.length}</span>
                             </button>
                         ))}
@@ -474,7 +474,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                                     className="w-48 bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm cursor-pointer group hover:-translate-y-1 transition-transform"
                                 >
                                     <div className="h-32 w-full overflow-hidden">
-                                        <img src={relBus.coverImage || relBus.logo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={relBus.name}/>
+                                        <img src={relBus.coverImage || relBus.logo} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={relBus.name}/>
                                     </div>
                                     <div className="p-4">
                                         <h4 className="font-bold text-ocean-950 text-sm line-clamp-1">{relBus.name}</h4>
@@ -582,7 +582,8 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
 
                 <div className="w-full max-w-5xl px-4 md:px-16 flex items-center justify-center h-full">
                     <img 
-                        src={business.gallery[lightboxIndex]} 
+                        src={business.gallery[lightboxIndex]}
+                        referrerPolicy="no-referrer"
                         alt={`Galeria ${lightboxIndex + 1}`} 
                         className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
                     />

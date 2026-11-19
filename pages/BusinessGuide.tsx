@@ -889,6 +889,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                   {business.coverImage ? (
                     <img
                       src={business.coverImage}
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover duration-500 group-hover:scale-104 transition-all"
                       alt={business.name}
                     />

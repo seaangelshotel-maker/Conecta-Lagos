@@ -138,7 +138,7 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId
                 className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 active:scale-[0.99] transition cursor-pointer flex"
               >
                 <div className="relative w-32 sm:w-40 shrink-0">
-                  <img src={biz.coverImage} className="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy" />
+                  <img src={biz.coverImage} referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy" />
                   <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-black text-white shadow ${open ? 'bg-emerald-500' : 'bg-slate-500'}`}>
                     {open ? 'Aberto' : 'Fechado'}
                   </span>
