@@ -69,7 +69,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     ],
     source: "https://www.novaondahotel.com.br/pousada-brisa-do-forte" },
   // Pousada Caminho do Sol
-  'emp_arraial_do_cabo_pousada-caminho-do-sol': { key: 'fe5145dccf', coverImage: "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/59ed3641f55345a7898acfb3fd36bea5.jpg",
+  '8mbOtad5nxVNMThEZdu1': { key: 'fe5145dccf', coverImage: "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/59ed3641f55345a7898acfb3fd36bea5.jpg",
     gallery: [
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/398cb58eb5d543f1a4435ffd5b4b4e4b.jpeg",
       "https://hweb-images.br-se1.magaluobjects.com/611283d03c667a50d0165792/990df270ae6a41f8827d74a168a78012.jpg",
@@ -141,7 +141,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     ],
     source: "https://mardegeriba.com.br" },
   // Pousada da Prainha
-  'emp_arraial_do_cabo_pousada-da-prainha': { key: '71b554ae99', coverImage: "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA.jpg",
+  'Efp75piLz0FZvNyprlvD': { key: '71b554ae99', coverImage: "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA.jpg",
     gallery: [
       "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA-2.jpg",
       "https://pousadadaprainha.com/wp-content/uploads/2023/10/WhatsApp-Image-2023-10-16-at-15.13.56.jpeg",
