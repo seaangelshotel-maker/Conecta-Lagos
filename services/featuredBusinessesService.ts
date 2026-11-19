@@ -12,6 +12,7 @@ import { getCurrentUser, getCategories, getCities, saveCity } from './dataServic
 import { ensureCategory } from './seedService';
 import { UserRole } from '../types';
 import { bumpContentVersion } from './contentVersion';
+import { APPROVED_PHOTOS } from '../data/approvedPhotos';
 import {
     FEATURED_BUSINESSES, FEATURED_BATCH, FEATURED_TAXONOMY, FEATURED_NEW_CITIES, FREE_TRIAL_DAYS, FREE_TRIAL_PLAN, FeaturedBusiness,
 } from '../data/featuredBusinesses';
@@ -91,6 +92,13 @@ export const previewFeaturedImport = async (): Promise<FeaturedPreview> => {
             b.id === featuredDocId(f) ||
             ((b.cityId || '') === f.cityId && normalize(b.name || '') === normalize(f.name)));
         if (hit) { alreadyExists += 1; if (needsEnrichment(hit, f)) toUpdate.push({ doc: hit, data: f }); else if (needsPhotosOnly(hit, f)) toUpdate.push({ doc: hit, data: f, photosOnly: true }); } else toCreate.push(f);
+    }
+    // Fotos autorizadas pelo dono (por id do cadastro): troca só as fotos, em empresa ainda sem dono
+    for (const [id, ph] of Object.entries(APPROVED_PHOTOS)) {
+        const hit = existing.find(b => b.id === id);
+        if (hit && !toUpdate.some(u => u.doc.id === id) && needsPhotosOnly(hit, ph as unknown as FeaturedBusiness)) {
+            toUpdate.push({ doc: hit, data: ph as unknown as FeaturedBusiness, photosOnly: true });
+        }
     }
     return {
         toCreate,
