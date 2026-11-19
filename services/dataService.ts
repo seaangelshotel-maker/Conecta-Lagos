@@ -636,7 +636,8 @@ export const getBusinessesPaginated = async (
     }
 
     // Sort by name (since we removed orderBy('name') from the query)
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    // Regra do guia: quem tem foto de capa vem antes (antes de fatiar a página), depois ordem alfabética.
+    filtered.sort((a, b) => (a.coverImage ? 0 : 1) - (b.coverImage ? 0 : 1) || a.name.localeCompare(b.name));
 
     // Paginate in memory
     const startIndex = lastIndex;
