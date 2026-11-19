@@ -62,6 +62,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://www.pousadaarraialcaribe.com.br/wp-content/uploads/2022/12/cafe.jpg",
       "https://www.pousadaarraialcaribe.com.br/wp-content/uploads/2022/12/area-externa-AC.jpg",
     ],
+    info: {"description": "Pousada no canto da Baleia, na ponta direita da Praia dos Anjos, em frente à Marinha do Brasil, numa área segura e tranquila a poucos minutos do Centro Histórico e do ponto de saída dos passeios de barco. Tem ambiente familiar e Wi-Fi gratuito em toda a propriedade. O café da manhã é buffet diário, com frutas da estação, pães, frios, cereais, sucos, tapioca, ovos e misto quente. A rodoviária fica a cerca de 15 minutos a pé.", "amenities": ["wifi", "breakfast"], "address": "Praia dos Anjos (Canto da Baleia), Arraial do Cabo - RJ"},
     source: "https://www.pousadaarraialcaribe.com.br" },
   // Astral Beach Food
   'emp_arraial_do_cabo_astral-beach-food': { key: '5eb7fb159f', info: {"description": "Cozinha de praia com cara de alimento para a alma salgada: poke, sushi grande, burritos e hambúrgueres, com opções veganas no cardápio. Em Arraial do Cabo, funciona em loja e também por delivery e retirada, com pedidos pelo site e pelo WhatsApp.", "amenities": ["delivery"], "instagram": "https://www.instagram.com/astralbeach.food", "website": "https://astralbeach.com.br"},
@@ -293,6 +294,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
       "https://villamares.com.br/wp-content/uploads/2021/06/IMG_3372web-1.jpg",
       "https://villamares.com.br/wp-content/uploads/2021/06/IMG_3370web.jpg",
     ],
+    info: {"description": "Pousada a cerca de 200 metros do centro de São Pedro da Aldeia, perto de restaurantes, lanchonetes, supermercados e farmácias, pensada tanto para quem viaja a trabalho quanto para quem quer curtir a Região dos Lagos. Os quartos têm banheiro privativo com ducha, camas box, ar-condicionado, frigobar, Wi-Fi e telefone, e o café da manhã é servido todos os dias. Cabo Frio, Arraial do Cabo e Búzios ficam a poucos minutos de carro.", "amenities": ["wifi", "ac", "breakfast"], "phone": "(22) 2321-0904"},
     source: "https://villamares.com.br" },
   // Village Itaúna Inn
   'emp_saquarema_village-itauna-inn': { key: '4672cf9301', coverImage: "https://cache.ayrton.net.br/imports/a854a157-f139-4468-bbf5-345b08442c19.jpeg",
