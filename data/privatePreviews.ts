@@ -237,7 +237,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   'emp_cabo_frio_pousada-porto-forte': { key: 'd2aa14ffdb', info: {"description": "Pousada no centro comercial de Cabo Frio, perto de bancos, lojas, farmácias, mercados, bares e da vida noturna da cidade, a poucos minutos a pé da Praia do Forte e do Canal Itajuru. Boa base para quem quer deixar o carro e resolver tudo a pé. Fica na Rua Professor Miguel Couto, no Centro.", "amenities": [], "address": "Rua Professor Miguel Couto, 192 - Centro, Cabo Frio - RJ, 28907-140", "phone": "(22) 2643-1970", "whatsapp": "(22) 99247-9093", "website": "https://www.pousadaportoforte.com.br", "instagram": "https://www.instagram.com/pousadaportoforte"},
     source: "sem foto (aguardando envio do dono)" },
   // Pousada Vista Turquesa
-  'emp_arraial_do_cabo_pousada-vista-turquesa': { key: 'a43ccba29d', source: "sem foto (aguardando envio do dono)" },
+  'emp_arraial_do_cabo_pousada-vista-turquesa': { key: 'a43ccba29d', info: {"address": "Rua José de Castro Neto, Lote 19, Condomínio Pontal do Atalaia, Arraial do Cabo - RJ, 28930-000"},
+    source: "sem foto (aguardando envio do dono)" },
   // Pousada da Prainha
   'Efp75piLz0FZvNyprlvD': { key: '84d03c5862', coverImage: "https://pousadadaprainha.com/wp-content/uploads/2026/02/PISCINA.jpg",
     gallery: [
@@ -250,7 +251,8 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
     info: {"description": "Pousada de pátio interno com piscina ao ar livre (de 1,05 m a 1,30 m de profundidade), na Prainha, em Arraial do Cabo, perto de uma das praias mais procuradas da cidade. As suítes têm ar-condicionado e Wi-Fi gratuito, e a casa oferece mesa de bilhar e atendimento em português, espanhol e inglês. Animais de estimação são aceitos mediante pedido, com possível custo adicional. Fica na Rua Pastor Admardo Machado, 90 (antiga Rua D), no bairro da Prainha.", "amenities": ["ac", "wifi", "pool", "pet"], "address": "Rua Pastor Admardo Machado, 90 (antiga Rua D) - Prainha, Arraial do Cabo - RJ, 28930-000", "phone": "(22) 2622-2512"},
     source: "https://pousadadaprainha.com" },
   // Privilège Búzios
-  'emp_buzios_privilege-buzios': { key: '5ab45f5655', source: "sem foto (aguardando envio do dono)" },
+  'emp_buzios_privilege-buzios': { key: '5ab45f5655', info: {"address": "Avenida José Bento Ribeiro Dantas, 550, Centro, Armação dos Búzios - RJ, 28950-019", "instagram": "https://instagram.com/privilegebuzios"},
+    source: "sem foto (aguardando envio do dono)" },
   // Recanto Suítes
   'emp_araruama_recanto-suites': { key: '684fbb35ff', source: "sem foto (aguardando envio do dono)" },
   // Restaurante Mar.
