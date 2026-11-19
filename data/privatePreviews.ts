@@ -104,7 +104,7 @@ export const PRIVATE_PREVIEWS: Record<string, PrivatePreview> = {
   // Casa da Picanha
   'emp_iguaba_grande_casa-da-picanha': { key: 'dfc4f88272', source: "sem foto (aguardando envio do dono)" },
   // Casa da Piedra
-  'emp_arraial_do_cabo_casa-da-piedra': { key: '533bad5110', info: {"address": "R. Santa Cruz, 4 - Praia dos Anjos, Arraial do Cabo - RJ, 28930-000", "deliveryUrl": "https://casadapiedra.ola.click"},
+  'emp_arraial_do_cabo_casa-da-piedra': { key: '533bad5110', info: {"address": "R. Santa Cruz, 4 - Praia dos Anjos, Arraial do Cabo - RJ, 28930-000", "deliveryUrl": "https://casadapiedra.ola.click", "instagram": "https://www.instagram.com/casadapiedra"},
     source: "sem foto (aguardando envio do dono)" },
   // Casa da Praia Itaúna
   'emp_saquarema_casa-da-praia-itauna': { key: '61b25f1df6', source: "sem foto (aguardando envio do dono)" },
