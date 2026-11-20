@@ -47,11 +47,16 @@ export const PullToRefresh: React.FC = () => {
   const start = useRef<number | null>(null);
   const startX = useRef(0);
   const locked = useRef<'v' | 'h' | null>(null);
+  const lastScroll = useRef(0);
   const native = isNativeApp();
   useEffect(() => {
     if (!native) return;
+    const onScroll = () => { lastScroll.current = Date.now(); if (window.scrollY > 0) { start.current = null; setPull(0); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
     const ts = (e: TouchEvent) => {
-      start.current = window.scrollY <= 0 && e.touches[0].clientX > 24 && !isPullBlocked(e.target) && !inHorizontalScroller(e.target) ? e.touches[0].clientY : null;
+      // só vale se a página já estava parada no topo há um tempo (ignora o final de uma rolagem rápida para cima)
+      const settled = Date.now() - lastScroll.current > 600;
+      start.current = settled && window.scrollY <= 0 && e.touches[0].clientX > 24 && !isPullBlocked(e.target) && !inHorizontalScroller(e.target) ? e.touches[0].clientY : null;
       startX.current = e.touches[0].clientX; locked.current = null;
     };
     const tm = (e: TouchEvent) => {
@@ -61,17 +66,17 @@ export const PullToRefresh: React.FC = () => {
       // trava a direção nos primeiros 12px: só vale puxar se for claramente para baixo (vertical)
       if (!locked.current && (Math.abs(d) > 12 || dx > 12)) locked.current = d > 0 && Math.abs(d) > dx * 2 ? 'v' : 'h';
       if (locked.current !== 'v') { setPull(0); if (locked.current === 'h') start.current = null; return; }
-      if (d > 0 && window.scrollY <= 0) setPull(Math.min(d * 0.5, 90)); else setPull(0);
+      if (d > 0 && window.scrollY <= 0) setPull(Math.min(d * 0.4, 100)); else { setPull(0); if (window.scrollY > 0) start.current = null; }
     };
     const te = () => {
-      if (start.current != null && pull >= 70) { setBusy(true); setTimeout(() => window.location.reload(), 250); }
+      if (start.current != null && pull >= 90) { setBusy(true); setTimeout(() => window.location.reload(), 250); }
       else setPull(0);
       start.current = null;
     };
     window.addEventListener('touchstart', ts, { passive: true });
     window.addEventListener('touchmove', tm, { passive: true });
     window.addEventListener('touchend', te, { passive: true });
-    return () => { window.removeEventListener('touchstart', ts); window.removeEventListener('touchmove', tm); window.removeEventListener('touchend', te); };
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('touchstart', ts); window.removeEventListener('touchmove', tm); window.removeEventListener('touchend', te); };
   }, [native, pull]);
   if (!native || (pull === 0 && !busy)) return null;
   return (
