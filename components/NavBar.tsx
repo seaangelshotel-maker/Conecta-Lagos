@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BellButton } from './NotificationBell';
-import { Home, Ticket, User, Compass, Sparkles, HandHeart } from 'lucide-react';
+import { Home, Ticket, User, Compass, Sparkles, Ship } from 'lucide-react';
 import { User as UserType, UserRole, AppConfig } from '../types';
 import { getAppConfig, getCoupons } from '../services/dataService';
 import { useLanguage } from '../hooks/useLanguage';
@@ -94,9 +94,9 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
         <span className="text-[10px] font-bold">{t('Feed')}</span>
       </button>
 
-      <button data-tour="help" onClick={() => onNavigate('opportunities')} className={tabClass(['opportunities', 'opportunity-detail', 'opportunity-form', 'my-opportunities', 'opportunity-manage'])} aria-current={isActive(['opportunities']) ? 'page' : undefined}>
-        <HandHeart size={22} />
-        <span className="text-[10px] font-bold">{t('Ajuda')}</span>
+      <button data-tour="tours" onClick={() => onNavigate('tours')} className={tabClass(['tours', 'tour-detail', 'my-bookings'])} aria-current={isActive(['tours']) ? 'page' : undefined}>
+        <Ship size={22} />
+        <span className="text-[10px] font-bold">{t('Passeios')}</span>
       </button>
 
       <button
@@ -139,7 +139,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentUser, onNavigate, current
                 </span>
             )}
         </button>
-        <button data-tour="help" onClick={() => onNavigate('opportunities')} className={`font-medium hover:text-gold-500 ${currentPage.startsWith('opportunit') || currentPage === 'my-opportunities' ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Ajuda Colaborativa')}</button>
+        <button data-tour="tours" onClick={() => onNavigate('tours')} className={`font-medium hover:text-gold-500 ${(currentPage === 'tours' || currentPage === 'tour-detail' || currentPage === 'my-bookings') ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Passeios')}</button>
         <button data-tour="feed" onClick={() => onNavigate('blog')} className={`font-medium hover:text-gold-500 ${(currentPage === 'blog' || currentPage === 'blog-detail' || currentPage === 'guide-article') ? 'text-ocean-950' : 'text-slate-500'}`}>{t('Feed & Dicas')}</button>
         
         <button 

@@ -68,7 +68,7 @@ export const cityLandingByCityId = (cityId: string) => CITY_LANDINGS.find(c => c
 
 /** Páginas fixas que existem no app e podem ser indexadas. */
 export const PUBLIC_STATIC_PATHS = [
-  '/', '/descubra', '/blog', '/guide', '/collections', '/ajuda', '/eventos', '/map', '/pricing-plans',
+  '/', '/descubra', '/blog', '/guide', '/collections', '/ajuda', '/eventos', '/passeios', '/map', '/pricing-plans',
   '/privacidade', '/termos', '/excluir-conta',
   ...CITY_LANDINGS.map(c => `/${c.slug}`),
 ];

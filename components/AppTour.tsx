@@ -28,7 +28,7 @@ export const TOUR_STEPS: TourStep[] = [
   { target: 'guide', title: 'Guia', text: 'O coração do app: praias, passeios, restaurantes, hospedagem e serviços, com mapa e como chegar.' },
   { target: 'coupons', title: 'Cupons', text: 'Descontos e benefícios de empresas parceiras. Pegue o cupom e use direto no local.' },
   { target: 'feed', title: 'Feed e dicas', text: 'Notícias, dicas de quem conhece e a agenda de eventos da região.' },
-  { target: 'help', title: 'Ajuda colaborativa', text: 'Diárias, vagas e colaborações perto de você, para quem precisa de gente e para quem quer trabalhar.' },
+  { target: 'tours', title: 'Passeios', text: 'Escolha o passeio, veja no calendário as datas com vaga e peça sua reserva. A operadora confirma pelo WhatsApp.' },
   { target: 'profile', title: 'Sua conta', text: 'Seus cupons, suas avaliações e, se você tem um negócio, o painel da sua empresa.' },
   { title: 'Pronto, pode explorar!', text: 'Qualquer dúvida, o "Como funciona" fica no menu. Boa viagem pela Região dos Lagos!' },
 ];

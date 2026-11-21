@@ -209,3 +209,93 @@ test('pedido de empresa: o autor retira enquanto pendente; aprovado só o admin 
     await assertFails(deleteDoc(doc(as('bruno'), 'companyRequests/r2')));
     await assertSucceeds(deleteDoc(doc(as('adm'), 'companyRequests/r2')));
 });
+
+// ---- Passeios: reservas e vagas ----
+const TOUR = { id: 't1', title: 'Barco', status: 'published', capacityPerSlot: 10, minPeople: 1, maxPeoplePerBooking: 6 };
+const seedTour = async (over: Record<string, unknown> = {}) => env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'tours/t1'), { ...TOUR, ...over });
+});
+const SID = 't1_2026-12-05_0900';
+const bk = (id: string, uid: string, people: number, over: Record<string, unknown> = {}) => ({
+    id, tourId: 't1', tourTitle: 'Barco', operatorName: 'Guida Trips', date: '2026-12-05', time: '09:00', people,
+    customerName: 'Bruno Souza', customerPhone: '22999990000', userId: uid, status: 'pending', createdAt: '2026-11-20T10:00:00Z', ...over,
+});
+const slot = (booked: number, last: string, over: Record<string, unknown> = {}) =>
+    ({ tourId: 't1', date: '2026-12-05', time: '09:00', booked, closed: false, lastBookingId: last, ...over });
+const reserve = (uid: string, id: string, people: number, before: number, over: Record<string, unknown> = {}) => {
+    const db = as(uid); const b = writeBatch(db);
+    b.set(doc(db, 'tourBookings/' + id), bk(id, uid, people, over));
+    b.set(doc(db, 'tourSlots/' + SID), slot(before + people, id));
+    return b.commit();
+};
+
+test('passeios: público lê só publicados; só admin escreve', async () => {
+    await seedTour(); await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), 'tours/t2'), { ...TOUR, id: 't2', status: 'draft' }); });
+    await assertSucceeds(getDoc(doc(as(null), 'tours/t1')));
+    await assertFails(getDoc(doc(as(null), 'tours/t2')));
+    await assertSucceeds(getDoc(doc(as('adm'), 'tours/t2')));
+    await assertFails(setDoc(doc(as('bruno'), 'tours/x'), TOUR));
+    await assertSucceeds(setDoc(doc(as('adm'), 'tours/x'), TOUR));
+});
+test('reserva: logado reserva e o contador sobe junto', async () => {
+    await seedTour();
+    await assertSucceeds(reserve('bruno', 'b1', 3, 0));
+    await assertSucceeds(reserve('ana', 'b2', 4, 3));
+});
+test('reserva: sem login, passando da capacidade ou do limite por reserva é negada', async () => {
+    await seedTour();
+    await assertFails(reserve('bruno', 'b0', 7, 0)); // acima do máximo por reserva (6)
+    await assertSucceeds(reserve('bruno', 'b1', 6, 0));
+    await assertFails(reserve('ana', 'b2', 5, 6)); // 6+5=11 > 10
+    const d = as(null); const b = writeBatch(d);
+    b.set(doc(d, 'tourBookings/b3'), bk('b3', 'x', 1)); b.set(doc(d, 'tourSlots/' + SID), slot(7, 'b3'));
+    await assertFails(b.commit());
+});
+test('reserva: contador adulterado (subir menos que as pessoas) ou em nome de outro é negado', async () => {
+    await seedTour();
+    const db = as('bruno'); const b = writeBatch(db);
+    b.set(doc(db, 'tourBookings/b1'), bk('b1', 'bruno', 5)); b.set(doc(db, 'tourSlots/' + SID), slot(1, 'b1'));
+    await assertFails(b.commit());
+    await assertFails(reserve('bruno', 'b2', 2, 0, { userId: 'ana' }));
+    await assertFails(reserve('bruno', 'b3', 2, 0, { status: 'confirmed' }));
+});
+test('reserva: saída fechada e passeio em rascunho não aceitam', async () => {
+    await seedTour({ status: 'draft' });
+    await assertFails(reserve('bruno', 'b1', 2, 0));
+    await seedTour();
+    await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), 'tourSlots/' + SID), slot(0, 'x', { closed: true })); });
+    await assertFails(reserve('bruno', 'b2', 2, 0));
+});
+test('reserva: só o dono e o admin leem; terceiros não', async () => {
+    await seedTour(); await assertSucceeds(reserve('bruno', 'b1', 2, 0));
+    await assertSucceeds(getDoc(doc(as('bruno'), 'tourBookings/b1')));
+    await assertSucceeds(getDoc(doc(as('adm'), 'tourBookings/b1')));
+    await assertFails(getDoc(doc(as('ana'), 'tourBookings/b1')));
+    await assertFails(getDocs(collection(as('ana'), 'tourBookings')));
+});
+test('cancelar: a pessoa cancela a sua e devolve as vagas; não cancela a de outro nem mexe em outros campos', async () => {
+    await seedTour(); await assertSucceeds(reserve('bruno', 'b1', 3, 0));
+    const db = as('bruno'); const b = writeBatch(db);
+    b.update(doc(db, 'tourBookings/b1'), { status: 'cancelled', cancelledBy: 'customer', updatedAt: 'x' });
+    b.update(doc(db, 'tourSlots/' + SID), { booked: 0, lastBookingId: 'b1' });
+    await assertSucceeds(b.commit());
+    await seedTour(); await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), 'tourBookings/b9'), bk('b9', 'bruno', 2)); await setDoc(doc(c.firestore(), 'tourSlots/' + SID), slot(2, 'b9')); });
+    const o = as('ana'); const b2 = writeBatch(o);
+    b2.update(doc(o, 'tourBookings/b9'), { status: 'cancelled', cancelledBy: 'customer' }); b2.update(doc(o, 'tourSlots/' + SID), { booked: 0, lastBookingId: 'b9' });
+    await assertFails(b2.commit());
+    await assertFails(updateDoc(doc(as('bruno'), 'tourBookings/b9'), { people: 1 }));
+    await assertFails(updateDoc(doc(as('bruno'), 'tourBookings/b9'), { status: 'confirmed' }));
+});
+test('cancelar: contador não pode cair mais que as pessoas da reserva', async () => {
+    await seedTour(); await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), 'tourBookings/b9'), bk('b9', 'bruno', 2)); await setDoc(doc(c.firestore(), 'tourSlots/' + SID), slot(8, 'b9')); });
+    const db = as('bruno'); const b = writeBatch(db);
+    b.update(doc(db, 'tourBookings/b9'), { status: 'cancelled', cancelledBy: 'customer' }); b.update(doc(db, 'tourSlots/' + SID), { booked: 0, lastBookingId: 'b9' });
+    await assertFails(b.commit());
+});
+test('admin confirma reserva e fecha saída; comum não fecha', async () => {
+    await seedTour(); await assertSucceeds(reserve('bruno', 'b1', 2, 0));
+    await assertSucceeds(updateDoc(doc(as('adm'), 'tourBookings/b1'), { status: 'confirmed' }));
+    await assertSucceeds(updateDoc(doc(as('adm'), 'tourSlots/' + SID), { closed: true }));
+    await assertFails(updateDoc(doc(as('bruno'), 'tourSlots/' + SID), { closed: false }));
+    await assertSucceeds(getDoc(doc(as(null), 'tourSlots/' + SID)));
+});

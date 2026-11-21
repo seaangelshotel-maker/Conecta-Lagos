@@ -771,3 +771,84 @@ export interface AppEvent {
   approvedAt?: string;
   approvedBy?: string;
 }
+
+// ===== Passeios (agendamento) =====
+export type TourStatus = 'draft' | 'published' | 'archived';
+export type TourBookingStatus = 'pending' | 'confirmed' | 'cancelled';
+
+export interface TourSchedule {
+  /** Dias da semana em que sai (0 = domingo ... 6 = sábado). */
+  weekdays: number[];
+  /** Horários de saída, "HH:MM". */
+  times: string[];
+  /** Temporada: primeira e última data (YYYY-MM-DD). Vazio = sem limite. */
+  startDate?: string;
+  endDate?: string;
+  /** Datas em que não sai. */
+  blockedDates: string[];
+  /** Saídas extras em datas específicas (além dos dias da semana). */
+  extraDates: { date: string; times: string[] }[];
+}
+
+export interface Tour {
+  id: string;
+  title: string;
+  shortDescription: string;
+  description: string;
+  coverImage: string;
+  gallery: string[];
+  cityId: string;
+  meetingPoint: string;
+  durationText: string;
+  includes: string[];
+  notIncluded: string[];
+  requirements?: string;
+  /** Preço por pessoa em reais (opcional). Sem preço, aparece "Consulte". */
+  price?: number;
+  priceNote?: string;
+  /** Vagas por saída. */
+  capacityPerSlot: number;
+  minPeople: number;
+  maxPeoplePerBooking: number;
+  /** Antecedência mínima para reservar, em horas. */
+  minNoticeHours: number;
+  schedule: TourSchedule;
+  /** Quem opera o passeio (ex.: Guida Trips) e o WhatsApp que recebe as reservas. */
+  operatorName: string;
+  operatorBusinessId?: string;
+  operatorWhatsapp: string;
+  status: TourStatus;
+  featured?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Ocupação de uma saída. Público lê (para mostrar vagas); só reservas e o admin alteram. */
+export interface TourSlot {
+  id: string;
+  tourId: string;
+  date: string;
+  time: string;
+  booked: number;
+  closed?: boolean;
+  lastBookingId?: string;
+}
+
+export interface TourBooking {
+  id: string;
+  tourId: string;
+  tourTitle: string;
+  operatorName: string;
+  date: string;
+  time: string;
+  people: number;
+  customerName: string;
+  customerPhone: string;
+  notes?: string;
+  userId: string;
+  status: TourBookingStatus;
+  createdAt: string;
+  updatedAt?: string;
+  cancelledBy?: 'customer' | 'admin';
+}

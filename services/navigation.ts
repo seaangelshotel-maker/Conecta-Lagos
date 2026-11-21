@@ -8,7 +8,7 @@ const KEY = 'lagos_go_nav_from';
 const PAGE_TO_SOURCE: Record<string, string> = {
     home: 'home', guide: 'guide', search: 'search', map: 'map',
     collections: 'collection', 'collection-detail': 'collection', blog: 'blog', 'blog-detail': 'blog',
-    opportunities: 'opportunities', 'user-dashboard': 'profile',
+    opportunities: 'opportunities', tours: 'tours', 'tour-detail': 'tours', 'user-dashboard': 'profile',
 };
 
 export const setNavigationOrigin = (fromPage: string) => {

@@ -52,6 +52,7 @@ import { GuideContentAdmin } from '../components/admin/GuideContentAdmin';
 import { HomeDiscoveryAdmin } from '../components/admin/HomeDiscoveryAdmin';
 import { HomeEditorialAdmin } from '../components/admin/HomeEditorialAdmin';
 import { EventsManager } from '../components/admin/EventsManager';
+import { ToursManager } from '../components/admin/ToursManager';
 import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PrivacyRequestsAdmin } from '../components/admin/PrivacyRequestsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
@@ -91,8 +92,8 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [showPlanPreview, setShowPlanPreview] = useState(false);
   const NUDGE_KEY = 'lagos_menu_nudge_v1';
   const [menuNudge, setMenuNudge] = useState(false);
-  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'NOTIFICATIONS'>(() => {
-    try { return new URLSearchParams(window.location.search).get('view') === 'events' ? 'EVENTS' : 'HOME'; } catch { return 'HOME'; }
+  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'TOURS' | 'NOTIFICATIONS'>(() => {
+    try { const v = new URLSearchParams(window.location.search).get('view'); return v === 'events' ? 'EVENTS' : v === 'tours' ? 'TOURS' : 'HOME'; } catch { return 'HOME'; }
   });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -790,6 +791,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <button onClick={() => setView('NOTIFICATIONS')} data-testid="admin-notifications-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-ocean-600 mb-1">Notificações</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Gere avisos por categoria (eventos, cupons, notícias, ajuda) e envie para o app.</p>
+                              </button>
+                              <button onClick={() => setView('TOURS')} data-testid="admin-tours-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-ocean-600 mb-1">Passeios e reservas</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Cadastre passeios (Guida Trips e parceiros), agenda, vagas e confirme reservas.</p>
                               </button>
                               <button onClick={() => setView('EVENTS')} data-testid="admin-events-tile" className="bg-slate-50 hover:bg-ocean-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-ocean-600 mb-1">Agenda de eventos</h4>
@@ -2982,6 +2987,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
       {view === 'EVENTS' && (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) && (
           <EventsManager currentUser={currentUser} myBusiness={myBusiness} onNavigate={onNavigate} />
+      )}
+
+      {view === 'TOURS' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <ToursManager />
       )}
 
       {view === 'NOTIFICATIONS' && currentUser.role === UserRole.SUPER_ADMIN && (

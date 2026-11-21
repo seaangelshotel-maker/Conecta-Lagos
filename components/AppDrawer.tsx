@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { openLink } from '../services/native';
 import { Bell,
-  Home, Compass, Ticket, Sparkles, HandHeart, CalendarDays, Map as MapIcon, Layers, Megaphone,
+  Home, Compass, Ticket, Sparkles, HandHeart, Ship, CalendarDays, Map as MapIcon, Layers, Megaphone,
   User as UserIcon, LogIn, Share2, Star, Mail, ShieldCheck, FileText, X, ChevronRight, Menu, RefreshCw,
 } from 'lucide-react';
 import { User as UserType } from '../types';
@@ -78,6 +78,7 @@ export const AppDrawer: React.FC<Props> = ({ currentUser, currentPage, onNavigat
     { label: 'Mapa', icon: <MapIcon size={20} />, page: 'map', active: ['map'] },
     { label: 'Cupons e ofertas', icon: <Ticket size={20} />, page: 'search', active: ['search'] },
     { label: 'Avisos', icon: <Bell size={20} />, page: 'notifications', active: ['notifications'] },
+    { label: 'Passeios', icon: <Ship size={20} />, page: 'tours', active: ['tours', 'tour-detail', 'my-bookings'] },
     { label: 'Eventos', icon: <CalendarDays size={20} />, page: 'events', active: ['events', 'event-detail'] },
     { label: 'Feed e dicas', icon: <Sparkles size={20} />, page: 'blog', active: ['blog', 'blog-detail'] },
     { label: 'Coleções', icon: <Layers size={20} />, page: 'collections', active: ['collections', 'collection-detail'] },

@@ -4,7 +4,7 @@ import {
   Plus, Ticket, Store, Star, 
   Settings, BarChart3, Users,
   Utensils, MapPin, Layers, Zap,
-  PenTool, ShoppingBag, CreditCard, QrCode, HardDrive, ShieldAlert, Network, CalendarDays, Globe2
+  PenTool, ShoppingBag, CreditCard, QrCode, HardDrive, ShieldAlert, Network, CalendarDays, Globe2, Ship
 } from 'lucide-react';
 import { User, UserRole } from '../../types';
 
@@ -43,6 +43,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       >
         <QrCode size={16} className="md:w-[18px] md:h-[18px]" /> RESGATES
       </button>
+
+      {isSuperAdmin && (
+        <button
+          onClick={() => setView('TOURS')}
+          data-testid="tab-tours"
+          className={`px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs transition-all flex items-center gap-2 whitespace-nowrap ${view === 'TOURS' ? 'bg-ocean-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-ocean-600 shadow-sm'}`}
+        >
+          <Ship size={16} className="md:w-[18px] md:h-[18px]" /> PASSEIOS
+        </button>
+      )}
 
       <button 
         onClick={() => setView('EVENTS')} 

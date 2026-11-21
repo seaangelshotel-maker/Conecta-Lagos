@@ -812,5 +812,116 @@ service cloud.firestore {
       allow read: if isAdmin() || (isAuthenticated() && resource.data.reporterId == uid());
       allow update, delete: if isAdmin();
     }
+
+    // ===============================================================
+    // Passeios: catálogo (só admin edita), ocupação das saídas e reservas.
+    // A reserva e o contador de vagas da saída são gravados juntos (transação):
+    // as regras conferem, com getAfter, que o contador subiu exatamente o número
+    // de pessoas da reserva e que não passou da capacidade.
+    // ===============================================================
+
+    function tourPath(tourId) {
+      return /databases/$(database)/documents/tours/$(tourId);
+    }
+
+    function tourBookingPath(bookingId) {
+      return /databases/$(database)/documents/tourBookings/$(bookingId);
+    }
+
+    function tourSlotPath(tourId, date, time) {
+      return /databases/$(database)/documents/tourSlots/$(tourId + '_' + date + '_' + time.replace(':', ''));
+    }
+
+    function validTourDate(v) {
+      return v is string && v.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
+    }
+
+    function validTourTime(v) {
+      return v is string && v.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    // Reserva nova: dados válidos, passeio publicado, dentro dos limites do passeio e com o contador da saída
+    // atualizado na mesma gravação (sem passar da capacidade e sem a saída estar fechada).
+    function validNewTourBooking(bookingId, d) {
+      let tour = get(tourPath(d.tourId)).data;
+      let slotPath = tourSlotPath(d.tourId, d.date, d.time);
+      let before = exists(slotPath) ? get(slotPath).data.booked : 0;
+      let wasClosed = exists(slotPath) ? get(slotPath).data.get('closed', false) : false;
+      let after = getAfter(slotPath).data;
+      return d.keys().hasOnly(['id', 'tourId', 'tourTitle', 'operatorName', 'date', 'time', 'people', 'customerName',
+                'customerPhone', 'notes', 'userId', 'status', 'createdAt'])
+        && d.id == bookingId
+        && tour.status == 'published'
+        && validTourDate(d.date) && validTourTime(d.time)
+        && d.people is int && d.people >= tour.minPeople && d.people <= tour.maxPeoplePerBooking
+        && isShortString(d.customerName, 100) && d.customerName.size() >= 3
+        && isShortString(d.customerPhone, 20)
+        && d.get('notes', '') is string && d.get('notes', '').size() <= 500
+        && isShortString(d.tourTitle, 160) && isShortString(d.operatorName, 120)
+        && wasClosed == false
+        && after.tourId == d.tourId && after.date == d.date && after.time == d.time
+        && after.booked == before + d.people
+        && after.booked <= tour.capacityPerSlot
+        && after.get('closed', false) == false
+        && after.lastBookingId == bookingId;
+    }
+
+    match /tours/{tourId} {
+      allow get, list: if resource.data.get('status', '') == 'published' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /tourSlots/{slotId} {
+      allow get, list: if true;
+      allow delete: if isAdmin();
+      allow create: if isAdmin() || (
+        isAuthenticated() && isNotBlocked()
+        && request.resource.data.keys().hasOnly(['tourId', 'date', 'time', 'booked', 'closed', 'lastBookingId'])
+        && request.resource.data.get('closed', false) == false
+        && !exists(tourBookingPath(request.resource.data.lastBookingId))
+        && existsAfter(tourBookingPath(request.resource.data.lastBookingId))
+        && getAfter(tourBookingPath(request.resource.data.lastBookingId)).data.userId == uid()
+        && getAfter(tourBookingPath(request.resource.data.lastBookingId)).data.people == request.resource.data.booked
+      );
+      allow update: if isAdmin() || (
+        isAuthenticated() && isNotBlocked()
+        && request.resource.data.tourId == resource.data.tourId
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.time == resource.data.time
+        && request.resource.data.get('closed', false) == resource.data.get('closed', false)
+        && request.resource.data.booked >= 0
+        && (
+          // nova reserva
+          (!exists(tourBookingPath(request.resource.data.lastBookingId))
+            && existsAfter(tourBookingPath(request.resource.data.lastBookingId))
+            && getAfter(tourBookingPath(request.resource.data.lastBookingId)).data.userId == uid()
+            && getAfter(tourBookingPath(request.resource.data.lastBookingId)).data.people
+                == request.resource.data.booked - resource.data.booked)
+          // cancelamento de reserva da própria pessoa
+          || (exists(tourBookingPath(request.resource.data.lastBookingId))
+            && get(tourBookingPath(request.resource.data.lastBookingId)).data.userId == uid()
+            && get(tourBookingPath(request.resource.data.lastBookingId)).data.status != 'cancelled'
+            && getAfter(tourBookingPath(request.resource.data.lastBookingId)).data.status == 'cancelled'
+            && get(tourBookingPath(request.resource.data.lastBookingId)).data.people
+                == resource.data.booked - request.resource.data.booked)
+        )
+      );
+    }
+
+    match /tourBookings/{bookingId} {
+      allow get, list: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'pending'
+        && validNewTourBooking(bookingId, request.resource.data);
+      allow update: if isAdmin() || (
+        isAuthenticated() && resource.data.userId == uid()
+        && resource.data.status != 'cancelled'
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.get('cancelledBy', '') == 'customer'
+        && changedKeys().hasOnly(['status', 'cancelledBy', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
+    }
   }
 }

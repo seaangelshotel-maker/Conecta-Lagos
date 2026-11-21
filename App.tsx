@@ -43,6 +43,9 @@ const MapPage = lazy(() => import('./pages/MapPage').then(m => ({ default: m.Map
 const CreateBusiness = lazy(() => import('./pages/CreateBusiness').then(m => ({ default: m.CreateBusiness })));
 const PricingPlans = lazy(() => import('./pages/PricingPlans').then(m => ({ default: m.PricingPlans })));
 const OpportunitiesPage = lazy(() => import('./pages/Opportunities').then(m => ({ default: m.OpportunitiesPage })));
+const Tours = lazy(() => import('./pages/Tours').then(m => ({ default: m.Tours })));
+const TourDetail = lazy(() => import('./pages/TourDetail').then(m => ({ default: m.TourDetail })));
+const MyBookings = lazy(() => import('./pages/MyBookings').then(m => ({ default: m.MyBookings })));
 const Events = lazy(() => import('./pages/Events').then(m => ({ default: m.Events })));
 const EventDetail = lazy(() => import('./pages/EventDetail').then(m => ({ default: m.EventDetail })));
 const OpportunityDetail = lazy(() => import('./pages/OpportunityDetail').then(m => ({ default: m.OpportunityDetail })));
@@ -83,6 +86,12 @@ const parseUrl = (): Route => {
   if (path === '/eventos') return { page: 'events', params: null };
   const eventMatch = path.match(/^\/eventos\/([^/]+)/);
   if (eventMatch) return { page: 'event-detail', params: { eventId: decodeURIComponent(eventMatch[1]) } };
+
+  // Passeios
+  if (path === '/passeios') return { page: 'tours', params: null };
+  if (path === '/passeios/minhas') return { page: 'my-bookings', params: null };
+  const tourMatch = path.match(/^\/passeios\/([^/]+)/);
+  if (tourMatch) return { page: 'tour-detail', params: { tourId: decodeURIComponent(tourMatch[1]) } };
 
   // Ajuda Colaborativa
   if (path === '/ajuda') return { page: 'opportunities', params: null };
@@ -154,6 +163,9 @@ const buildUrl = (page: string, params?: any): string => {
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
     case 'admin-dashboard': return '/admin-dashboard' + (params?.view ? `?view=${encodeURIComponent(params.view)}` : '');
+    case 'tours': return '/passeios';
+    case 'my-bookings': return '/passeios/minhas';
+    case 'tour-detail': return `/passeios/${id(params?.tourId)}`;
     case 'events': return '/eventos';
     case 'event-detail': return `/eventos/${id(params?.eventId)}`;
     case 'journalist-dashboard': return '/journalist-dashboard';
@@ -175,11 +187,11 @@ const buildUrl = (page: string, params?: any): string => {
 /** Telas que exigem login. Ao entrar, a pessoa volta para a tela que pediu. */
 const AUTH_PAGES = new Set([
   'user-dashboard', 'admin-dashboard', 'journalist-dashboard', 'create-business',
-  'opportunity-form', 'my-opportunities', 'opportunity-manage'
+  'opportunity-form', 'my-opportunities', 'opportunity-manage', 'my-bookings'
 ]);
 
 /** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
-const FULLSCREEN_PAGES = new Set(['notifications', 'event-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
+const FULLSCREEN_PAGES = new Set(['notifications', 'event-detail', 'tour-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -365,6 +377,12 @@ function AppContent() {
          return <MapPage />;
       case 'opportunities':
         return <OpportunitiesPage currentUser={user} onNavigate={handleNavigate} />;
+      case 'tours':
+        return <Tours currentUser={user} onNavigate={handleNavigate} />;
+      case 'tour-detail':
+        return <TourDetail key={pageParams?.tourId} tourId={pageParams?.tourId} currentUser={user} onNavigate={handleNavigate} />;
+      case 'my-bookings':
+        return <MyBookings currentUser={user!} onNavigate={handleNavigate} />;
       case 'events':
         return <Events currentUser={user} onNavigate={handleNavigate} />;
       case 'event-detail':

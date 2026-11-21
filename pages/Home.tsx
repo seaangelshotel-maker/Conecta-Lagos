@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Gem, ArrowRight, Menu } from 'lucide-react';
+import { Sparkles, Gem, ArrowRight, Menu, HandHeart } from 'lucide-react';
 import { CategoryIcon } from '../components/categoryIcons';
 import { useHomeConfig } from '../services/homeConfigService';
 import { BlogPost, BusinessProfile, Collection, Coupon, HomeHighlight, User } from '../types';
@@ -300,6 +300,15 @@ export const Home: React.FC<HomeProps> = ({ currentUser, onNavigate }) => {
         <PartnerBanners />
 
         <div className="px-4"><SpecialistReferral source="home" /></div>
+
+        <div className="px-4 pb-2">
+          <button onClick={() => onNavigate('opportunities')} data-testid="home-help-link"
+            className="w-full flex items-center gap-3 text-left rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-slate-500 hover:bg-white">
+            <HandHeart size={18} className="shrink-0 text-ocean-500" />
+            <span className="text-xs leading-snug"><b className="text-ocean-800">Ajuda colaborativa:</b> diárias, vagas e colaborações perto de você.</span>
+            <ArrowRight size={14} className="ml-auto shrink-0" />
+          </button>
+        </div>
       </div>
       <NewsletterSignup source="home" />
       <LegalFooter onNavigate={onNavigate} />
