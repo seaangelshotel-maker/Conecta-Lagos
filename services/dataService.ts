@@ -776,11 +776,8 @@ export const searchBusinesses = async (searchQuery: string, category?: string, l
     });
 
     if (searchQuery) {
-        const s = searchQuery.toLowerCase();
-        return results.filter(b => 
-            (b.name || '').toLowerCase().includes(s) || 
-            (b.description || '').toLowerCase().includes(s)
-        );
+        const { smartSearch } = await import('./smartSearch');
+        return smartSearch(results, searchQuery);
     }
     
     return results;

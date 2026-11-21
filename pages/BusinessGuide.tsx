@@ -1,3 +1,4 @@
+import { smartSearch } from "../services/smartSearch";
 import React, { useState, useEffect } from "react";
 import { prioritizeWithCover } from "../services/discoverLogic";
 import { planRank } from '../services/planRules';
@@ -358,14 +359,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
   useEffect(() => {
     let result = [...businesses];
 
-    if (query) {
-      const q = query.toLowerCase();
-      result = result.filter(
-        (b) =>
-          (b.name || "").toLowerCase().includes(q) ||
-          (b.description || "").toLowerCase().includes(q),
-      );
-    }
+    if (query) result = smartSearch(result, query);
 
     if (selectedCategory !== "Todos")
       result = result.filter((b) => b.category === selectedCategory);
@@ -461,7 +455,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
       }
     }
 
-    setFiltered(prioritizeWithCover(result));
+    setFiltered(query ? result : prioritizeWithCover(result));
   }, [
     query,
     selectedCategory,

@@ -56,6 +56,7 @@ export interface CategoryConfig {
 }
 
 import { EditorialConfig, normalizeEditorial } from './editorialPick';
+import { smartSearch } from './smartSearch';
 
 export interface HomeDiscoveryConfig { placesPerCategory: number; categories: CategoryConfig[]; editorial?: EditorialConfig; updatedAt?: string; }
 
@@ -175,8 +176,11 @@ export const prioritizeWithCover = (list: BusinessProfile[]): BusinessProfile[] 
     .sort((x, y) => (x[0].coverImage ? 0 : 1) - (y[0].coverImage ? 0 : 1) || x[1] - y[1])
     .map(x => x[0]);
 
-export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] =>
-  prioritizeWithCover(filterBusinessesRaw(all, st));
+export const filterBusinesses = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
+  const r = filterBusinessesRaw(all, st);
+  // Com busca por texto, a relevância manda (a busca já põe quem tem foto na frente em empate).
+  return norm(st.query) && !st.filterId ? r : prioritizeWithCover(r);
+};
 
 const filterBusinessesRaw = (all: BusinessProfile[], st: DiscoverState): BusinessProfile[] => {
   let list = all.filter(b => !b.isBlocked && (!b.status || b.status === 'approved'));
@@ -186,14 +190,7 @@ const filterBusinessesRaw = (all: BusinessProfile[], st: DiscoverState): Busines
     if (cat) list = list.filter(cat.match);
   }
   if (st.amenities?.length) list = list.filter(b => st.amenities!.every(a => hasAmenity(b, a, st.amenityDefs)));
-  const q = norm(st.query);
-  if (q) {
-    const terms = q.split(/\s+/).filter(Boolean);
-    list = list.filter(b => {
-      const text = norm([b.name, b.category, b.subcategory, b.description, b.address, (b.amenities || []).join(' ')].join(' '));
-      return terms.every(t => text.includes(t));
-    });
-  }
+  if (norm(st.query)) list = smartSearch(list, st.query || '');
   switch (st.filterId) {
     case 'populares': return [...list].sort((a, b) => popularity(b) - popularity(a) || a.name.localeCompare(b.name));
     case 'melhores': return list.filter(b => realRating(b) > 0).sort((a, b) => realRating(b) - realRating(a));
