@@ -12,7 +12,8 @@ import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, 
 import { db } from './firebase';
 import { getCurrentUser } from './dataService';
 import { Tour, TourBooking, TourSlot, User, UserRole } from '../types';
-import { BookingInput, brtDate, cleanPhone, slotId, validateBooking } from './tourRules';
+import { TOUR_DRAFTS } from '../data/tourDrafts';
+import { BookingInput, brtDate, cleanPhone, findPackage, slotId, validateBooking } from './tourRules';
 
 const TOURS = 'tours';
 const SLOTS = 'tourSlots';
@@ -90,10 +91,12 @@ export const createBooking = async (tour: Tour, input: BookingInput): Promise<To
   const sid = slotId(tour.id, input.date, input.time);
   const slotRef = doc(db, SLOTS, sid);
   const bookingRef = doc(collection(db, BOOKINGS));
+  const pkg = findPackage(tour, input.packageId);
   const booking: TourBooking = {
     id: bookingRef.id, tourId: tour.id, tourTitle: tour.title, operatorName: tour.operatorName,
     date: input.date, time: input.time, people: input.people, customerName: input.customerName.trim(),
     customerPhone: cleanPhone(input.customerPhone), userId: user.id, status: 'pending', createdAt: new Date().toISOString(),
+    ...(pkg ? { packageId: pkg.id, packageName: pkg.name, packagePrice: pkg.price } : {}),
     ...((input.notes || '').trim() ? { notes: input.notes!.trim() } : {}),
   };
   await runTransaction(db, async tx => {
@@ -193,4 +196,19 @@ export const getUpcomingSlotsAdmin = async (tourId: string): Promise<TourSlot[]>
   const all = Object.values(await getTourSlots(tourId));
   const today = brtDate();
   return all.filter(s => s.date >= today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+};
+
+/** Importa os rascunhos de data/tourDrafts.ts. Idempotente: não sobrescreve passeios que já existem. */
+export const adminImportTourDrafts = async (): Promise<{ created: number; skipped: number }> => {
+  requireAdmin();
+  const now = new Date().toISOString();
+  let created = 0, skipped = 0;
+  for (const t of TOUR_DRAFTS) {
+    const ref = doc(db, TOURS, t.id);
+    if ((await getDoc(ref)).exists()) { skipped++; continue; }
+    await setDoc(ref, clean({ ...t, status: 'draft', createdAt: now, updatedAt: now }));
+    created++;
+  }
+  notifyChanged();
+  return { created, skipped };
 };

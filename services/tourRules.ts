@@ -90,9 +90,12 @@ export const departureDates = (tour: Tour, now = new Date(), horizonDays = 365):
 };
 
 export interface BookingInput {
-  date: string; time: string; people: number; customerName: string; customerPhone: string; notes?: string;
+  date: string; time: string; people: number; customerName: string; customerPhone: string; notes?: string; packageId?: string;
 }
 export type BookingErrors = Partial<Record<keyof BookingInput | 'slot', string>>;
+
+/** Pacote escolhido na reserva (ou undefined se o passeio não tem pacotes ou o id não existe). */
+export const findPackage = (t: Pick<Tour, 'packages'>, id?: string) => (t.packages || []).find(p => p.id === id);
 
 export const cleanPhone = (p: string) => (p || '').replace(/\D/g, '');
 
@@ -113,6 +116,7 @@ export const validateBooking = (tour: Tour, b: BookingInput, slot: Pick<TourSlot
   if (!Number.isInteger(b.people) || b.people < 1) e.people = 'Informe quantas pessoas vão.';
   else if (b.people < (tour.minPeople || 1)) e.people = `Mínimo de ${tour.minPeople} pessoas para esse passeio.`;
   else if (b.people > (tour.maxPeoplePerBooking || tour.capacityPerSlot)) e.people = `Máximo de ${tour.maxPeoplePerBooking || tour.capacityPerSlot} pessoas por reserva.`;
+  if ((tour.packages || []).length > 0 && !findPackage(tour, b.packageId)) e.packageId = 'Escolha o pacote.';
   if ((b.customerName || '').trim().length < 3) e.customerName = 'Informe seu nome.';
   const ph = cleanPhone(b.customerPhone);
   if (ph.length < 10 || ph.length > 13) e.customerPhone = 'Informe um WhatsApp com DDD.';
@@ -120,7 +124,7 @@ export const validateBooking = (tour: Tour, b: BookingInput, slot: Pick<TourSlot
   return e;
 };
 
-export type TourErrors = Partial<Record<'title' | 'shortDescription' | 'description' | 'meetingPoint' | 'operatorName' | 'operatorWhatsapp' | 'capacityPerSlot' | 'minPeople' | 'maxPeoplePerBooking' | 'schedule' | 'price' | 'coverImage', string>>;
+export type TourErrors = Partial<Record<'title' | 'shortDescription' | 'description' | 'meetingPoint' | 'operatorName' | 'operatorWhatsapp' | 'capacityPerSlot' | 'minPeople' | 'maxPeoplePerBooking' | 'schedule' | 'price' | 'coverImage' | 'packages', string>>;
 
 /** Valida o cadastro de um passeio (admin). Para publicar exige tudo; rascunho exige só o título. */
 export const validateTour = (t: Partial<Tour>, publish: boolean): TourErrors => {
@@ -141,6 +145,10 @@ export const validateTour = (t: Partial<Tour>, publish: boolean): TourErrors => 
   const max = Number(t.maxPeoplePerBooking);
   if (!Number.isInteger(max) || max < min || max > cap) e.maxPeoplePerBooking = 'Máximo por reserva entre o mínimo e o total de vagas.';
   if (t.price != null && !(Number(t.price) >= 0)) e.price = 'Preço inválido.';
+  const pk = t.packages || [];
+  if (pk.length > 4) e.packages = 'No máximo 4 pacotes.';
+  else if (pk.some(x => (x.name || '').trim().length < 2 || !(Number(x.price) > 0))) e.packages = 'Cada pacote precisa de nome e preço maior que zero.';
+  else if (new Set(pk.map(x => x.id)).size !== pk.length) e.packages = 'Pacotes repetidos.';
   const s = t.schedule;
   const hasRegular = !!s && (s.weekdays || []).length > 0 && (s.times || []).length > 0;
   const hasExtra = !!s && (s.extraDates || []).some(x => isDate(x.date) && (x.times || []).length > 0);
@@ -149,14 +157,28 @@ export const validateTour = (t: Partial<Tour>, publish: boolean): TourErrors => 
   return e;
 };
 
-/** Texto do preço para exibir. */
-export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote'>): string =>
-  t.price != null && t.price > 0
-    ? `R$ ${t.price.toLocaleString('pt-BR', { minimumFractionDigits: t.price % 1 ? 2 : 0, maximumFractionDigits: 2 })} por pessoa`
-    : (t.priceNote || 'Consulte o valor');
+const brl = (n: number, min = 2) => `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: min, maximumFractionDigits: 2 })}`;
 
-export const totalLabel = (t: Pick<Tour, 'price'>, people: number): string | null =>
-  t.price != null && t.price > 0 && people > 0 ? `R$ ${(t.price * people).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
+/** Menor preço por pessoa entre os pacotes (ou o preço do passeio). */
+export const minPrice = (t: Pick<Tour, 'price' | 'packages'>): number | undefined => {
+  const prices = (t.packages || []).map(p => p.price).filter(n => n > 0);
+  if (prices.length) return Math.min(...prices);
+  return t.price != null && t.price > 0 ? t.price : undefined;
+};
+
+/** Texto do preço para exibir. Com pacotes: "A partir de R$ X por pessoa". */
+export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages'>): string => {
+  const m = minPrice(t);
+  if (m == null) return t.priceNote || 'Consulte o valor';
+  const v = brl(m, m % 1 ? 2 : 0);
+  return (t.packages || []).length > 1 ? `A partir de ${v} por pessoa` : `${v} por pessoa`;
+};
+
+/** Total estimado; com pacotes, usa o pacote escolhido. */
+export const totalLabel = (t: Pick<Tour, 'price' | 'packages'>, people: number, packageId?: string): string | null => {
+  const unit = (t.packages || []).length ? findPackage(t, packageId)?.price : t.price;
+  return unit != null && unit > 0 && people > 0 ? brl(unit * people) : null;
+};
 
 export const formatDateBR = (date: string): string => {
   if (!isDate(date)) return date;
@@ -165,8 +187,8 @@ export const formatDateBR = (date: string): string => {
 };
 
 /** Mensagem pronta para o WhatsApp da operadora. */
-export const bookingWhatsappText = (b: Pick<TourBooking, 'tourTitle' | 'date' | 'time' | 'people' | 'customerName' | 'notes'>): string =>
-  [`Olá! Fiz um pedido de reserva pelo Lagos GO.`, ``, `Passeio: ${b.tourTitle}`, `Data: ${formatDateBR(b.date)} às ${b.time}`,
+export const bookingWhatsappText = (b: Pick<TourBooking, 'tourTitle' | 'date' | 'time' | 'people' | 'customerName' | 'notes'> & Partial<Pick<TourBooking, 'packageName'>>): string =>
+  [`Olá! Fiz um pedido de reserva pelo Lagos GO.`, ``, `Passeio: ${b.tourTitle}`, b.packageName ? `Pacote: ${b.packageName}` : '', `Data: ${formatDateBR(b.date)} às ${b.time}`,
     `Pessoas: ${b.people}`, `Nome: ${b.customerName}`, b.notes ? `Obs.: ${b.notes}` : '', ``, `Pode confirmar?`].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
 
 export const whatsappLink = (phone: string, text: string): string => {

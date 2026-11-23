@@ -85,3 +85,16 @@ test('textos: preço, total e WhatsApp', () => {
   assert.ok(url.startsWith('https://wa.me/5522999998888?text='));
   assert.ok(decodeURIComponent(url).includes('Sáb, 21/11/2026 às 09:00'));
 });
+
+test('pacotes: preço "a partir de", total por pacote e pacote obrigatório na reserva', () => {
+  const t = tour({ price: undefined, packages: [{ id: 'b', name: 'Básico', price: 49.99, includes: ['Água livre'] }, { id: 'c', name: 'Completo', price: 99.99, includes: ['Almoço'] }] });
+  assert.match(priceLabel(t), /A partir de R\$\s?49,99 por pessoa/);
+  assert.match(totalLabel(t, 2, 'c') || '', /199,98/);
+  assert.equal(totalLabel(t, 2), null);
+  const ok = { date: '2026-11-21', time: '14:00', people: 2, customerName: 'Ana Souza', customerPhone: '(22) 99999-1111' };
+  assert.ok(validateBooking(t, ok, undefined, NOW).packageId);
+  assert.ok(validateBooking(t, { ...ok, packageId: 'x' }, undefined, NOW).packageId);
+  assert.equal(validateBooking(t, { ...ok, packageId: 'b' }, undefined, NOW).packageId, undefined);
+  assert.ok(validateTour({ ...t, packages: [{ id: 'z', name: 'A', price: 0, includes: [] }] }, true).packages);
+  assert.match(bookingWhatsappText({ tourTitle: 'X', date: '2026-11-21', time: '14:00', people: 2, customerName: 'Ana', packageName: 'Completo' }), /Pacote: Completo/);
+});

@@ -849,8 +849,9 @@ service cloud.firestore {
       let wasClosed = exists(slotPath) ? get(slotPath).data.get('closed', false) : false;
       let after = getAfter(slotPath).data;
       return d.keys().hasOnly(['id', 'tourId', 'tourTitle', 'operatorName', 'date', 'time', 'people', 'customerName',
-                'customerPhone', 'notes', 'userId', 'status', 'createdAt'])
+                'customerPhone', 'notes', 'userId', 'status', 'createdAt', 'packageId', 'packageName', 'packagePrice'])
         && d.id == bookingId
+        && (!('packageId' in d) || (isShortString(d.packageId, 40) && isShortString(d.packageName, 80) && d.packagePrice is number && d.packagePrice > 0 && d.packagePrice < 100000))
         && tour.status == 'published'
         && validTourDate(d.date) && validTourTime(d.time)
         && d.people is int && d.people >= tour.minPeople && d.people <= tour.maxPeoplePerBooking

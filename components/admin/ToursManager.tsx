@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ship, Plus, Pencil, Trash2, Check, X, Loader2, MessageCircle, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import { BusinessProfile, Tour, TourBooking, TourSlot, TourSchedule } from '../../types';
 import {
-  adminConfirmBooking, adminDeleteTour, adminSaveTour, adminSetSlotClosed, adminSetTourStatus, cancelBooking, getAllBookingsAdmin,
+  adminConfirmBooking, adminDeleteTour, adminImportTourDrafts, adminSaveTour, adminSetSlotClosed, adminSetTourStatus, cancelBooking, getAllBookingsAdmin,
   getAllToursAdmin, getUpcomingSlotsAdmin,
 } from '../../services/tourService';
 import { getBusinesses, getGlobalSettings } from '../../services/dataService';
@@ -35,6 +35,7 @@ const TourForm: React.FC<{
   const [times, setTimes] = useState((initial?.schedule?.times || []).join(', '));
   const [blocked, setBlocked] = useState((initial?.schedule?.blockedDates || []).join(', '));
   const [extra, setExtra] = useState((initial?.schedule?.extraDates || []).map(x => `${x.date} ${x.times.join(' ')}`).join('\n'));
+  const [pkgs, setPkgs] = useState<{ id: string; name: string; price: string; includes: string }[]>(() => (initial?.packages || []).map(x => ({ id: x.id, name: x.name, price: String(x.price), includes: x.includes.join('\n') })));
   const [errors, setErrors] = useState<TourErrors>({});
   const set = (p: Partial<typeof v>) => setV(prev => ({ ...prev, ...p }));
   const setSched = (p: Partial<TourSchedule>) => setV(prev => ({ ...prev, schedule: { ...prev.schedule, ...p } }));
@@ -51,7 +52,8 @@ const TourForm: React.FC<{
     const parsedTimes = times.split(/[,\s]+/).filter(isTime);
     const blockedDates = blocked.split(/[,\s]+/).filter(isDate);
     const extraDates = lines(extra).map(l => { const [d, ...t] = l.split(/\s+/); return { date: d, times: t.filter(isTime) }; }).filter(x => isDate(x.date) && x.times.length);
-    return { ...v, includes: lines(inc), notIncluded: lines(exc), schedule: { ...v.schedule, times: parsedTimes, blockedDates, extraDates } };
+    const packages = pkgs.filter(x => x.name.trim() || x.price).map(x => ({ id: x.id, name: x.name.trim(), price: Number(String(x.price).replace(',', '.')) || 0, includes: lines(x.includes) }));
+    return { ...v, packages: packages.length ? packages : undefined, includes: lines(inc), notIncluded: lines(exc), schedule: { ...v.schedule, times: parsedTimes, blockedDates, extraDates } };
   };
   const submit = (publish: boolean) => {
     const t = build();
@@ -106,6 +108,22 @@ const TourForm: React.FC<{
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Preço por pessoa (R$)" htmlFor="t-price" error={errors.price} hint="Vazio = 'Consulte o valor'"><input id="t-price" type="number" min={0} step="0.01" className={inputClass(!!errors.price)} value={v.price ?? ''} onChange={e => set({ price: e.target.value === '' ? undefined : Number(e.target.value) })} /></Field>
             <Field label="Nota do preço" htmlFor="t-pn"><input id="t-pn" className={inputClass()} placeholder="Ex.: crianças até 5 anos não pagam" value={v.priceNote || ''} onChange={e => set({ priceNote: e.target.value })} /></Field>
+          </div>
+          <div className="space-y-3" data-testid="tour-packages-editor">
+            <p className="text-xs font-black text-slate-600 uppercase tracking-wide">Pacotes (opcional)</p>
+            <p className="text-xs text-slate-500">Mesmo barco e mesmas vagas, com preços diferentes. Com pacotes, o cliente escolhe um na reserva e o preço acima deixa de valer.</p>
+            {pkgs.map((pk, i) => (
+              <div key={pk.id} className="rounded-2xl border border-slate-200 p-3 space-y-2">
+                <div className="grid grid-cols-[1fr_8rem_auto] gap-2 items-end">
+                  <Field label="Nome do pacote" htmlFor={`pk-n-${i}`}><input id={`pk-n-${i}`} className={inputClass()} value={pk.name} onChange={e => setPkgs(l => l.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="Ex.: Básico" /></Field>
+                  <Field label="Preço (R$)" htmlFor={`pk-p-${i}`}><input id={`pk-p-${i}`} inputMode="decimal" className={inputClass()} value={pk.price} onChange={e => setPkgs(l => l.map((x, j) => j === i ? { ...x, price: e.target.value } : x))} placeholder="49,99" /></Field>
+                  <button type="button" onClick={() => setPkgs(l => l.filter((_, j) => j !== i))} aria-label={`Remover pacote ${pk.name || i + 1}`} className="h-12 w-12 rounded-2xl border border-slate-200 text-red-500 flex items-center justify-center"><Trash2 size={16} /></button>
+                </div>
+                <Field label="O que inclui (um por linha)" htmlFor={`pk-i-${i}`}><textarea id={`pk-i-${i}`} rows={3} className={inputClass()} value={pk.includes} onChange={e => setPkgs(l => l.map((x, j) => j === i ? { ...x, includes: e.target.value } : x))} /></Field>
+              </div>
+            ))}
+            {pkgs.length < 4 && <button type="button" onClick={() => setPkgs(l => [...l, { id: `p${Date.now().toString(36)}`, name: '', price: '', includes: '' }])} className={secondaryButton} data-testid="tour-add-package"><Plus size={16} /> Adicionar pacote</button>}
+            {errors.packages && <p className="text-xs font-bold text-red-600" role="alert">{errors.packages}</p>}
           </div>
         </div>
 
@@ -235,6 +253,7 @@ export const ToursManager: React.FC = () => {
 
       {tab === 'tours' && (
         <>
+          <button onClick={async () => { try { const r = await adminImportTourDrafts(); notify('success', `${r.created} rascunho(s) importado(s)${r.skipped ? `, ${r.skipped} já existiam` : ''}.`); loadTours(); } catch (e: any) { notify('error', e?.message || 'Não foi possível importar.'); } }} className={secondaryButton} data-testid="tour-import-drafts">Importar rascunhos</button>
           <button onClick={() => setForm({})} className={primaryButton} data-testid="tour-new"><Plus size={18} /> Novo passeio</button>
           {tours === null ? <Loader2 className="animate-spin" /> : tours.length === 0
             ? <EmptyState icon={<Ship size={28} />} title="Nenhum passeio cadastrado" message="Crie o primeiro: nome, fotos, agenda de saídas e vagas." />

@@ -790,6 +790,15 @@ export interface TourSchedule {
   extraDates: { date: string; times: string[] }[];
 }
 
+/** Pacote de um passeio (ex.: Básico, Completo): mesmo barco e vagas, preço e inclusões próprios. */
+export interface TourPackage {
+  id: string;
+  name: string;
+  /** Preço por pessoa em reais. */
+  price: number;
+  includes: string[];
+}
+
 export interface Tour {
   id: string;
   title: string;
@@ -806,6 +815,8 @@ export interface Tour {
   /** Preço por pessoa em reais (opcional). Sem preço, aparece "Consulte". */
   price?: number;
   priceNote?: string;
+  /** Pacotes com preços diferentes (opcional). Com pacotes, o cliente escolhe um na reserva e o preço vem do pacote. */
+  packages?: TourPackage[];
   /** Vagas por saída. */
   capacityPerSlot: number;
   minPeople: number;
@@ -843,6 +854,10 @@ export interface TourBooking {
   date: string;
   time: string;
   people: number;
+  /** Pacote escolhido (quando o passeio tem pacotes). */
+  packageId?: string;
+  packageName?: string;
+  packagePrice?: number;
   customerName: string;
   customerPhone: string;
   notes?: string;

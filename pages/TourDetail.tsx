@@ -6,7 +6,7 @@ import { TourCalendar } from '../components/TourCalendar';
 import { LoadingState, ErrorState, Field, inputClass, primaryButton, secondaryButton } from '../components/ui/States';
 import { createBooking, getTourById, getTourSlots } from '../services/tourService';
 import {
-  BookingErrors, bookingWhatsappText, cleanPhone, dayAvailability, departureDates, formatDateBR, priceLabel, totalLabel, validateBooking, whatsappLink,
+  BookingErrors, bookingWhatsappText, cleanPhone, dayAvailability, departureDates, formatDateBR, findPackage, priceLabel, totalLabel, validateBooking, whatsappLink,
 } from '../services/tourRules';
 import { REGION_MUNICIPALITIES } from '../services/regionGeo';
 
@@ -18,6 +18,7 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [people, setPeople] = useState(2);
+  const [packageId, setPackageId] = useState('');
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -56,7 +57,7 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
   const submit = async () => {
     setFail('');
     if (!currentUser) { onNavigate('login'); return; }
-    const input = { date, time, people, customerName: name, customerPhone: phone, notes };
+    const input = { date, time, people, customerName: name, customerPhone: phone, notes, packageId };
     const errs = validateBooking(tour, input, slots[`${tour.id}_${date}_${time.replace(':', '')}`], now);
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -84,7 +85,8 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
             <p className="font-black text-ocean-950">{tour.title}</p>
             <p>{formatDateBR(done.date)} às {done.time}</p>
             <p>{done.people} pessoa{done.people > 1 ? 's' : ''} · {done.customerName}</p>
-            {totalLabel(tour, done.people) && <p className="text-slate-500">Valor estimado: {totalLabel(tour, done.people)} (combine o pagamento com a operadora)</p>}
+            {done.packageName && <p>Pacote: {done.packageName}</p>}
+            {totalLabel(tour, done.people, done.packageId) && <p className="text-slate-500">Valor estimado: {totalLabel(tour, done.people, done.packageId)} (combine o pagamento com a operadora)</p>}
           </div>
           <a href={wa} target="_blank" rel="noopener noreferrer" className={`${primaryButton} w-full mt-5 !bg-emerald-600 hover:!bg-emerald-700`}><MessageCircle size={18} /> Falar com {tour.operatorName} no WhatsApp</a>
           <button onClick={() => onNavigate('my-bookings')} className={`${secondaryButton} w-full mt-3`}>Ver minhas reservas</button>
@@ -115,7 +117,7 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
             <span className="flex items-center gap-1"><Users size={14} /> {tour.capacityPerSlot} vagas por saída</span>
           </div>
           <p className="text-xl font-black text-ocean-700 mt-3">{priceLabel(tour)}</p>
-          <p className="text-[11px] text-slate-400">Operado por {tour.operatorName}. Pagamento combinado direto com a operadora.</p>
+          <p className="text-[11px] text-slate-400">Operado por {tour.operatorBusinessId && tour.operatorBusinessId !== 'custom' ? <button type="button" onClick={() => onNavigate('business-detail', { businessId: tour.operatorBusinessId })} className="font-bold text-ocean-700 underline" data-testid="tour-operator-link">{tour.operatorName}</button> : tour.operatorName}. Pagamento combinado direto com a operadora.</p>
         </div>
 
         <section className="mt-5">
@@ -156,12 +158,25 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
 
           {time && (
             <div className="mt-5 bg-white rounded-3xl border border-slate-100 p-5 space-y-4" data-testid="tour-booking-form">
+              {(tour.packages || []).length > 0 && (
+                <Field label="Escolha o pacote" htmlFor="tb-package" error={errors.packageId} required>
+                  <div id="tb-package" role="radiogroup" aria-label="Pacote" className="space-y-2" data-testid="tour-packages">
+                    {tour.packages!.map(pk => (
+                      <button key={pk.id} type="button" role="radio" aria-checked={packageId === pk.id} onClick={() => setPackageId(pk.id)}
+                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-colors ${packageId === pk.id ? 'border-ocean-600 bg-ocean-50 ring-2 ring-ocean-200' : 'border-slate-200 bg-white hover:border-ocean-300'}`}>
+                        <span className="flex items-baseline justify-between gap-2"><span className="font-black text-ocean-950">{pk.name}</span><span className="font-black text-ocean-700">R$ {pk.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <span className="text-[11px] font-bold text-slate-400">por pessoa</span></span></span>
+                        {pk.includes.length > 0 && <span className="block text-xs text-slate-500 mt-1">{pk.includes.join(' · ')}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              )}
               <Field label="Quantas pessoas" htmlFor="tb-people" error={errors.people}>
                 <div className="flex items-center gap-3">
                   <button type="button" onClick={() => setPeople(p => Math.max(tour.minPeople || 1, p - 1))} aria-label="Menos uma pessoa" className="w-12 h-12 rounded-2xl border border-slate-200 text-xl font-black">−</button>
                   <span id="tb-people" className="text-2xl font-black w-10 text-center">{people}</span>
                   <button type="button" onClick={() => setPeople(p => Math.min(maxPeople, p + 1))} aria-label="Mais uma pessoa" className="w-12 h-12 rounded-2xl border border-slate-200 text-xl font-black">+</button>
-                  {totalLabel(tour, people) && <span className="ml-auto text-sm font-black text-ocean-700">{totalLabel(tour, people)}</span>}
+                  {totalLabel(tour, people, packageId) && <span className="ml-auto text-sm font-black text-ocean-700">{totalLabel(tour, people, packageId)}</span>}
                 </div>
               </Field>
               <Field label="Seu nome" htmlFor="tb-name" error={errors.customerName} required>
