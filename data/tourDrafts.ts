@@ -220,4 +220,33 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'mergulho-de-batismo-cilindro-arraial-do-cabo',
+    title: 'Mergulho de batismo com cilindro em Arraial do Cabo',
+    shortDescription: 'Primeiro mergulho com cilindro: 30 minutos submerso a até 10 metros, com um instrutor por pessoa e todos os equipamentos incluídos.',
+    description:
+      'Descubra o mundo subaquático de Arraial do Cabo, conhecida como a capital brasileira do mergulho, com o mergulho de batismo. Perfeito para iniciantes, a experiência de 30 minutos submerso a 10 metros de profundidade conecta você com os corais, os peixes coloridos e a vida marinha da região.\n\n' +
+      'Um instrutor experiente acompanha cada pessoa o tempo todo, garantindo segurança e orientação.\n\n' +
+      'A embarcação é estável, espaçosa e confortável, com dois andares: o convés principal e o panorâmico, para relaxar e curtir a vista antes e depois do mergulho. A operadora tem vaga permanente no cais principal da cidade, o que evita filas para embarcar.\n\n' +
+      'Serviços adicionais: fotografia subaquática com GoPro ou equipamento profissional e vídeo curto da aventura. Taxas sob consulta com a operadora.',
+    coverImage: '/passeios/batismo-mergulho-cilindro.jpg',
+    gallery: ['/passeios/snorkel-santuario-das-tartarugas.jpg', '/passeios/escuna-arraial-do-cabo.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'A verificar. A operadora confirma o ponto de encontro pelo WhatsApp.',
+    durationText: '30 minutos submerso',
+    includes: ['30 minutos submerso a 10 metros de profundidade', 'Todos os equipamentos incluídos', '1 instrutor por pessoa', 'Embarcação com dois andares (convés principal e panorâmico)'],
+    notIncluded: ['Fotografia subaquática e vídeo curto (serviços adicionais)', 'Taxas sob consulta com a operadora'],
+    price: 280,
+    priceNote: 'por pessoa',
+    // A CONFIRMAR: horários, vagas e máximo por reserva (valores provisórios).
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 6,
+    minNoticeHours: 12,
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['09:00', '13:00'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];
