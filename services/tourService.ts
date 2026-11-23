@@ -205,7 +205,14 @@ export const adminImportTourDrafts = async (): Promise<{ created: number; skippe
   let created = 0, skipped = 0;
   for (const t of TOUR_DRAFTS) {
     const ref = doc(db, TOURS, t.id);
-    if ((await getDoc(ref)).exists()) { skipped++; continue; }
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      // Rascunho ainda não publicado pode ser atualizado a partir do pré-cadastro; publicado nunca é tocado.
+      if (snap.data().status !== 'draft') { skipped++; continue; }
+      await setDoc(ref, clean({ ...t, status: 'draft', createdAt: snap.data().createdAt || now, updatedAt: now }));
+      skipped++;
+      continue;
+    }
     await setDoc(ref, clean({ ...t, status: 'draft', createdAt: now, updatedAt: now }));
     created++;
   }

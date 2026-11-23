@@ -16,14 +16,14 @@ export const TOUR_DRAFTS: Tour[] = [
       'O barco para para mergulho na Ilha do Farol (com opção de desembarque), na Enseada do Guriri e na Enseada da Praia do Forno, ' +
       'e passa pelos pontos panorâmicos: Rota das Baleias e Gruta Azul (mar aberto), Pedra do Gorila, Pedra da Tartaruga, ' +
       'Fenda de Nossa Senhora, Impacto do Meteorito e as Prainhas do Pontal do Atalaia, onde o desembarque na areia é condicionado pela Marinha.\n\n' +
-      'Saídas diárias. O check-in é das 10h50 às 11h30 e a saída está prevista para as 12h. No inverno o passeio sai no horário mais quente do dia.\n\n' +
+      'Saídas diárias. Apresente-se às 11h30 no ponto de encontro: o barco sai às 12h e o passeio dura 4 horas, com retorno por volta das 16h.\n\n' +
       'Há dois pacotes, com o mesmo roteiro e a mesma duração: o Básico, com água livre, e o Completo, que inclui também caipirinha, almoço self-service e sobremesa no restaurante depois do passeio. ' +
       'Valores do primeiro lote, sujeitos a alteração.',
-    coverImage: '',
+    coverImage: '/passeios/escuna-arraial-do-cabo.jpg',
     gallery: [],
     cityId: 'arraial-do-cabo',
     meetingPoint: 'Praça do Cova, na Praia dos Anjos (em frente ao Museu Oceanográfico)',
-    durationText: '4 horas',
+    durationText: '4 horas (das 12h às 16h, com encontro às 11h30)',
     includes: [
       'Barco de 2 andares com toboágua', 'Serviço de bordo com barzinho e cozinha', '2 banheiros', 'Wi-Fi a bordo',
       'Música e guia credenciado', 'Espaguetes e tapete flutuantes', 'Bote de apoio (flex-boat)', 'Coração para fotos',
@@ -36,15 +36,16 @@ export const TOUR_DRAFTS: Tour[] = [
       { id: 'basico', name: 'Básico', price: 49.99, includes: ['Água livre'] },
       { id: 'completo', name: 'Completo', price: 99.99, includes: ['Água livre', '1 caipirinha', 'Almoço self-service sem balança, no restaurante após o passeio', 'Sobremesa após o passeio'] },
     ],
-    // A confirmar com a operadora antes de publicar: vagas por saída, mínimo/máximo por reserva e WhatsApp.
-    capacityPerSlot: 10,
+    // Vagas: sem limite prático (teto do sistema = 500 por saída). Mínimo/máximo por reserva ainda a confirmar.
+    capacityPerSlot: 500,
     minPeople: 1,
     maxPeoplePerBooking: 6,
     minNoticeHours: 12,
-    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['12:00'], blockedDates: [], extraDates: [] },
+    // Só novembro e início de dezembro de 2026 (de 23/11 a 07/12).
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['12:00'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
     operatorName: 'Guida Trips',
     operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
-    operatorWhatsapp: '',
+    operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
 ];
