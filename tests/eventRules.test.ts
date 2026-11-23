@@ -6,6 +6,7 @@ import {
   eventQuota, activeEventCount, quotaState, resolvePlan, validateEvent, needsReapproval, buildICS, androidCalendarIntent, googleCalendarUrl, eventTimes, addDays, sortByDate,
 } from '../services/eventRules';
 import { OFFICIAL_EVENTS_2026 } from '../data/officialEvents2026';
+import { OFFICIAL_EVENTS_EXTRA } from '../data/officialEventsExtra';
 
 const ev = (o: Partial<AppEvent>): AppEvent => ({
   id: o.id || Math.random().toString(36).slice(2), title: 'Evento', category: 'musica', startDate: '2026-11-20', cityId: 'arraial-do-cabo',
@@ -209,4 +210,14 @@ test('agenda direto no celular: horário de Brasília, dia inteiro e links', () 
   const g = googleCalendarUrl(ev({ title: 'Show', startDate: '2026-11-13', endDate: '2026-11-15' }));
   assert.ok(g.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE'));
   assert.ok(g.includes('dates=20261113%2F20261116'));
+});
+
+test('eventos da varredura: ids únicos, válidos e com fonte', () => {
+  const ids = new Set<string>();
+  for (const e of OFFICIAL_EVENTS_EXTRA) {
+    assert.ok(!ids.has(e.id), e.id); ids.add(e.id);
+    assert.deepEqual(validateEvent(e as any, TODAY, true), {}, e.title);
+    assert.ok(e.sourceLabel && e.sourceUrl, e.title);
+  }
+  assert.ok(OFFICIAL_EVENTS_EXTRA.length >= 15);
 });

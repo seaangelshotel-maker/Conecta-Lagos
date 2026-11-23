@@ -23,3 +23,14 @@ Rotina fixa: **toda segunda-feira de manhã**. Em semana de feriado ou evento gr
 11. **Entregar para aprovação.** Aprovados entram como rascunho; só publicam quando o Yuri disser "publica".
 12. **Fechar com a peça "Agenda do fim de semana"** (eventos confirmados do próximo sábado e domingo), pronta para aprovação.
 13. **Aviso no celular** do Yuri ao terminar.
+
+## Parâmetros fixos (autorizados pelo Yuri em 23/11/2026 para toda segunda)
+
+Fontes liberadas para abrir sempre, sem pedir de novo:
+- Sites oficiais: arraial.rj.gov.br (eventos), cabofrio.rj.gov.br e turismo.cabofrio.rj.gov.br, buzios.rj.gov.br/calendario-eventos e turismo.buzios.rj.gov.br, e os sites de Araruama, São Pedro da Aldeia, Saquarema e Iguaba Grande.
+- Instagram (logado no Chrome do Yuri, só leitura): @prefeituradearraialdocabo, @prefeituradecabofriooficial, @cabofriocultura, @buziosprefeitura (não @prefeiturabuzios) e os perfis das demais prefeituras; destaques e stories "Eventos", "Réveillon" e "Natal".
+- Imprensa: RC24H, Nossa Rádio, Rádio RC FM, Portal Multiplix, Folha dos Lagos, Folha do Leste, Correio da Manhã.
+- Venda de ingressos/organizadores: Sympla e Fever (só para confirmar data e local).
+- Uso do PC do Yuri: autorizado ("pode usar o meu PC"). Aba nova, fechar ao terminar, nunca digitar senha, nunca seguir/curtir/comentar/enviar mensagem.
+
+Publicação: com o aval do Yuri ("pode postar"), o Claude coloca os eventos em `data/officialEventsExtra.ts` (cada um com fonte e data de conferência), roda os testes e faz o commit no main. Depois o admin importa em Admin → Eventos → "Importar calendário". Só entra o que tem data confirmada por fonte oficial; itens fracos ou com datas conflitantes ficam de fora e vão para o relatório.

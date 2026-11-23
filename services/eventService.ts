@@ -14,6 +14,7 @@ import { getCurrentUser, getPricingPlans, getGlobalSettings } from './dataServic
 import { AppEvent, AppGlobalSettings, EventStatus, PricingPlan, User, UserRole } from '../types';
 import { EventInput, activeEventCount, eventQuota, needsReapproval, resolvePlan, todayISO, validateEvent } from './eventRules';
 import { OFFICIAL_EVENTS_2026 } from '../data/officialEvents2026';
+import { OFFICIAL_EVENTS_EXTRA } from '../data/officialEventsExtra';
 
 const COL = 'events';
 const CHANGED = 'eventsUpdated';
@@ -242,7 +243,7 @@ export const importOfficialCalendar = async (): Promise<{ created: number; skipp
   const admin = requireAdmin();
   const now = new Date().toISOString();
   let created = 0, skipped = 0;
-  for (const e of OFFICIAL_EVENTS_2026) {
+  for (const e of [...OFFICIAL_EVENTS_2026, ...OFFICIAL_EVENTS_EXTRA]) {
     const ref = doc(db, COL, e.id);
     if ((await getDoc(ref)).exists()) { skipped++; continue; }
     await setDoc(ref, clean({ ...e, createdAt: now, updatedAt: now, approvedAt: now, approvedBy: admin.id }));
