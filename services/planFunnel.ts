@@ -25,7 +25,7 @@ export const trackFunnel = async (
     const rec: Record<string, unknown> = {
       userId: user.id, userName: String(user.name || '').slice(0, 120), userEmail: String(user.email || '').slice(0, 160),
       planId: plan.id, planName: String(plan.name).slice(0, 80), period: plan.period, price: plan.price, total: plan.total,
-      step: p.step, maxStep: Math.max(p.prev?.maxStep ?? 0, p.step), totalSteps: p.totalSteps,
+      step: p.step, maxStep: p.prev?.stage === p.stage ? Math.max(p.prev.maxStep ?? 0, p.step) : p.step, totalSteps: p.totalSteps,
       stage: maxStage(p.prev?.stage, p.stage), startedAt: p.prev?.startedAt || now, updatedAt: now,
     };
     if (p.stage === 'checkout') rec.checkoutAt = now; else if (p.prev?.checkoutAt) rec.checkoutAt = p.prev.checkoutAt;

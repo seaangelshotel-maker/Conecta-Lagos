@@ -26,6 +26,13 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
     const [showSuccess, setShowSuccess] = useState(false);
     const [period, setPeriod] = useState<'semiannual' | 'yearly'>('yearly');
     const [journeyPlan, setJourneyPlan] = useState<PricingPlan | null>(null);
+    const [journeyAtPrice, setJourneyAtPrice] = useState(false);
+    const [hasBusiness, setHasBusiness] = useState(true);
+
+    useEffect(() => {
+        if (!currentUser) { setHasBusiness(false); return; }
+        getMyBusinesses(currentUser.id).then(b => setHasBusiness(b.length > 0)).catch(() => setHasBusiness(true));
+    }, [currentUser?.id]);
 
     useEffect(() => {
         const loadPlans = async () => {
@@ -48,7 +55,8 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
         if (!id) return;
         try { sessionStorage.removeItem(PENDING_PLAN_KEY); } catch { /* ignore */ }
         const plan = plans.find(p => p.id === id);
-        if (plan) handleSelectPlan(plan, false);
+        // Voltou do cadastro: mostra o valor e deixa a pessoa decidir.
+        if (plan) { setJourneyAtPrice(true); setJourneyPlan(plan); }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, plans, currentUser]);
 
@@ -300,7 +308,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
 
                             <div className="space-y-4">
                                 <button 
-                                    onClick={() => setJourneyPlan(plan)}
+                                    onClick={() => { setJourneyAtPrice(false); setJourneyPlan(plan); }}
                                     data-testid="plan-start"
                                     className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${plan.id === recommendedId ? 'bg-ocean-600 text-white shadow-2xl shadow-ocean-600/30 hover:bg-ocean-700' : 'bg-slate-100 text-ocean-950 hover:bg-slate-200'}`}
                                 >
@@ -309,7 +317,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                 </button>
                                 {plan.hasFreeTrial && (
                                     <button 
-                                        onClick={() => setJourneyPlan(plan)}
+                                        onClick={() => { setJourneyAtPrice(false); setJourneyPlan(plan); }}
                                         className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all text-emerald-600 hover:bg-emerald-50 border border-emerald-100"
                                     >
                                         Ou venha testar por {plan.trialDays || 30} dias
@@ -345,6 +353,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                 <PlanJourney
                     plan={journeyPlan}
                     user={currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email } : null}
+                    hasBusiness={hasBusiness}
+                    startAtPrice={journeyAtPrice}
+                    onRegister={(pl) => {
+                        if (!currentUser) { setJourneyPlan(null); onNavigate('login'); return; }
+                        try { sessionStorage.setItem(PENDING_PLAN_KEY, pl.id); } catch { /* ignore */ }
+                        setJourneyPlan(null);
+                        onNavigate('create-business');
+                    }}
                     onClose={() => setJourneyPlan(null)}
                     onPay={(pl, trial) => { setJourneyPlan(null); handleSelectPlan(pl, trial); }}
                 />

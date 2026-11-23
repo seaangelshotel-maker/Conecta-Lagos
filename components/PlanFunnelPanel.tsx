@@ -27,7 +27,7 @@ export const PlanFunnelPanel: React.FC<{ onBack: () => void }> = ({ onBack }) =>
             <li key={f.id} className="bg-white border border-slate-100 rounded-2xl p-4 flex flex-wrap items-center gap-x-4 gap-y-1">
               <div className="flex-1 min-w-[180px]"><p className="font-black text-ocean-950 text-sm">{f.userName || 'Sem nome'}</p><p className="text-[11px] text-slate-500 break-all">{f.userEmail}</p></div>
               <div className="text-xs font-bold text-slate-600">{f.planName} · {brl(f.total)}</div>
-              <div className="text-xs font-bold text-slate-500">passo {f.maxStep} de {f.totalSteps}</div>
+              {(f.stage === 'viewing' || f.stage === 'cadastro') && <div className="text-xs font-bold text-slate-500">passo {f.maxStep} de {f.totalSteps}</div>}
               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${f.stage === 'checkout' ? 'bg-emerald-100 text-emerald-700' : isAbandoned(f) ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>{STAGE_LABEL[f.stage]}</span>
               <span className="text-[11px] text-slate-400">{when(f.updatedAt)}</span>
             </li>

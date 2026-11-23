@@ -11,6 +11,8 @@ import { buildAddressQuery, isValidLatLng } from '../services/geoRules';
 import { Store, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Info, Zap, Check, X, ShieldCheck } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 import { ImageUpload } from '../components/ImageUpload';
+import { cadastroHint, journeySteps } from '../services/planJourney';
+import { loadFunnel, trackFunnel, type FunnelRecord } from '../services/planFunnel';
 
 interface CreateBusinessProps {
     currentUser: User;
@@ -23,6 +25,9 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
     const [success, setSuccess] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
     const [plansLoaded, setPlansLoaded] = useState(false);
+    // Plano que a pessoa estava conhecendo antes de cadastrar (só para mostrar as vantagens; NÃO vai para o cadastro).
+    const [chosenPlan, setChosenPlan] = useState<PricingPlan | null>(null);
+    const funnelPrev = React.useRef<FunnelRecord | null>(null);
     const [gallery, setGallery] = useState<string[]>([]);
     const [step, setStep] = useState(1);
     const totalSteps = 4;
@@ -46,6 +51,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
             // Sem plano atribuído, a entrada é gratuita (parceiros fundadores).
             const userPlan = plans.find(p => p.id === currentUser.plan || p.name === currentUser.plan) || null;
             setSelectedPlan(userPlan);
+            try { const pid = sessionStorage.getItem('lagosgo:pendingPlan'); if (pid) setChosenPlan(plans.find(p => p.id === pid) || null); } catch { /* ignore */ }
             setPlansLoaded(true);
             setCategories(cats);
             setCities(cts);
@@ -69,6 +75,22 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
     });
 
     const [pin, setPin] = useState<{ lat: number; lng: number; source: LocationSource } | null>(null);
+
+    useEffect(() => {
+        if (!chosenPlan) return;
+        let alive = true;
+        (async () => {
+            if (!funnelPrev.current) funnelPrev.current = await loadFunnel(currentUser.id, chosenPlan.id);
+            if (!alive) return;
+            funnelPrev.current = await trackFunnel(
+                { id: currentUser.id, name: currentUser.name, email: currentUser.email },
+                { id: chosenPlan.id, name: chosenPlan.name, period: chosenPlan.period, price: chosenPlan.price, total: planTotal(chosenPlan) },
+                { step, totalSteps, stage: 'cadastro', prev: funnelPrev.current },
+            ) || funnelPrev.current;
+        })();
+        return () => { alive = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, chosenPlan?.id]);
 
     const nextStep = () => {
         if (step === 1 && !formData.name.trim()) return notify('warning', "Por favor, insira o nome da empresa.");
@@ -214,12 +236,18 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
             </div>
             {(() => { try { return !!sessionStorage.getItem('lagosgo:pendingPlan'); } catch { return false; } })() && (
                 <div className="bg-ocean-50 border-b border-ocean-100 px-6 py-3 text-center text-xs font-bold text-ocean-800">
-                    Falta só cadastrar sua empresa. Ao terminar, você volta direto para concluir a assinatura do plano.
+                    {chosenPlan ? `Plano ${chosenPlan.name}: cadastre sua empresa e, no final, você vê o valor e decide.` : 'Falta só cadastrar sua empresa. Ao terminar, você volta direto para concluir a assinatura do plano.'}
                 </div>
             )}
 
             <div className="flex-1 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-12 p-6 md:p-12">
                 <div className="lg:col-span-2">
+                    {chosenPlan && (
+                        <div className="mb-8 bg-emerald-50 border border-emerald-100 rounded-2xl p-4" data-testid="cadastro-benefit">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1">No plano {chosenPlan.name} você ganha</p>
+                            <p className="text-sm font-medium text-emerald-900 leading-relaxed">{cadastroHint(chosenPlan, step)}</p>
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-12">
                         {step === 1 && (
                             <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
@@ -447,7 +475,7 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                 className="flex-1 bg-ocean-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-ocean-600/20 hover:bg-ocean-700 transition-all flex items-center justify-center gap-3 text-sm uppercase tracking-widest disabled:opacity-50"
                             >
                                 {loading ? <Loader2 className="animate-spin" size={20} /> : (step === totalSteps ? <CheckCircle2 size={20} /> : null)}
-                                {step === totalSteps ? 'Finalizar Cadastro' : 'Continuar'}
+                                {step === totalSteps ? (chosenPlan ? 'Finalizar e ver o valor' : 'Finalizar Cadastro') : 'Continuar'}
                             </button>
                         </div>
                         {/* Add padding at the bottom on mobile to prevent content from being hidden behind the fixed button */}
@@ -512,6 +540,19 @@ export const CreateBusiness: React.FC<CreateBusinessProps> = ({ currentUser, onN
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        ) : chosenPlan ? (
+                            <div className="space-y-4" data-testid="chosen-plan-side">
+                                <div className="p-4 bg-ocean-50 rounded-2xl border border-ocean-100">
+                                    <p className="text-[10px] font-black text-ocean-600 uppercase tracking-widest mb-1">Plano que você está conhecendo</p>
+                                    <p className="text-2xl font-black text-ocean-950">{chosenPlan.name}</p>
+                                    <p className="text-xs font-bold text-ocean-800">O valor aparece no final do cadastro.</p>
+                                </div>
+                                <div className="space-y-3">
+                                    {journeySteps(chosenPlan).map(x => (
+                                        <div key={x.id} className="flex items-start gap-3 text-slate-600"><Check size={16} className="text-emerald-500 shrink-0 mt-0.5" /><span className="text-sm font-bold">{x.title}</span></div>
+                                    ))}
                                 </div>
                             </div>
                         ) : plansLoaded ? (

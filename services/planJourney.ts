@@ -67,12 +67,24 @@ export const journeySteps = (plan: PlanLike): JourneyStep[] => {
   return steps;
 };
 
-export type FunnelStage = 'viewing' | 'price' | 'checkout';
-const RANK: Record<FunnelStage, number> = { viewing: 0, price: 1, checkout: 2 };
+export type FunnelStage = 'viewing' | 'cadastro' | 'price' | 'checkout';
+const RANK: Record<FunnelStage, number> = { viewing: 0, cadastro: 1, price: 2, checkout: 3 };
 /** A etapa só sobe (voltar um passo não apaga o quanto a pessoa avançou). */
 export const maxStage = (a: FunnelStage | undefined, b: FunnelStage): FunnelStage => (a && RANK[a] > RANK[b] ? a : b);
 export const funnelDocId = (uid: string, planId: string): string => `${uid}_${planId}`;
-export const STAGE_LABEL: Record<FunnelStage, string> = { viewing: 'Parou nos benefícios', price: 'Viu o preço e parou', checkout: 'Foi para o pagamento' };
+export const STAGE_LABEL: Record<FunnelStage, string> = { viewing: 'Parou nos benefícios', cadastro: 'Parou no cadastro da empresa', price: 'Viu o preço e parou', checkout: 'Foi para o pagamento' };
 /** "Abandonou" = não foi ao pagamento e ficou parado há mais de 1 hora. */
 export const isAbandoned = (f: { stage: FunnelStage; updatedAt: string }, now = Date.now()): boolean =>
   f.stage !== 'checkout' && now - new Date(f.updatedAt).getTime() > 3_600_000;
+
+/** Lembrete do que a pessoa ganha, mostrado em cada passo do cadastro da empresa (1 a 4). */
+export const cadastroHint = (plan: PlanLike & { name?: string }, step: number): string => {
+  const ids = journeySteps(plan);
+  const by = (id: string) => ids.find(x => x.id === id);
+  if (step === 1) return by('ficha')!.gain;
+  if (step === 2) return 'Com o endereço e o ponto no mapa, o cliente traça a rota até você com um toque.';
+  if (step === 3) return by('galeria') ? `${by('galeria')!.what} ${by('galeria')!.gain}` : 'A foto de capa é a primeira coisa que o cliente vê na sua página.';
+  const ped = by('pedidos');
+  if (ped) return `${ped.gain}${by('chat') ? ' E, se preferir, atenda também pelo chat do app.' : ''}`;
+  return 'Seu WhatsApp aparece na sua página para o cliente chamar você direto.';
+};

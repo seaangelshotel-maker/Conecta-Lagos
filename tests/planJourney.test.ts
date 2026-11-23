@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { journeySteps, maxStage, isAbandoned, funnelDocId } from '../services/planJourney';
+import { journeySteps, maxStage, isAbandoned, funnelDocId, cadastroHint } from '../services/planJourney';
 
 test('jornada: só entram os recursos que o plano tem, cada um com vantagem', () => {
   const basic = journeySteps({ maxCoupons: 0 });
@@ -21,4 +21,13 @@ test('funil: etapa só sobe e abandono = parado há mais de 1h sem ir ao pagamen
   assert.equal(isAbandoned({ stage: 'price', updatedAt: new Date(now - 60_000).toISOString() }, now), false);
   assert.equal(isAbandoned({ stage: 'checkout', updatedAt: new Date(now - 9 * 3_600_000).toISOString() }, now), false);
   assert.equal(funnelDocId('u1', 'p1'), 'u1_p1');
+});
+
+test('cadastro: cada passo lembra uma vantagem real do plano e etapa cadastro fica entre benefícios e preço', () => {
+  const pro: any = { maxCoupons: 5, showGallery: true, showMenu: true, showOrders: true, showChat: true };
+  for (const n of [1, 2, 3, 4]) assert.ok(cadastroHint(pro, n).length > 20);
+  assert.match(cadastroHint(pro, 4), /chat/);
+  assert.doesNotMatch(cadastroHint({ maxCoupons: 0 }, 4), /chat/);
+  assert.equal(maxStage('viewing', 'cadastro'), 'cadastro');
+  assert.equal(maxStage('price', 'cadastro'), 'price');
 });

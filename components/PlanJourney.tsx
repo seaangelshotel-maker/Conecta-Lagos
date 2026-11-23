@@ -17,10 +17,15 @@ export const PlanJourney: React.FC<{
   user: { id: string; name: string; email: string } | null;
   onClose: () => void;
   onPay: (plan: PricingPlan, trial: boolean) => void;
-}> = ({ plan, user, onClose, onPay }) => {
+  /** Quem ainda não tem empresa cadastra no fim dos benefícios e volta para ver o valor. */
+  hasBusiness?: boolean;
+  onRegister?: (plan: PricingPlan) => void;
+  /** Volta do cadastro: abre direto no valor. */
+  startAtPrice?: boolean;
+}> = ({ plan, user, onClose, onPay, hasBusiness = true, onRegister, startAtPrice = false }) => {
   const steps = useMemo(() => journeySteps(plan), [plan]);
   const total = steps.length + 1; // + passo do preço
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(startAtPrice ? steps.length : 0);
   const prev = useRef<FunnelRecord | null>(null);
   const ready = useRef(false);
   const isPrice = i === steps.length;
@@ -31,7 +36,7 @@ export const PlanJourney: React.FC<{
     (async () => {
       if (user) prev.current = await loadFunnel(user.id, plan.id);
       if (alive) ready.current = true;
-      if (alive && user) prev.current = await trackFunnel(user, info, { step: 1, totalSteps: total, stage: 'viewing', prev: prev.current }) || prev.current;
+      if (alive && user) prev.current = await trackFunnel(user, info, { step: startAtPrice ? total : 1, totalSteps: total, stage: startAtPrice ? 'price' : 'viewing', prev: prev.current }) || prev.current;
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -41,6 +46,11 @@ export const PlanJourney: React.FC<{
     setI(n);
     window.scrollTo?.({ top: 0 });
     if (user && ready.current) prev.current = await trackFunnel(user, info, { step: n + 1, totalSteps: total, stage: n === steps.length ? 'price' : 'viewing', prev: prev.current }) || prev.current;
+  };
+
+  const register = async () => {
+    if (user) await trackFunnel(user, info, { step: 1, totalSteps: 4, stage: 'cadastro', prev: prev.current });
+    onRegister?.(plan);
   };
 
   const pay = async (trial: boolean) => {
@@ -76,7 +86,7 @@ export const PlanJourney: React.FC<{
             <div className="space-y-6" data-testid="journey-price">
               <div className="text-center space-y-1">
                 <h2 className="text-2xl font-black text-ocean-950">Tudo isso no plano {plan.name}</h2>
-                <p className="text-slate-500 text-sm">Veja o que você leva e o valor.</p>
+                <p className="text-slate-500 text-sm">{startAtPrice ? 'Sua empresa já está cadastrada. Falta só decidir.' : 'Veja o que você leva e o valor.'}</p>
               </div>
               <ul className="space-y-2">
                 {steps.map(x => (
@@ -107,7 +117,11 @@ export const PlanJourney: React.FC<{
         ) : (
           <div className="flex gap-3">
             {i > 0 && <button onClick={() => go(i - 1)} aria-label="Voltar" className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-500"><ArrowLeft size={18} /></button>}
-            <button onClick={() => go(i + 1)} data-testid="journey-next" className="flex-1 bg-ocean-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2">{i === steps.length - 1 ? 'Ver o valor' : 'Continuar'} <ArrowRight size={18} /></button>
+            {i === steps.length - 1 && !hasBusiness && onRegister ? (
+              <button onClick={register} data-testid="journey-register" className="flex-1 bg-ocean-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2">Cadastrar minha empresa <ArrowRight size={18} /></button>
+            ) : (
+              <button onClick={() => go(i + 1)} data-testid="journey-next" className="flex-1 bg-ocean-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2">{i === steps.length - 1 ? 'Ver o valor' : 'Continuar'} <ArrowRight size={18} /></button>
+            )}
           </div>
         )}
       </div>
