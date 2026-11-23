@@ -128,3 +128,9 @@ test('cobrança por veículo: preço por quadriciclo e total por veículo usado'
   assert.match(totalLabel(t, 2) || '', /210,00/);
   assert.match(totalLabel(t, 3) || '', /420,00/);
 });
+
+test('cobrança por veículo sem tamanho definido: valor de um veículo, sem multiplicar por pessoa', () => {
+  const t = tour({ price: 600, pricingUnit: 'vehicle', unitName: 'buggy' });
+  assert.match(priceLabel(t), /R\$\s?600 por buggy$/);
+  assert.match(totalLabel(t, 3) || '', /600,00/);
+});

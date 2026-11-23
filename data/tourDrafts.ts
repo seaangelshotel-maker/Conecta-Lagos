@@ -152,4 +152,39 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'buggy-caminho-de-moises-arubinha',
+    title: 'Passeio de buggy: Caminho de Moisés (Ponta da Alcaíra e Arubinha)',
+    shortDescription: 'Roteiro de buggy de 4 a 4h30 por Arubinha (Ponta da Alcaíra), Coração Novo Arraial e a Praia de Massambaba. O horário é combinado com você.',
+    description:
+      'Um passeio de buggy de aproximadamente 4 a 4h30 pelos pontos mais bonitos da região, no roteiro Arubinha, conhecido como Caminho de Moisés. O horário é flexível: informe o que prefere e a operadora ajusta tudo pelo WhatsApp.\n\n' +
+      'Roteiro (sujeito a alteração):\n' +
+      '• Pórtico Panorâmico: parada no ponto icônico, ótimo para fotos com vista da cidade e da paisagem natural que cerca Arraial do Cabo.\n' +
+      '• Arubinha, também chamada de Ponta da Alcaíra: um paraíso escondido, com uma faixa de areia que se estende pela lagoa. Ideal para caminhar, tirar fotos e, se a maré permitir, tomar um banho refrescante.\n' +
+      '• Coração Novo Arraial: um local charmoso com um detalhe romântico em forma de coração natural, ótimo para registrar momentos com o grupo ou a família.\n' +
+      '• Praia de Massambaba: o fim do passeio em uma das praias mais extensas e tranquilas da região.\n\n' +
+      'A operadora confirma o roteiro completo e o horário pelo WhatsApp.',
+    coverImage: '/passeios/buggy-arubinha.jpg',
+    gallery: ['/passeios/buggy-coracao-novo-arraial.jpg', '/passeios/quadriciclo-lagoa-rosada.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'A verificar. A operadora confirma o ponto de encontro pelo WhatsApp.',
+    durationText: '4 a 4h30',
+    includes: ['Passeio de buggy', 'Roteiro guiado: Pórtico Panorâmico, Arubinha (Ponta da Alcaíra), Coração Novo Arraial e Praia de Massambaba'],
+    notIncluded: [],
+    requirements: 'Horário combinado com a operadora. O roteiro está sujeito a alteração.',
+    price: 600,
+    pricingUnit: 'vehicle',
+    unitName: 'buggy',
+    priceNote: 'por buggy',
+    // A CONFIRMAR: quantas pessoas por buggy, vagas, mínimo/máximo por reserva e horários (valores abaixo são provisórios).
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 4,
+    minNoticeHours: 12,
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['08:00', '13:00'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];

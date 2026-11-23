@@ -182,7 +182,7 @@ export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages' | 'p
 /** Total estimado; com pacotes, usa o pacote escolhido. */
 export const totalLabel = (t: Pick<Tour, 'price' | 'packages' | 'pricingUnit' | 'unitSize'>, people: number, packageId?: string): string | null => {
   const unit = (t.packages || []).length ? findPackage(t, packageId)?.price : t.price;
-  const count = t.pricingUnit === 'vehicle' && (t.unitSize || 0) > 0 ? Math.ceil(people / (t.unitSize as number)) : people;
+  const count = t.pricingUnit === 'vehicle' ? ((t.unitSize || 0) > 0 ? Math.ceil(people / (t.unitSize as number)) : 1) : people;
   return unit != null && unit > 0 && people > 0 ? brl(unit * count) : null;
 };
 
