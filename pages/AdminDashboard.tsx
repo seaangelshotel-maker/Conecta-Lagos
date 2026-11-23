@@ -57,6 +57,7 @@ import { LegalSettingsAdmin } from '../components/admin/LegalSettingsAdmin';
 import { PrivacyRequestsAdmin } from '../components/admin/PrivacyRequestsAdmin';
 import { PushAdmin } from '../components/admin/PushAdmin';
 import { NotificationsPage } from '../components/admin/NotificationsPage';
+import { NewUsersAdmin } from '../components/admin/NewUsersAdmin';
 import { EmailAdmin } from '../components/admin/EmailAdmin';
 import { ClientLimitsAdmin } from '../components/admin/ClientLimitsAdmin';
 import { ExpiredPlansCard } from '../components/admin/ExpiredPlansCard';
@@ -92,7 +93,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [showPlanPreview, setShowPlanPreview] = useState(false);
   const NUDGE_KEY = 'lagos_menu_nudge_v1';
   const [menuNudge, setMenuNudge] = useState(false);
-  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'TOURS' | 'NOTIFICATIONS'>(() => {
+  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'NEW_USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'TOURS' | 'NOTIFICATIONS'>(() => {
     try { const v = new URLSearchParams(window.location.search).get('view'); return v === 'events' ? 'EVENTS' : v === 'tours' ? 'TOURS' : 'HOME'; } catch { return 'HOME'; }
   });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
@@ -1014,6 +1015,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
               )}
           </div>
       )}
+      {view === 'NEW_USERS' && <NewUsersAdmin />}
       {view === 'USERS' && (
           <div className="space-y-8">
               <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">

@@ -216,7 +216,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     }
     _isAuthInitialized = true;
     notifyListeners();
-    if (firebaseUser) import('./emailService').then(m => m.sendWelcomeOnce()).catch(() => undefined);
+    if (firebaseUser) import('./emailService').then(m => { m.sendWelcomeOnce(); m.trackAccess(); }).catch(() => undefined);
 });
 
 export const isAuthInitialized = () => _isAuthInitialized;

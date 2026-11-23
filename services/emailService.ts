@@ -58,3 +58,27 @@ export const notifyTeam = async (type: 'claim' | 'lead' | 'ad_request' | 'busine
 
 // ───── Admin
 export const adminEmail = (action: 'status' | 'test' | 'newsletter-preview' | 'newsletter-send', body?: unknown) => call(action, body, true);
+
+/** Registra o acesso (IP/local aproximado/aparelho vistos pelo servidor). No máximo uma vez por sessão do navegador. */
+export const trackAccess = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const key = `lagosgo_access_${uid}`;
+    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
+    try { await call('track-access', {}, true); } catch { /* silencioso */ }
+};
+
+export type NewUserRow = {
+    uid: string; name: string; email: string; photoURL: string; providers: string[]; createdAt: string; lastSignInAt: string;
+    disabled: boolean; emailVerified: boolean; role: string; plan: string;
+    access: null | { firstAt: string; lastAt: string; count: number; ip: string; country: string; region: string; city: string; device: string; recentIps: { ip: string; at: string }[] };
+};
+
+export const adminNewUsers = async (limit = 20): Promise<{ total: number; users: NewUserRow[] }> => {
+    const t = await auth.currentUser?.getIdToken();
+    if (!t) throw new Error('Entre na sua conta para continuar.');
+    const r = await fetch(`/api/email?action=admin-access&limit=${limit}`, { headers: { Authorization: `Bearer ${t}` } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j?.error || 'Falha ao carregar usuários.');
+    return j;
+};

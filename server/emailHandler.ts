@@ -3,8 +3,8 @@
  * Ações via ?action=:
  *  público ........ subscribe (POST), confirm (GET), unsubscribe (GET/POST), password-reset (POST),
  *                    redemption-decide (GET mostra a página, POST aplica; vem do botão do e-mail)
- *  usuário logado . welcome, verify-email, notify-admin, redemption-used, review-submit (POST)
- *  admin .......... status, test, newsletter-preview, newsletter-send (POST)
+ *  usuário logado . track-access, welcome, verify-email, notify-admin, redemption-used, review-submit (POST)
+ *  admin .......... admin-access, status, test, newsletter-preview, newsletter-send (POST)
  *  cron ........... cron-newsletter (GET, Bearer CRON_SECRET)
  */
 import { adminAuth, adminDb, isAdminToken, verifyRequestUser } from './firebaseAdmin.js';
@@ -14,6 +14,7 @@ import * as T from './mailTemplates.js';
 import * as N from './newsletter.js';
 import * as R from './redemptions.js';
 import { submitReview } from './reviews.js';
+import { listNewUsers, trackAccess } from './access.js';
 import { readRawBody } from './http.js';
 
 const query = (req: Req, key: string): string => {
@@ -159,6 +160,13 @@ export default async function emailHandler(req: Req, res: Res) {
         const user = await verifyRequestUser(req.headers.authorization);
         if (!user) return sendJson(res, 401, { error: 'Entre na sua conta para continuar.' });
 
+        if (action === 'track-access') {
+            if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
+            if (!(await allow(`access_${user.uid}`, 30 * 60_000))) return sendJson(res, 200, { ok: true, throttled: true });
+            try { await trackAccess(req, user.uid); } catch { return sendJson(res, 200, { ok: false }); }
+            return sendJson(res, 200, { ok: true });
+        }
+
         if (action === 'welcome' || action === 'verify-email') {
             if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
             if (!mailConfigured(env)) return sendJson(res, 200, { ok: true, skipped: true });
@@ -223,6 +231,12 @@ export default async function emailHandler(req: Req, res: Res) {
 
         // ───── Só admin
         if (!(await isAdminToken(user))) return sendJson(res, 403, { error: 'Apenas administradores.' });
+
+        if (action === 'admin-access') {
+            const q = Number(query(req, 'limit')) || 20;
+            try { return sendJson(res, 200, await listNewUsers(Math.min(Math.max(q, 1), 100))); }
+            catch (e: any) { return sendJson(res, 503, { error: 'Não foi possível ler os usuários (conta de serviço do Firebase no servidor).' }); }
+        }
 
         if (action === 'status') {
             // Sem a conta de serviço do Firebase no servidor, o Firestore fica inacessível: o envio de e-mail funciona, a lista de inscritos não.

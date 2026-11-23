@@ -124,7 +124,7 @@ export const PrivacyPolicy: React.FC<{ onNavigate: Nav; currentUser?: User | nul
         <><b>Uso da plataforma:</b> favoritos, cupons resgatados e economia acumulada, avaliações, comentários, curtidas, publicações e candidaturas na Ajuda Colaborativa.</>,
         <><b>Empresas:</b> dados da empresa cadastrada (nome, endereço, telefone, horários, fotos) e do responsável pela conta.</>,
         <><b>Localização:</b> só quando você toca em "Perto de mim" ou permite o GPS; fica no seu aparelho durante a visita e não é gravada no servidor.</>,
-        <><b>Dados técnicos:</b> endereço IP, tipo de aparelho e navegador, registros de acesso necessários à segurança.</>,
+        <><b>Dados técnicos:</b> endereço IP, tipo de aparelho e navegador, registros de acesso necessários à segurança. Veja o item 10 para o registro de acessos de quem tem conta.</>,
         <><b>Notificações:</b> se você ativar, guardamos o identificador do aparelho para enviá-las, ligado à sua conta; você desliga a qualquer momento.</>,
         <><b>Estatísticas de uso (Google Analytics):</b> só se você aceitar no aviso de cookies.</>,
         <><b>E-mails:</b> seu endereço de e-mail e o registro técnico dos avisos que enviamos (tipo de mensagem, data e se foi entregue). Quem assina a newsletter também tem guardados o endereço, a data do pedido, a da confirmação e a do cancelamento, se houver.</>,
@@ -135,7 +135,7 @@ export const PrivacyPolicy: React.FC<{ onNavigate: Nav; currentUser?: User | nul
       <L items={[
         'Criar e manter sua conta, mostrar seus favoritos e cupons e permitir avaliações e publicações (execução de contrato).',
         'Exibir empresas, lugares e conteúdos do Guia e do Feed (execução de contrato e legítimo interesse).',
-        'Prevenir fraudes, abusos e garantir a segurança da plataforma (legítimo interesse).',
+        'Prevenir fraudes, abusos e contas falsas, garantir a segurança da plataforma e dar suporte, inclusive pelo registro de acessos descrito no item 10 (legítimo interesse).',
         'Medir o uso para melhorar o produto (consentimento, que você pode retirar a qualquer momento).',
         'Cumprir obrigações legais e fiscais, inclusive guardar registros de acesso e de pagamentos (obrigação legal).',
         'Enviar notificações que você ativar (consentimento).',
@@ -178,10 +178,19 @@ export const PrivacyPolicy: React.FC<{ onNavigate: Nav; currentUser?: User | nul
       <H>9. Segurança</H>
       <P>Conexão criptografada (HTTPS), regras de acesso no banco de dados que impedem uma pessoa de ver ou alterar dados de outra, e acesso administrativo restrito. Nenhum sistema é 100% imune; se houver incidente relevante, avisaremos você e a ANPD.</P>
 
-      <H>10. Crianças e adolescentes</H>
+      <H>10. Registro de acessos de usuários com conta</H>
+      <P>Quando você entra na sua conta, nosso servidor registra: endereço IP, localização aproximada deduzida do IP (país, estado e cidade, sem GPS), tipo de aparelho e navegador, e as datas e a quantidade de acessos. Guardamos o último IP e até 10 IPs recentes. Esse registro é separado da localização do item 2 (que só ocorre se você permitir o GPS e não é gravada).</P>
+      <L items={[
+        'Para que serve: segurança da conta, prevenção a fraudes e abusos, suporte e auditoria de acessos (legítimo interesse) e cumprimento da obrigação legal de guardar registros de acesso (Marco Civil da Internet).',
+        'Quem vê: somente a administração do Lagos GO, em painel restrito. Não é exibido a outros usuários nem a empresas, e não é vendido nem usado para publicidade.',
+        'Por quanto tempo: até 180 dias (6 meses) desde o último acesso; depois é apagado automaticamente. Se você excluir a conta, o registro de acessos já gravado é mantido só até completar esses 180 dias (obrigação legal de guardar registros de acesso) e então é apagado.',
+        'Seus direitos: você pode pedir acesso ao que foi registrado sobre você e se opor ao tratamento pelo painel do item 6.',
+      ]} />
+
+      <H>11. Crianças e adolescentes</H>
       <P>A plataforma não é direcionada a crianças (menores de 12 anos). Adolescentes (12 a 17 anos) só devem usá-la com o consentimento de pelo menos um dos pais ou responsável, que pode pedir a exclusão dos dados a qualquer momento pelo painel do item 6.</P>
 
-      <H>11. Mudanças nesta política</H>
+      <H>12. Mudanças nesta política</H>
       <P>Avisaremos no site e no aplicativo quando houver mudança relevante. A data da versão fica no topo desta página.</P>
     </Shell>
   );
