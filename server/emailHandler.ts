@@ -3,7 +3,7 @@
  * Ações via ?action=:
  *  público ........ subscribe (POST), confirm (GET), unsubscribe (GET/POST), password-reset (POST),
  *                    redemption-decide (GET mostra a página, POST aplica; vem do botão do e-mail)
- *  usuário logado . track-access, welcome, verify-email, notify-admin, redemption-used, review-submit (POST)
+ *  usuário logado . chat-start/chat-send/chat-read/chat-block/chat-report (POST), track-access, welcome, verify-email, notify-admin, redemption-used, review-submit (POST)
  *  admin .......... admin-access, status, test, newsletter-preview, newsletter-send (POST)
  *  cron ........... cron-newsletter (GET, Bearer CRON_SECRET)
  */
@@ -14,6 +14,8 @@ import * as T from './mailTemplates.js';
 import * as N from './newsletter.js';
 import * as R from './redemptions.js';
 import { submitReview } from './reviews.js';
+import { chatBlock, chatRead, chatReport, chatSend, chatStart, notifyOwnerInbox, type ChatResult } from './chat.js';
+import { clientInfo } from './access.js';
 import { listNewUsers, trackAccess } from './access.js';
 import { readRawBody } from './http.js';
 
@@ -208,6 +210,38 @@ export default async function emailHandler(req: Req, res: Res) {
             if (!(await allow(`review_${user.uid}`, 15_000))) return sendJson(res, 429, { error: 'Aguarde alguns segundos para enviar de novo.' });
             const out = await submitReview(adminDb(), user.uid, await readJsonBody(req));
             return sendJson(res, out.status, out.ok ? { ok: true, reviewStatus: out.reviewStatus, proof: out.proof } : { error: out.error });
+        }
+
+        if (action.startsWith('chat-')) {
+            if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
+            const db = adminDb();
+            const body: any = await readJsonBody(req);
+            let out: ChatResult | undefined;
+            if (!(await allow(`chat_${user.uid}`, 700))) return sendJson(res, 429, { error: 'Devagar! Aguarde um instante para enviar de novo.' });
+            if (action === 'chat-start') { const c = clientInfo(req); out = await chatStart(db, user.uid, { ...body, _ip: c.ip, _ua: c.userAgent }); }
+            else if (action === 'chat-send') out = await chatSend(db, user.uid, body);
+            else if (action === 'chat-read') out = await chatRead(db, user.uid, body);
+            else if (action === 'chat-block') out = await chatBlock(db, user.uid, body);
+            else if (action === 'chat-report') {
+                out = await chatReport(db, user.uid, body);
+                if (out.ok) await notifyAdmins('Conversa denunciada no chat', [['Empresa', String(body.threadId || '').slice(0, 120)], ['Motivo', clip(body.reason, 40)]], `${site}/admin-dashboard`).catch(() => undefined);
+            }
+            else return sendJson(res, 400, { error: 'Ação inválida.' });
+            if (out.ok && out.notify) {
+                const n = out.notify;
+                try { await notifyOwnerInbox(db, n); } catch { /* aviso é extra: nunca derruba o envio */ }
+                try {
+                    if (mailConfigured(env) && (await allow(`chatmail_${n.threadId}`, 10 * 60_000))) {
+                        const o = await db.collection('users').doc(n.ownerId).get();
+                        const email = normalizeEmail((o.data() as any)?.email);
+                        if (isEmail(email)) {
+                            const r = await sendMail({ to: email, ...T.chatNotice({ site, name: (o.data() as any)?.name, businessName: n.businessName, customerName: n.customerName, preview: n.preview, link: `${site}/conversas/${encodeURIComponent(n.threadId)}` }), tags: [{ name: 'type', value: 'chat_notice' }] }, env);
+                            await log('chat_notice', email, r.ok);
+                        }
+                    }
+                } catch { /* idem */ }
+            }
+            return sendJson(res, out.status, out.ok ? { ok: true, threadId: out.threadId } : { error: out.error });
         }
 
         if (action === 'notify-admin') {

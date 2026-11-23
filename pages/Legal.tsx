@@ -125,6 +125,7 @@ export const PrivacyPolicy: React.FC<{ onNavigate: Nav; currentUser?: User | nul
         <><b>Empresas:</b> dados da empresa cadastrada (nome, endereço, telefone, horários, fotos) e do responsável pela conta.</>,
         <><b>Localização:</b> só quando você toca em "Perto de mim" ou permite o GPS; fica no seu aparelho durante a visita e não é gravada no servidor.</>,
         <><b>Dados técnicos:</b> endereço IP, tipo de aparelho e navegador, registros de acesso necessários à segurança. Veja o item 10 para o registro de acessos de quem tem conta.</>,
+        <><b>Chat com empresas:</b> as mensagens trocadas, o horário, o aceite do aviso de responsabilidade (data, hora, IP e aparelho) e eventuais bloqueios e denúncias. Só você e a empresa leem a conversa; a equipe só lê as últimas mensagens de uma conversa denunciada. Guardamos as conversas enquanto a conta existir e você pode pedir a exclusão pelos canais de privacidade.</>,
         <><b>Notificações:</b> se você ativar, guardamos o identificador do aparelho para enviá-las, ligado à sua conta; você desliga a qualquer momento.</>,
         <><b>Estatísticas de uso (Google Analytics):</b> só se você aceitar no aviso de cookies.</>,
         <><b>E-mails:</b> seu endereço de e-mail e o registro técnico dos avisos que enviamos (tipo de mensagem, data e se foi entregue). Quem assina a newsletter também tem guardados o endereço, a data do pedido, a da confirmação e a do cancelamento, se houver.</>,
@@ -222,6 +223,8 @@ export const TermsOfUse: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => {
       <P>O {name} só aproxima as partes. Combinações de valores, prazos, segurança e pagamentos entre quem publica e quem se candidata são de responsabilidade das próprias partes. Desconfie de pedidos de pagamento antecipado e denuncie anúncios suspeitos.</P>
       <H>7. Empresas parceiras</H>
       <P>Empresas respondem pela veracidade das informações, ofertas e atendimento. Planos, destaques e eventuais cobranças seguem as condições apresentadas no momento da contratação.</P>
+      <H>7-A. Chat com empresas</H>
+      <P>Algumas empresas recebem pedidos pelo chat do {name}. O chat apenas conecta você à empresa: preço, disponibilidade, prazo, pagamento, entrega e atendimento são combinados com a empresa e são de responsabilidade exclusiva dela. O {name} não participa da venda, não recebe pagamento e não se responsabiliza pelas tratativas feitas no chat. Não envie senhas, número de cartão ou códigos de verificação. Só você e a empresa leem a conversa; nossa equipe só lê mensagens de uma conversa que for denunciada. Você pode bloquear e denunciar conversas.</P>
       <H>8. Limitação de responsabilidade</H>
       <P>Trabalhamos para manter a plataforma disponível e correta, mas não garantimos funcionamento ininterrupto nem nos responsabilizamos por serviços prestados por terceiros anunciados na plataforma.</P>
       <H>9. Contato e foro</H>

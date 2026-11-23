@@ -2941,6 +2941,7 @@ export const savePricingPlan = async (plan: Partial<PricingPlan>) => {
         showGallery: plan.showGallery || false,
         showMenu: plan.showMenu || false,
         showOrders: plan.showOrders ?? (plan.showMenu === true && (plan.price || 0) > 0),
+        showChat: plan.showChat === true,
         showSocialMedia: plan.showSocialMedia || false,
         showReviews: plan.showReviews || false,
         hasFreeTrial: plan.hasFreeTrial || false,

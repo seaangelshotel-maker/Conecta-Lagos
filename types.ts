@@ -24,6 +24,8 @@ export interface PricingPlan {
   showMenu: boolean;
   /** Libera o botão "Fazer pedido" (cardápio/serviços enviados por WhatsApp). Ausente = planos pagos com cardápio. */
   showOrders?: boolean;
+  /** Libera o chat cliente ↔ empresa nos pedidos (o dono ainda precisa ligar o canal). */
+  showChat?: boolean;
   showSocialMedia: boolean;
   showReviews: boolean;
   hasFreeTrial?: boolean;
@@ -112,6 +114,8 @@ export interface BusinessProfile {
   ordersEnabled?: boolean;
   /** WhatsApp que recebe os pedidos; se vazio usa o WhatsApp/telefone do perfil. */
   orderWhatsapp?: string;
+  /** Por onde o cliente envia o pedido: WhatsApp (padrão), chat do Lagos GO ou os dois (chat exige plano com showChat). */
+  orderChannels?: 'whatsapp' | 'chat' | 'both';
   reviews?: Review[];
   rating: number;
   reviewCount?: number;

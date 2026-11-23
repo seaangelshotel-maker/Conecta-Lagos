@@ -1,6 +1,9 @@
 
 import { MenuCatalog } from '../components/MenuCatalog';
 import { openLink } from '../services/native';
+import { resolveChannels } from '../services/chatRules';
+import { startChat } from '../services/chatService';
+import { ChatNotice } from '../components/ChatNotice';
 import { canOrder, orderTarget, cartAdd, cartSetNote, cartCount, cartTotal, cartLines, validateOrder, buildOrderMessage, whatsappUrl, formatBRL, isAvailable, type Cart, type OrderCustomer, type OrderMode } from '../services/orderModel';
 import React, { useEffect, useState } from 'react';
 import { ClaimBox } from '../components/ClaimBox';
@@ -40,6 +43,8 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
   const touchX = React.useRef<number | null>(null);
   const [cart, setCart] = useState<Cart>({});
   const [checkout, setCheckout] = useState(false);
+  const [chatNotice, setChatNotice] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
   const [customer, setCustomer] = useState<OrderCustomer>({ name: '', delivery: 'pickup' });
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -340,7 +345,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                     {(plan?.showMenu !== false) && business.menu && business.menu.length > 0 && (
                         <button onClick={() => handleAction('menu')} className="flex flex-col items-center gap-2 group">
                             <div className="w-14 h-14 bg-ocean-600 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition-all"><Utensils size={24}/></div>
-                            <span className="text-[9px] font-black uppercase text-ocean-600 font-bold">{canOrder(plan) && business.ordersEnabled && orderTarget(business) ? (business.orderMode === 'services' ? 'Solicitar' : 'Pedir') : (business.orderMode === 'services' ? 'Serviços' : 'Cardápio')}</span>
+                            <span className="text-[9px] font-black uppercase text-ocean-600 font-bold">{canOrder(plan) && business.ordersEnabled && (orderTarget(business) || resolveChannels(business, plan).chat) ? (business.orderMode === 'services' ? 'Solicitar' : 'Pedir') : (business.orderMode === 'services' ? 'Serviços' : 'Cardápio')}</span>
                         </button>
                     )}
                 </div>
@@ -394,7 +399,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                             ))}
                         </div>
                         <button type="button" onClick={() => handleAction('menu')} className="w-full py-4 rounded-2xl bg-ocean-600 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-ocean-600/20">
-                            <Utensils size={18} /> {canOrder(plan) && business.ordersEnabled && orderTarget(business) ? (mode === 'services' ? 'Ver serviços e solicitar' : 'Ver cardápio e pedir') : (mode === 'services' ? 'Ver serviços' : 'Ver cardápio completo')}
+                            <Utensils size={18} /> {canOrder(plan) && business.ordersEnabled && (orderTarget(business) || resolveChannels(business, plan).chat) ? (mode === 'services' ? 'Ver serviços e solicitar' : 'Ver cardápio e pedir') : (mode === 'services' ? 'Ver serviços' : 'Ver cardápio completo')}
                         </button>
                     </div>
                 );
@@ -493,7 +498,10 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
         {showMenuOverlay && (() => {
             const mode: OrderMode = business.orderMode === 'services' ? 'services' : 'menu';
             const target = orderTarget(business);
-            const ordersOn = canOrder(plan) && business.ordersEnabled === true && !!target;
+            const ch = resolveChannels(business, plan);
+            const waOn = ch.whatsapp && !!target;
+            const chatOn = ch.chat;
+            const ordersOn = canOrder(plan) && business.ordersEnabled === true && (waOn || chatOn);
             const count = cartCount(cart);
             const total = cartTotal(cart, business.menu || []);
             const sendOrder = () => {
@@ -505,6 +513,23 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                 setCart({}); setCheckout(false);
                 notify('success', 'Pedido pronto! Finalize a conversa no WhatsApp.');
             };
+            // Envio pelo chat do Lagos GO: exige login; o aviso de responsabilidade abre antes da primeira conversa.
+            const sendViaChat = async (accepted: boolean) => {
+                const err = validateOrder(mode, cart, business.menu || [], customer);
+                if (err) { notify('warning', err); return; }
+                if (!currentUser) { notify('warning', 'Entre na sua conta para conversar com a empresa.'); onNavigate('login'); return; }
+                const msg = buildOrderMessage(business.name, mode, cart, business.menu || [], customer).replace('(Pedido enviado pelo app Lagos GO — valores e disponibilidade sujeitos a confirmação.)', '(Pedido enviado pelo chat do Lagos GO — valores e disponibilidade sujeitos a confirmação da empresa.)');
+                setChatBusy(true);
+                try {
+                    const r = await startChat(businessId, msg, 'order', accepted);
+                    trackAction(businessId, 'order', getNavigationSource());
+                    setChatNotice(false); setCart({}); setCheckout(false); setShowMenuOverlay(false);
+                    onNavigate('chat', { threadId: r.threadId });
+                } catch (e: any) {
+                    if (e?.status === 412) setChatNotice(true); else { setChatNotice(false); notify('error', e?.message || 'Não foi possível enviar pelo chat agora.'); }
+                }
+                setChatBusy(false);
+            };
             return (
             <div className="fixed inset-0 z-[100] bg-white animate-in slide-in-from-bottom flex flex-col" data-testid="menu-overlay">
                 <div className="p-6 border-b flex justify-between items-center pt-12">
@@ -513,7 +538,7 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                 </div>
                 {!checkout ? (
                 <div className="flex-1 overflow-y-auto px-6 pb-32 pt-4 space-y-4 bg-slate-50/60">
-                    {ordersOn && <p className="text-xs text-slate-500 bg-ocean-50 rounded-xl p-3 font-bold">Monte seu pedido e envie direto para o WhatsApp de {business.name}. Sem taxas do app.</p>}
+                    {ordersOn && <p className="text-xs text-slate-500 bg-ocean-50 rounded-xl p-3 font-bold">{waOn && chatOn ? `Monte seu pedido e envie para ${business.name} pelo WhatsApp ou pelo chat do Lagos GO.` : chatOn ? `Monte seu pedido e envie para ${business.name} pelo chat do Lagos GO.` : `Monte seu pedido e envie direto para o WhatsApp de ${business.name}.`} Sem taxas do app.</p>}
                     {business.menu && business.menu.length > 0 && <MenuCatalog menu={business.menu} ordersOn={ordersOn} cart={cart} setCart={setCart} />}
                     {(!business.menu || business.menu.length === 0) && <p className="text-center py-20 text-slate-400">{mode === 'services' ? 'Os serviços serão' : 'O cardápio será'} disponibilizado em breve.</p>}
                 </div>
@@ -547,11 +572,12 @@ export const BusinessDetail: React.FC<{ businessId: string; previewKey?: string;
                 {ordersOn && count > 0 && (
                     <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-white via-white to-transparent flex gap-3">
                         {checkout && <button onClick={() => setCheckout(false)} className="px-5 rounded-2xl border border-slate-200 font-black text-xs uppercase">Voltar</button>}
-                        <button data-testid={checkout ? 'send-order' : 'open-checkout'} onClick={() => checkout ? sendOrder() : setCheckout(true)} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2">
-                            {checkout ? <>ENVIAR PELO WHATSAPP</> : <>{count} {count === 1 ? 'item' : 'itens'} · {total > 0 ? formatBRL(total) : 'ver pedido'}</>}
-                        </button>
+                        {!checkout && <button data-testid="open-checkout" onClick={() => setCheckout(true)} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2">{count} {count === 1 ? 'item' : 'itens'} · {total > 0 ? formatBRL(total) : 'ver pedido'}</button>}
+                        {checkout && waOn && <button data-testid="send-order" onClick={sendOrder} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 text-sm">ENVIAR PELO WHATSAPP</button>}
+                        {checkout && chatOn && <button data-testid="send-order-chat" onClick={() => sendViaChat(false)} disabled={chatBusy} className={`flex-1 py-4 rounded-2xl font-black flex items-center justify-center gap-2 text-sm disabled:opacity-50 ${waOn ? 'bg-ocean-600 text-white' : 'bg-green-600 text-white'}`}>{waOn ? 'ENVIAR PELO CHAT' : 'ENVIAR PELO CHAT DO LAGOS GO'}</button>}
                     </div>
                 )}
+            {chatNotice && <ChatNotice busy={chatBusy} whatsappAvailable={waOn} onCancel={() => setChatNotice(false)} onAccept={() => sendViaChat(true)} />}
             </div>);
         })()}
 

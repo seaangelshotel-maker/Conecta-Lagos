@@ -25,6 +25,8 @@ const UserDashboard = lazy(() => import('./pages/UserDashboard').then(m => ({ de
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const JournalistDashboard = lazy(() => import('./pages/JournalistDashboard').then(m => ({ default: m.JournalistDashboard })));
 const JournalistPublicPage = lazy(() => import('./pages/JournalistPublicPage').then(m => ({ default: m.JournalistPublicPage })));
+const ChatInbox = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatInbox })));
+const ChatThreadPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatThreadPage })));
 const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 const SearchPage = lazy(() => import('./pages/Search').then(m => ({ default: m.SearchPage })));
 const BusinessGuide = lazy(() => import('./pages/BusinessGuide').then(m => ({ default: m.BusinessGuide })));
@@ -86,6 +88,11 @@ const parseUrl = (): Route => {
   if (path === '/eventos') return { page: 'events', params: null };
   const eventMatch = path.match(/^\/eventos\/([^/]+)/);
   if (eventMatch) return { page: 'event-detail', params: { eventId: decodeURIComponent(eventMatch[1]) } };
+
+  // Conversas com empresas (chat)
+  if (path === '/conversas') return { page: 'chat-inbox', params: null };
+  const chatMatch = path.match(/^\/conversas\/([^/]+)/);
+  if (chatMatch) return { page: 'chat', params: { threadId: decodeURIComponent(chatMatch[1]) } };
 
   // Passeios
   if (path === '/passeios') return { page: 'tours', params: null };
@@ -163,6 +170,8 @@ const buildUrl = (page: string, params?: any): string => {
     case 'login': return '/login';
     case 'user-dashboard': return '/user-dashboard';
     case 'admin-dashboard': return '/admin-dashboard' + (params?.view ? `?view=${encodeURIComponent(params.view)}` : '');
+    case 'chat-inbox': return '/conversas';
+    case 'chat': return `/conversas/${id(params?.threadId)}`;
     case 'tours': return '/passeios';
     case 'my-bookings': return '/passeios/minhas';
     case 'tour-detail': return `/passeios/${id(params?.tourId)}`;
@@ -187,11 +196,11 @@ const buildUrl = (page: string, params?: any): string => {
 /** Telas que exigem login. Ao entrar, a pessoa volta para a tela que pediu. */
 const AUTH_PAGES = new Set([
   'user-dashboard', 'admin-dashboard', 'journalist-dashboard', 'create-business',
-  'opportunity-form', 'my-opportunities', 'opportunity-manage', 'my-bookings'
+  'opportunity-form', 'my-opportunities', 'opportunity-manage', 'my-bookings', 'chat-inbox', 'chat'
 ]);
 
 /** Telas com cabeçalho próprio em tela cheia (sem barra superior no desktop). */
-const FULLSCREEN_PAGES = new Set(['notifications', 'event-detail', 'tour-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
+const FULLSCREEN_PAGES = new Set(['chat', 'notifications', 'event-detail', 'tour-detail', 'business-detail', 'blog-detail', 'guide-article', 'collection-detail', 'map', 'pricing-plans', 'create-business']);
 
 export default function App() {
   return (
@@ -377,6 +386,10 @@ function AppContent() {
          return <MapPage />;
       case 'opportunities':
         return <OpportunitiesPage currentUser={user} onNavigate={handleNavigate} />;
+      case 'chat-inbox':
+        return <ChatInbox currentUser={user!} onNavigate={handleNavigate} />;
+      case 'chat':
+        return <ChatThreadPage key={pageParams?.threadId} threadId={pageParams?.threadId} currentUser={user!} onNavigate={handleNavigate} />;
       case 'tours':
         return <Tours currentUser={user} onNavigate={handleNavigate} />;
       case 'tour-detail':

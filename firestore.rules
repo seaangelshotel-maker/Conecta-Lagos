@@ -930,6 +930,45 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
     }
 
+    // ===============================================================
+    // Chat cliente <-> empresa. Só o servidor grava (Admin SDK). O app só lê as próprias conversas.
+    // O admin só lê conversa denunciada; denúncias e aceites ficam fechados ao app.
+    // ===============================================================
+
+    function chatThreadPath(threadId) {
+      return /databases/$(database)/documents/chat_threads/$(threadId);
+    }
+
+    function isChatParticipant(t) {
+      return isAuthenticated() && (t.customerId == uid() || t.ownerId == uid());
+    }
+
+    match /chat_threads/{threadId} {
+      allow get: if isChatParticipant(resource.data) || (isAdmin() && resource.data.get('reported', false) == true);
+      allow list: if isAuthenticated() && (resource.data.customerId == uid() || resource.data.ownerId == uid());
+      allow write: if false;
+
+      match /messages/{msgId} {
+        allow read: if isChatParticipant(get(chatThreadPath(threadId)).data)
+          || (isAdmin() && get(chatThreadPath(threadId)).data.get('reported', false) == true);
+        allow write: if false;
+      }
+    }
+
+    match /chat_consents/{userId} {
+      allow read: if isAuthenticated() && uid() == userId;
+      allow write: if false;
+    }
+
+    match /chat_reports/{reportId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /chat_quota/{id} {
+      allow read, write: if false;
+    }
+
     match /tourBookings/{bookingId} {
       allow get, list: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
       allow create: if isAuthenticated() && isNotBlocked()

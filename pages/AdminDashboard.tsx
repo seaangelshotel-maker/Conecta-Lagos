@@ -1834,14 +1834,27 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                               <span className="text-[10px] text-slate-400">Vazio = usa o WhatsApp do seu perfil.</span>
                           </label>
                       </div>
-                      {canOrder(activePlan) || currentUser.role === UserRole.SUPER_ADMIN ? (
+                      {canOrder(activePlan) || currentUser.role === UserRole.SUPER_ADMIN ? (<>
                           <label className="flex items-center gap-3 cursor-pointer">
                               <input data-testid="orders-enabled" type="checkbox" className="w-5 h-5 rounded text-ocean-600"
                                   checked={editBusiness.ordersEnabled === true}
                                   onChange={e => setEditBusiness({ ...editBusiness, ordersEnabled: e.target.checked })} />
                               <span className="text-sm font-bold text-ocean-950">Receber pedidos pelo app</span>
                           </label>
-                      ) : (
+                          {(activePlan?.showChat === true || currentUser.role === UserRole.SUPER_ADMIN) && editBusiness.ordersEnabled === true && (
+                              <label className="space-y-1 block">
+                                  <span className="text-[10px] font-black uppercase text-slate-500">Como o cliente envia o pedido</span>
+                                  <select data-testid="order-channels" className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold"
+                                      value={editBusiness.orderChannels || 'whatsapp'}
+                                      onChange={e => setEditBusiness({ ...editBusiness, orderChannels: e.target.value as 'whatsapp' | 'chat' | 'both' })}>
+                                      <option value="whatsapp">Só pelo WhatsApp</option>
+                                      <option value="both">WhatsApp ou chat do Lagos GO (o cliente escolhe)</option>
+                                      <option value="chat">Só pelo chat do Lagos GO</option>
+                                  </select>
+                                  <span className="text-[10px] text-slate-400">No chat, o cliente vê um aviso de que a tratativa é de responsabilidade da empresa. Você responde em "Conversas" e recebe aviso por e-mail.</span>
+                              </label>
+                          )}
+                      </>) : (
                           <div data-testid="orders-locked" className="bg-white border border-amber-200 rounded-xl p-4 text-xs text-amber-800 font-bold flex items-center justify-between gap-3">
                               <span>Pedidos por WhatsApp estão nos planos Pro e Premium. Seu cardápio continua visível para os clientes.</span>
                               <button type="button" onClick={() => setView('MY_PLAN')} className="bg-amber-500 text-white px-3 py-2 rounded-lg whitespace-nowrap">VER PLANOS</button>
@@ -2860,6 +2873,17 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                     onChange={e => setNewPlan({...newPlan, showOrders: e.target.checked})}
                                 />
                                 <span className="text-xs font-bold text-slate-600 group-hover:text-ocean-600 transition-colors">Pedidos por WhatsApp</span>
+                            </label>
+
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    data-testid="plan-show-chat"
+                                    className="w-5 h-5 rounded-lg border-slate-200 text-ocean-600 focus:ring-ocean-500"
+                                    checked={newPlan.showChat ?? false}
+                                    onChange={e => setNewPlan({...newPlan, showChat: e.target.checked})}
+                                />
+                                <span className="text-xs font-bold text-slate-600 group-hover:text-ocean-600 transition-colors">Chat com clientes (pedidos)</span>
                             </label>
 
                             <label className="flex items-center gap-3 cursor-pointer group">

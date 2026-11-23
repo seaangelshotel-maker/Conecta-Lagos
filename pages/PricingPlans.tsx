@@ -269,6 +269,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                             <span className="text-sm font-bold">Pedidos direto no seu WhatsApp, sem comissão</span>
                                         </div>
                                     )}
+                                    {canOrder(plan) && plan.showChat === true && (
+                                        <div className="flex items-center gap-4 text-slate-600" data-testid="plan-chat">
+                                            <div className="w-6 h-6 rounded-full bg-ocean-50 flex items-center justify-center shrink-0">
+                                                <Check size={14} className="text-ocean-600" />
+                                            </div>
+                                            <span className="text-sm font-bold">Chat com clientes dentro do app (WhatsApp ou chat, você escolhe)</span>
+                                        </div>
+                                    )}
                                     {(plan.extra || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => (
                                         <div key={x} className="flex items-center gap-4 text-slate-600" data-testid="plan-extra">
                                             <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">

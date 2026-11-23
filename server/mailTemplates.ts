@@ -169,6 +169,19 @@ export function adminAlert(o: { site: string; title: string; lines: [string, str
     };
 }
 
+// ───────── Chat
+
+export function chatNotice(o: { site: string; name?: string; businessName: string; customerName: string; preview: string; link: string }): Rendered {
+    const body = p(`${esc(greet(o.name))} Você recebeu uma nova mensagem pelo chat do Lagos GO.`) +
+        rows([['Empresa', o.businessName], ['Cliente', o.customerName], ['Mensagem', o.preview]]) +
+        p('Responda pelo app para não deixar o cliente esperando.');
+    return {
+        subject: `Nova mensagem de ${o.customerName} no Lagos GO`,
+        html: layout({ site: o.site, preheader: `${o.customerName}: ${o.preview}`.slice(0, 120), heading: 'Nova mensagem de cliente', body, cta: { label: 'Responder no app', url: safeUrl(o.link, o.site) }, footerReason: 'Você recebeu este e-mail porque sua empresa recebe pedidos pelo chat do Lagos GO.' }),
+        text: `${greet(o.name)} Nova mensagem de ${o.customerName} para ${o.businessName}:\n\n${o.preview}\n\nResponda: ${o.link}\n`,
+    };
+}
+
 // ───────── Newsletter
 
 export function newsletterConfirm(o: { site: string; confirmUrl: string }): Rendered {
