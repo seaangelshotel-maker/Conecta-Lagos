@@ -34,3 +34,13 @@ Fontes liberadas para abrir sempre, sem pedir de novo:
 - Uso do PC do Yuri: autorizado ("pode usar o meu PC"). Aba nova, fechar ao terminar, nunca digitar senha, nunca seguir/curtir/comentar/enviar mensagem.
 
 Publicação: com o aval do Yuri ("pode postar"), o Claude coloca os eventos em `data/officialEventsExtra.ts` (cada um com fonte e data de conferência), roda os testes e faz o commit no main. Depois o admin importa em Admin → Eventos → "Importar calendário". Só entra o que tem data confirmada por fonte oficial; itens fracos ou com datas conflitantes ficam de fora e vão para o relatório.
+
+## O Claude faz o trabalho inteiro (regra do Yuri, 23/11/2026)
+
+O Claude é o funcionário: não entrega só a lista, entrega tudo pronto e no ar. Depois da varredura e da aprovação do Yuri ("pode postar"):
+1. Cadastrar os eventos em `data/officialEventsExtra.ts` (fonte + data de conferência em cada um) e rodar `npm test`.
+2. Gerar o banner de cada evento novo (arte original do Lagos GO, sem foto de terceiros): nome do evento/artistas, data, cidade, local. Gerador: `tools/gen_event_banners.py` (adicionar a regra do novo evento em SPEC; rodar `node --import tsx tools/dump_extra_events.ts > /tmp/events.json` antes). Imagens em `public/eventos/<id>.jpg`; `data/eventPhotos.ts` liga o banner ao evento automaticamente. Se o Yuri trocar a capa pelo admin, a dele prevalece.
+3. Commit e push no main.
+4. Importar no site: no Chrome do Yuri (PC sempre ligado para o Claude), abrir lagosgo.com.br/admin-dashboard → EVENTOS → "Importar calendário 2026" → Importar. Conferir a contagem do "Calendário oficial" e abrir lagosgo.com.br/eventos para ver os eventos e os banners.
+5. Fechar a aba, e reportar: quantos entraram, o que ficou de fora e por quê.
+O Yuri revisa depois e troca imagem/texto se não gostar.
