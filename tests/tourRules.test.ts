@@ -120,3 +120,11 @@ test('próxima saída ignora horário que já passou hoje e respeita a antecedê
   assert.equal(nextDeparture(t, new Date('2026-11-24T02:00:00-03:00')), '2026-11-25'); // 12h do dia 24 está a menos de 12h
   assert.equal(nextDeparture(t, new Date('2026-11-23T08:00:00-03:00')), '2026-11-24');
 });
+
+test('cobrança por veículo: preço por quadriciclo e total por veículo usado', () => {
+  const t = tour({ price: 210, pricingUnit: 'vehicle', unitName: 'quadriciclo', unitSize: 2 });
+  assert.match(priceLabel(t), /R\$\s?210 por quadriciclo \(até 2 pessoas\)/);
+  assert.match(totalLabel(t, 1) || '', /210,00/);
+  assert.match(totalLabel(t, 2) || '', /210,00/);
+  assert.match(totalLabel(t, 3) || '', /420,00/);
+});

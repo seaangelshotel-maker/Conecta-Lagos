@@ -118,4 +118,38 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'quadriciclo-trilha-4x4-arraial-do-cabo',
+    title: 'Quadriciclo: trilha 4x4 em Arraial do Cabo',
+    shortDescription: 'Trilha de quadriciclo de 1h30 a 2h pela Pedreira, Lagoa Rosada, Trilha das Salinas e o Deserto da Praia Grande. O valor é por quadriciclo, com até 2 pessoas.',
+    description:
+      'Uma trilha de quadriciclo de 1h30 a 2 horas pelos cenários de Arraial do Cabo. O roteiro passa pela Pedreira, pela Lagoa Rosada, pela Trilha das Salinas, pelo Pórtico (a entrada da cidade) e suas trilhas, pelo Caminho das Árvores, pela Trilha da Praia Grande e pelo Deserto da Praia Grande. O roteiro está sujeito a alteração.\n\n' +
+      'O valor é cobrado por veículo, e cada quadriciclo leva até 2 pessoas. Há saídas em cinco horários, incluindo uma ao pôr do sol. O check-in é 30 minutos antes do horário da sua saída, então não se atrase.\n\n' +
+      'O local tem estacionamento na frente e banheiro. Leve protetor solar. É necessário estar de sapato fechado; quem não tiver pode alugar crocs no local por R$ 15 o par. Use a roupa da sua preferência.',
+    coverImage: '/passeios/quadriciclo-arraial-do-cabo.jpg',
+    gallery: ['/passeios/quadriciclo-lagoa-rosada.jpg', '/passeios/escuna-prainhas.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'A verificar. A operadora confirma o ponto de encontro pelo WhatsApp.',
+    durationText: '1h30 a 2 horas',
+    includes: ['Quadriciclo (valor por veículo, até 2 pessoas)', 'Trilha guiada pelo roteiro', 'Estacionamento na frente do local', 'Banheiro no local'],
+    notIncluded: ['Aluguel de crocs: R$ 15 o par, no local (opcional)'],
+    requirements:
+      'É proibido o consumo de bebidas alcoólicas pelo condutor, antes e durante o passeio. O condutor precisa ter Carteira de Habilitação categoria B (não é preciso habilitação específica para quadriciclo). ' +
+      'Crianças menores de 10 anos não são permitidas. É obrigatório usar sapato fechado. Check-in 30 minutos antes do horário da saída.',
+    price: 210,
+    pricingUnit: 'vehicle',
+    unitName: 'quadriciclo',
+    unitSize: 2,
+    priceNote: 'por quadriciclo, até 2 pessoas',
+    // A CONFIRMAR: vagas, mínimo/máximo por reserva e quais horários têm o valor de reserva antecipada (valores provisórios).
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 4,
+    minNoticeHours: 12,
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['06:00', '08:00', '10:30', '14:00', '16:30'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];

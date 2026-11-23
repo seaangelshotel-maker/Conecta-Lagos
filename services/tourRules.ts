@@ -171,17 +171,19 @@ export const minPrice = (t: Pick<Tour, 'price' | 'packages'>): number | undefine
 };
 
 /** Texto do preço para exibir. Com pacotes: "A partir de R$ X por pessoa". */
-export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages'>): string => {
+export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages' | 'pricingUnit' | 'unitName' | 'unitSize'>): string => {
   const m = minPrice(t);
   if (m == null) return t.priceNote || 'Consulte o valor';
   const v = brl(m, m % 1 ? 2 : 0);
+  if (t.pricingUnit === 'vehicle') return `${v} por ${t.unitName || 'veículo'}${t.unitSize ? ` (até ${t.unitSize} pessoas)` : ''}`;
   return (t.packages || []).length > 1 ? `A partir de ${v} por pessoa` : `${v} por pessoa`;
 };
 
 /** Total estimado; com pacotes, usa o pacote escolhido. */
-export const totalLabel = (t: Pick<Tour, 'price' | 'packages'>, people: number, packageId?: string): string | null => {
+export const totalLabel = (t: Pick<Tour, 'price' | 'packages' | 'pricingUnit' | 'unitSize'>, people: number, packageId?: string): string | null => {
   const unit = (t.packages || []).length ? findPackage(t, packageId)?.price : t.price;
-  return unit != null && unit > 0 && people > 0 ? brl(unit * people) : null;
+  const count = t.pricingUnit === 'vehicle' && (t.unitSize || 0) > 0 ? Math.ceil(people / (t.unitSize as number)) : people;
+  return unit != null && unit > 0 && people > 0 ? brl(unit * count) : null;
 };
 
 export const formatDateBR = (date: string): string => {

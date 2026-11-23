@@ -815,6 +815,11 @@ export interface Tour {
   /** Preço por pessoa em reais (opcional). Sem preço, aparece "Consulte". */
   price?: number;
   priceNote?: string;
+  /** Cobrança por veículo (ex.: quadriciclo para até 2 pessoas). Sem isso, o preço é por pessoa. */
+  pricingUnit?: 'vehicle';
+  unitName?: string;
+  /** Pessoas por veículo quando pricingUnit = 'vehicle'. */
+  unitSize?: number;
   /** Pacotes com preços diferentes (opcional). Com pacotes, o cliente escolhe um na reserva e o preço vem do pacote. */
   packages?: TourPackage[];
   /** Vagas por saída. */
