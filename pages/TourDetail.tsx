@@ -86,7 +86,7 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
             <p>{formatDateBR(done.date)} às {done.time}</p>
             <p>{done.people} pessoa{done.people > 1 ? 's' : ''} · {done.customerName}</p>
             {done.packageName && <p>Pacote: {done.packageName}</p>}
-            {totalLabel(tour, done.people, done.packageId) && <p className="text-slate-500">Valor estimado: {totalLabel(tour, done.people, done.packageId)} (combine o pagamento com a operadora)</p>}
+            {totalLabel(tour, done.people, done.packageId) && <p className="text-slate-500">Valor aproximado: {totalLabel(tour, done.people, done.packageId)}. A operadora confirma o valor e o pagamento pelo WhatsApp.</p>}
           </div>
           <a href={wa} target="_blank" rel="noopener noreferrer" className={`${primaryButton} w-full mt-5 !bg-emerald-600 hover:!bg-emerald-700`}><MessageCircle size={18} /> Falar com {tour.operatorName} no WhatsApp</a>
           <button onClick={() => onNavigate('my-bookings')} className={`${secondaryButton} w-full mt-3`}>Ver minhas reservas</button>
@@ -176,7 +176,7 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
                   <button type="button" onClick={() => setPeople(p => Math.max(tour.minPeople || 1, p - 1))} aria-label="Menos uma pessoa" className="w-12 h-12 rounded-2xl border border-slate-200 text-xl font-black">−</button>
                   <span id="tb-people" className="text-2xl font-black w-10 text-center">{people}</span>
                   <button type="button" onClick={() => setPeople(p => Math.min(maxPeople, p + 1))} aria-label="Mais uma pessoa" className="w-12 h-12 rounded-2xl border border-slate-200 text-xl font-black">+</button>
-                  {totalLabel(tour, people, packageId) && <span className="ml-auto text-sm font-black text-ocean-700">{totalLabel(tour, people, packageId)}</span>}
+                  {totalLabel(tour, people, packageId) && <span className="ml-auto text-right text-sm font-black text-ocean-700" title="Valor aproximado; a operadora confirma pelo WhatsApp">≈ {totalLabel(tour, people, packageId)}<span className="block text-[10px] font-medium text-slate-400">valor aproximado</span></span>}
                 </div>
               </Field>
               <Field label="Seu nome" htmlFor="tb-name" error={errors.customerName} required>
