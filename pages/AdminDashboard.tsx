@@ -2869,7 +2869,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                 <input 
                                     type="checkbox" 
                                     className="w-5 h-5 rounded-lg border-slate-200 text-ocean-600 focus:ring-ocean-500"
-                                    checked={newPlan.showOrders ?? false}
+                                    checked={newPlan.showOrders ?? canOrder(newPlan)}
                                     onChange={e => setNewPlan({...newPlan, showOrders: e.target.checked})}
                                 />
                                 <span className="text-xs font-bold text-slate-600 group-hover:text-ocean-600 transition-colors">Pedidos por WhatsApp</span>
