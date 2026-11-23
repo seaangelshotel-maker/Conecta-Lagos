@@ -200,3 +200,33 @@ export const whatsappLink = (phone: string, text: string): string => {
 /** Vagas ocupadas por reservas ativas (pendentes e confirmadas). */
 export const activePeople = (bookings: Pick<TourBooking, 'status' | 'people'>[]) =>
   bookings.filter(b => b.status !== 'cancelled').reduce((n, b) => n + b.people, 0);
+
+export type TourSort = 'proxima' | 'menor-preco';
+export interface TourFilters { q?: string; cityId?: string; operator?: string; /** Só passeios com saída nos próximos N dias. */ withinDays?: number; sort?: TourSort; }
+
+const fold = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** Busca e filtros da lista pública de passeios (texto livre, cidade, operadora, saída em breve, ordem). */
+export const filterTours = (tours: Tour[], f: TourFilters, cityName: (id: string) => string = () => '', now = new Date()): Tour[] => {
+  const q = fold((f.q || '').trim());
+  const next = (t: Tour) => departureDates(t, now, 120)[0];
+  let out = tours.filter(t => {
+    if (f.cityId && t.cityId !== f.cityId) return false;
+    if (f.operator && t.operatorName !== f.operator) return false;
+    if (q) {
+      const hay = fold([t.title, t.shortDescription, t.operatorName, t.meetingPoint, cityName(t.cityId), ...(t.includes || [])].join(' '));
+      if (!q.split(/\s+/).every(w => hay.includes(w))) return false;
+    }
+    if (f.withinDays) {
+      const n = next(t);
+      if (!n) return false;
+      const limit = new Date(now); limit.setDate(limit.getDate() + f.withinDays);
+      const pad = (v: number) => String(v).padStart(2, '0');
+      if (n > `${limit.getFullYear()}-${pad(limit.getMonth() + 1)}-${pad(limit.getDate())}`) return false;
+    }
+    return true;
+  });
+  if (f.sort === 'menor-preco') out = [...out].sort((a, b) => (minPrice(a) ?? Infinity) - (minPrice(b) ?? Infinity));
+  else if (f.sort === 'proxima') out = [...out].sort((a, b) => (next(a) || '9999').localeCompare(next(b) || '9999'));
+  return out;
+};

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Tour } from '../types';
 import {
-  scheduledTimes, dayAvailability, dayStatus, validateBooking, validateTour, slotId, brtDate, slotInstant, departureDates, bookingWhatsappText, whatsappLink, priceLabel, totalLabel,
+  scheduledTimes, dayAvailability, dayStatus, validateBooking, validateTour, slotId, brtDate, slotInstant, departureDates, bookingWhatsappText, whatsappLink, priceLabel, totalLabel, filterTours,
 } from '../services/tourRules';
 
 const tour = (o: Partial<Tour> = {}): Tour => ({
@@ -97,4 +97,19 @@ test('pacotes: preço "a partir de", total por pacote e pacote obrigatório na r
   assert.equal(validateBooking(t, { ...ok, packageId: 'b' }, undefined, NOW).packageId, undefined);
   assert.ok(validateTour({ ...t, packages: [{ id: 'z', name: 'A', price: 0, includes: [] }] }, true).packages);
   assert.match(bookingWhatsappText({ tourTitle: 'X', date: '2026-11-21', time: '14:00', people: 2, customerName: 'Ana', packageName: 'Completo' }), /Pacote: Completo/);
+});
+
+test('filtros da lista: busca sem acento, cidade, operadora, saída em breve e ordem por preço', () => {
+  const now = new Date('2026-11-23T12:00:00-03:00');
+  const a = tour({ id: 'a', title: 'Passeio de escuna', price: 80, schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['12:00'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] } });
+  const b = tour({ id: 'b', title: 'Mergulho batismo', cityId: 'cabo-frio', operatorName: 'Outra Op', price: 50, schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['09:00'], startDate: '2027-02-01', blockedDates: [], extraDates: [] } });
+  const all = [a, b];
+  const names = (l: Tour[]) => l.map(t => t.id).join(',');
+  assert.equal(names(filterTours(all, { q: 'ESCUNA' }, () => '', now)), 'a');
+  assert.equal(names(filterTours(all, { q: 'batismo mergulho' }, () => '', now)), 'b');
+  assert.equal(names(filterTours(all, { q: 'cabo frio' }, id => (id === 'cabo-frio' ? 'Cabo Frio' : 'Arraial do Cabo'), now)), 'b');
+  assert.equal(names(filterTours(all, { cityId: 'cabo-frio' }, () => '', now)), 'b');
+  assert.equal(names(filterTours(all, { operator: 'Guida Trips' }, () => '', now)), 'a');
+  assert.equal(names(filterTours(all, { withinDays: 7 }, () => '', now)), 'a');
+  assert.equal(names(filterTours(all, { sort: 'menor-preco' }, () => '', now)), 'b,a');
 });

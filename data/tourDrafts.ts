@@ -20,7 +20,7 @@ export const TOUR_DRAFTS: Tour[] = [
       'Há dois pacotes, com o mesmo roteiro e a mesma duração: o Básico, com água livre, e o Completo, que inclui também caipirinha, almoço self-service e sobremesa no restaurante depois do passeio. ' +
       'Valores do primeiro lote, sujeitos a alteração.',
     coverImage: '/passeios/escuna-arraial-do-cabo.jpg',
-    gallery: [],
+    gallery: ['/passeios/escuna-ilha-do-farol.jpg', '/passeios/escuna-toboagua.jpg', '/passeios/escuna-prainhas.jpg'],
     cityId: 'arraial-do-cabo',
     meetingPoint: 'Praça do Cova, na Praia dos Anjos (em frente ao Museu Oceanográfico)',
     durationText: '4 horas (das 12h às 16h, com encontro às 11h30)',
