@@ -208,7 +208,11 @@ export const adminImportTourDrafts = async (): Promise<{ created: number; skippe
     const snap = await getDoc(ref);
     if (snap.exists()) {
       // Rascunho ainda não publicado pode ser atualizado a partir do pré-cadastro; publicado nunca é tocado.
-      if (snap.data().status !== 'draft') { skipped++; continue; }
+      if (snap.data().status !== 'draft') {
+        // Publicado: só completa a galeria se estiver vazia; nada mais é alterado.
+        if (!(snap.data().gallery || []).length && (t.gallery || []).length) await setDoc(ref, { gallery: t.gallery, updatedAt: now }, { merge: true });
+        skipped++; continue;
+      }
       await setDoc(ref, clean({ ...t, status: 'draft', createdAt: snap.data().createdAt || now, updatedAt: now }));
       skipped++;
       continue;
