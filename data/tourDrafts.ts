@@ -84,4 +84,38 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'mergulho-de-snorkel-santuario-das-tartarugas',
+    title: 'Mergulho de snorkel no Santuário das Tartarugas',
+    shortDescription: 'Snorkel guiado em águas rasas de Arraial do Cabo, com equipamento, instrutores e filmagem subaquática. Ideal para quem nunca mergulhou ou nadou.',
+    description:
+      'Uma aventura de 2 horas na biodiversidade marinha de Arraial do Cabo, pensada para quem nunca mergulhou ou nadou, com acompanhamento de instrutores o tempo todo.\n\n' +
+      'Primeiro, uma trilha de 5 a 7 minutos pela vegetação nativa até a praia. Lá acontece uma conversa introdutória sobre Arraial e o ecossistema marinho, com catálogos de tartarugas, peixes e corais. ' +
+      'Depois, a distribuição dos equipamentos, as orientações de segurança e uso, a sinalização de mergulho, exercícios de respiração e o treino em águas rasas: flutuabilidade, desalagamento de máscara e uso das nadadeiras.\n\n' +
+      'Na exploração guiada, o percurso vai de uma praia à outra em águas rasas (1 a 5 metros), com observação de tartarugas, peixes ornamentais, corais, estrelas-do-mar, ouriços e muito mais. ' +
+      'Todos são acompanhados por safety divers e o passeio tem registro em GoPro, com filmagem e fotos subaquáticas entregues em 48 a 72 horas.',
+    coverImage: '/passeios/snorkel-santuario-das-tartarugas.jpg',
+    gallery: ['/passeios/escuna-ilha-do-farol.jpg', '/passeios/escuna-prainhas.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'Prainha, em Arraial do Cabo. A operadora confirma o ponto exato pelo WhatsApp.',
+    durationText: '2 horas',
+    includes: [
+      'Máscara e snorkel', 'Colete de flutuação', 'Lycra com proteção solar 50+', 'Nadadeiras',
+      'Orientações de segurança e adaptação', 'Treino em águas rasas', 'Acompanhamento de safety divers', 'Registro em GoPro: filmagem e fotos subaquáticas (entregues em 48 a 72 horas)',
+    ],
+    notIncluded: ['Fotógrafa profissional (serviço adicional, consulte a operadora)'],
+    requirements: 'Indicado para quem nunca mergulhou ou nadou. Inclui uma trilha curta (5 a 7 minutos) até a praia, então use calçado confortável.',
+    price: 149.99,
+    priceNote: 'por pessoa',
+    // A CONFIRMAR antes de publicar: dias, horário(s) de saída, vagas e mínimo/máximo por reserva (valores abaixo são provisórios).
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 6,
+    minNoticeHours: 12,
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['09:00'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];
