@@ -960,6 +960,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Funil dos planos: cada pessoa registra só o próprio caminho; só o admin lê.
+    match /plan_funnel/{funnelId} {
+      allow read: if isAdmin();
+      allow create, update: if isAuthenticated()
+        && request.resource.data.userId == uid()
+        && funnelId == uid() + '_' + request.resource.data.planId
+        && request.resource.data.keys().hasOnly(['userId', 'userName', 'userEmail', 'planId', 'planName', 'period', 'price', 'total', 'step', 'maxStep', 'totalSteps', 'stage', 'startedAt', 'updatedAt', 'checkoutAt'])
+        && request.resource.data.stage in ['viewing', 'price', 'checkout']
+        && request.resource.data.step is int && request.resource.data.maxStep is int && request.resource.data.totalSteps is int
+        && request.resource.data.planId is string && request.resource.data.planId.size() < 100
+        && request.resource.data.userName.size() <= 120 && request.resource.data.userEmail.size() <= 160;
+      allow delete: if false;
+    }
+
     match /chat_reports/{reportId} {
       allow read: if isAdmin();
       allow write: if false;

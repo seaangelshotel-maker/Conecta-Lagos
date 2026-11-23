@@ -69,6 +69,7 @@ import { PaymentSettings } from '../types';
 import { auth } from '../services/firebase';
 
 import { SEO } from '../components/SEO';
+import { PlanFunnelPanel } from '../components/PlanFunnelPanel';
 const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const PLAN_BLANK: Partial<PricingPlan> = {
@@ -94,7 +95,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
   const [showPlanPreview, setShowPlanPreview] = useState(false);
   const NUDGE_KEY = 'lagos_menu_nudge_v1';
   const [menuNudge, setMenuNudge] = useState(false);
-  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'NEW_USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'TOURS' | 'NOTIFICATIONS'>(() => {
+  const [view, setView] = useState<'SEO' | 'HOME' | 'COUPONS' | 'PROFILE' | 'CREATE_COUPON' | 'MENU' | 'CATEGORIES' | 'REQUESTS' | 'BUSINESSES' | 'CREATE_PLACE' | 'PLANS' | 'HIGHLIGHTS' | 'LOCATIONS' | 'USERS' | 'NEW_USERS' | 'COLLECTIONS' | 'REVIEWS' | 'MY_PLAN' | 'PAYMENT_SETTINGS' | 'REDEMPTIONS' | 'AGENT_TEAM' | 'GOOGLE_DRIVE' | 'BLOG_ADS' | 'BLOG_POSTS' | 'MODERATION' | 'ECOSYSTEM' | 'HOME_DISCOVERY' | 'HOME_EDITORIAL' | 'EVENTS' | 'TOURS' | 'NOTIFICATIONS' | 'FUNNEL'>(() => {
     try { const v = new URLSearchParams(window.location.search).get('view'); return v === 'events' ? 'EVENTS' : v === 'tours' ? 'TOURS' : 'HOME'; } catch { return 'HOME'; }
   });
   const [blogAds, setBlogAds] = useState<BlogAd[]>([]);
@@ -778,6 +779,12 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                   <h4 className="font-bold text-ocean-600 mb-1">Gerenciar Categorias</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Adicione ou remova subcategorias.</p>
                               </button>
+                              {currentUser.role === UserRole.SUPER_ADMIN && (
+                              <button onClick={() => setView('FUNNEL')} data-testid="admin-funnel-tile" className="bg-slate-50 hover:bg-purple-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
+                                  <h4 className="font-bold text-purple-600 mb-1">Funil dos planos</h4>
+                                  <p className="text-[10px] md:text-xs text-slate-500">Quem viu cada plano e até onde chegou. Veja quem parou no meio.</p>
+                              </button>
+                              )}
                               <button onClick={() => setView('PLANS')} className="bg-slate-50 hover:bg-purple-50 p-4 md:p-6 rounded-2xl border border-slate-100 transition-all text-left">
                                   <h4 className="font-bold text-purple-600 mb-1">Planos de Assinatura</h4>
                                   <p className="text-[10px] md:text-xs text-slate-500">Crie planos personalizados para parceiros.</p>
@@ -3026,6 +3033,10 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
 
       {view === 'EVENTS' && (currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.COMPANY) && (
           <EventsManager currentUser={currentUser} myBusiness={myBusiness} onNavigate={onNavigate} />
+      )}
+
+      {view === 'FUNNEL' && currentUser.role === UserRole.SUPER_ADMIN && (
+          <PlanFunnelPanel onBack={() => setView('HOME')} />
       )}
 
       {view === 'TOURS' && currentUser.role === UserRole.SUPER_ADMIN && (

@@ -11,6 +11,7 @@ import { useNotification } from '../components/NotificationSystem';
 import { auth } from '../services/firebase';
 
 import { SEO } from '../components/SEO';
+import { PlanJourney } from '../components/PlanJourney';
 export const PENDING_PLAN_KEY = 'lagosgo:pendingPlan';
 interface PricingPlansProps {
     currentUser: User | null;
@@ -24,6 +25,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
     const [isTrialSelection, setIsTrialSelection] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [period, setPeriod] = useState<'semiannual' | 'yearly'>('yearly');
+    const [journeyPlan, setJourneyPlan] = useState<PricingPlan | null>(null);
 
     useEffect(() => {
         const loadPlans = async () => {
@@ -298,15 +300,16 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
 
                             <div className="space-y-4">
                                 <button 
-                                    onClick={() => handleSelectPlan(plan, false)}
+                                    onClick={() => setJourneyPlan(plan)}
+                                    data-testid="plan-start"
                                     className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${plan.id === recommendedId ? 'bg-ocean-600 text-white shadow-2xl shadow-ocean-600/30 hover:bg-ocean-700' : 'bg-slate-100 text-ocean-950 hover:bg-slate-200'}`}
                                 >
-                                    <MessageCircle size={18} />
-                                    Assinar
+                                    <ArrowRight size={18} />
+                                    Conhecer e assinar
                                 </button>
                                 {plan.hasFreeTrial && (
                                     <button 
-                                        onClick={() => handleSelectPlan(plan, true)}
+                                        onClick={() => setJourneyPlan(plan)}
                                         className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all text-emerald-600 hover:bg-emerald-50 border border-emerald-100"
                                     >
                                         Ou venha testar por {plan.trialDays || 30} dias
@@ -338,6 +341,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                 </div>
 
             </div>
+            {journeyPlan && (
+                <PlanJourney
+                    plan={journeyPlan}
+                    user={currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email } : null}
+                    onClose={() => setJourneyPlan(null)}
+                    onPay={(pl, trial) => { setJourneyPlan(null); handleSelectPlan(pl, trial); }}
+                />
+            )}
         </div>
     );
 };
