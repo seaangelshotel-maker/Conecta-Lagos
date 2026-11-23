@@ -145,3 +145,19 @@ test('preço por tamanho do grupo: 2 = 250, 3 = 280, 4 = 300; acima de 4 soma ou
   assert.equal(n(totalLabel(t, 4)), 'R$ 300,00');
   assert.equal(n(totalLabel(t, 6)), 'R$ 550,00');
 });
+
+test('categoria deduzida do título e filtro por categoria/nota', async () => {
+  const { tourCategory, summarizeReviews, filterTours } = await import('../services/tourRules');
+  assert.equal(tourCategory({ title: 'Passeio de escuna em Arraial' } as any), 'barco');
+  assert.equal(tourCategory({ title: 'Mergulho de batismo com cilindro' } as any), 'mergulho');
+  assert.equal(tourCategory({ title: 'Quadriciclo: trilha 4x4' } as any), 'aventura');
+  assert.equal(tourCategory({ title: 'Qualquer', category: 'barco' } as any), 'barco');
+  const r = summarizeReviews([{ tourId: 'a', rating: 5 }, { tourId: 'a', rating: 4 }, { tourId: 'b', rating: 3 }, { tourId: 'b', rating: 9 }]);
+  assert.deepEqual(r.a, { avg: 4.5, count: 2 });
+  assert.deepEqual(r.b, { avg: 3, count: 1 });
+  const mk = (id: string, title: string) => ({ id, title, shortDescription: '', operatorName: 'X', meetingPoint: '', cityId: 'c', includes: [], price: 10, schedule: { weekdays: [0,1,2,3,4,5,6], times: ['10:00'], blockedDates: [], extraDates: [] }, minNoticeHours: 0 }) as any;
+  const tours = [mk('a', 'Escuna A'), mk('b', 'Mergulho B')];
+  assert.deepEqual(filterTours(tours, { category: 'mergulho' }).map(t => t.id), ['b']);
+  assert.deepEqual(filterTours(tours, { minRating: 4 }, () => '', new Date(), r).map(t => t.id), ['a']);
+  assert.deepEqual(filterTours(tours, { sort: 'mais-avaliado' }, () => '', new Date(), r).map(t => t.id), ['a', 'b']);
+});

@@ -909,6 +909,27 @@ service cloud.firestore {
       );
     }
 
+    match /tourReviews/{reviewId} {
+      allow read: if true;
+      // Só quem tem reserva confirmada do passeio avalia; uma avaliação por pessoa e passeio.
+      allow create: if isAuthenticated() && isNotBlocked()
+        && request.resource.data.keys().hasOnly(['id', 'tourId', 'userId', 'bookingId', 'authorName', 'rating', 'comment', 'createdAt'])
+        && request.resource.data.userId == uid()
+        && reviewId == request.resource.data.tourId + '_' + uid()
+        && request.resource.data.id == reviewId
+        && get(tourBookingPath(request.resource.data.bookingId)).data.userId == uid()
+        && get(tourBookingPath(request.resource.data.bookingId)).data.tourId == request.resource.data.tourId
+        && get(tourBookingPath(request.resource.data.bookingId)).data.status == 'confirmed'
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && isShortString(request.resource.data.authorName, 40)
+        && request.resource.data.get('comment', '') is string && request.resource.data.get('comment', '').size() <= 500;
+      allow update: if isAuthenticated() && resource.data.userId == uid()
+        && changedKeys().hasOnly(['rating', 'comment', 'updatedAt'])
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.get('comment', '') is string && request.resource.data.get('comment', '').size() <= 500;
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
+    }
+
     match /tourBookings/{bookingId} {
       allow get, list: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
       allow create: if isAuthenticated() && isNotBlocked()

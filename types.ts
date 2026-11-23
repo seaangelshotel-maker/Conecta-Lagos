@@ -799,6 +799,21 @@ export interface TourPackage {
   includes: string[];
 }
 
+export type TourCategory = 'barco' | 'mergulho' | 'aventura' | 'outros';
+
+/** Avaliação de um passeio. Só quem teve reserva confirmada avalia; uma por pessoa e passeio. */
+export interface TourReview {
+  id: string;
+  tourId: string;
+  userId: string;
+  bookingId: string;
+  authorName: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Tour {
   id: string;
   title: string;
@@ -806,6 +821,8 @@ export interface Tour {
   description: string;
   coverImage: string;
   gallery: string[];
+  /** Categoria do passeio. Sem ela, é deduzida do título. */
+  category?: TourCategory;
   cityId: string;
   meetingPoint: string;
   durationText: string;

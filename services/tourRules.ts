@@ -2,7 +2,7 @@
  * Passeios: regras puras de agenda, disponibilidade e reserva (sem Firestore).
  * Datas são "YYYY-MM-DD" e horários "HH:MM", sempre no horário de Brasília (UTC-3, sem horário de verão).
  */
-import type { Tour, TourBooking, TourSchedule, TourSlot } from '../types';
+import type { Tour, TourBooking, TourCategory, TourReview, TourSchedule, TourSlot } from '../types';
 
 export const BRT_OFFSET = '-03:00';
 export const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -217,18 +217,53 @@ export const whatsappLink = (phone: string, text: string): string => {
 export const activePeople = (bookings: Pick<TourBooking, 'status' | 'people'>[]) =>
   bookings.filter(b => b.status !== 'cancelled').reduce((n, b) => n + b.people, 0);
 
-export type TourSort = 'proxima' | 'menor-preco';
-export interface TourFilters { q?: string; cityId?: string; operator?: string; /** Só passeios com saída nos próximos N dias. */ withinDays?: number; sort?: TourSort; }
+export const TOUR_CATEGORIES: { id: TourCategory; label: string }[] = [
+  { id: 'barco', label: 'Barco' }, { id: 'mergulho', label: 'Mergulho' }, { id: 'aventura', label: 'Aventura' }, { id: 'outros', label: 'Outros' },
+];
+/** Categoria explícita ou deduzida do título. */
+export const tourCategory = (t: Pick<Tour, 'title' | 'category'>): TourCategory => {
+  if (t.category) return t.category;
+  const x = (t.title || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/escuna|barco|lancha|catamara|traineira/.test(x)) return 'barco';
+  if (/mergulho|snorkel|batismo/.test(x)) return 'mergulho';
+  if (/buggy|quadriciclo|trilha|jipe|bike|cavalo/.test(x)) return 'aventura';
+  return 'outros';
+};
+
+export interface RatingSummary { avg: number; count: number; }
+/** Média e quantidade de avaliações por passeio. */
+export const summarizeReviews = (reviews: Pick<TourReview, 'tourId' | 'rating'>[]): Record<string, RatingSummary> => {
+  const acc: Record<string, { sum: number; count: number }> = {};
+  for (const r of reviews) {
+    if (!(r.rating >= 1 && r.rating <= 5)) continue;
+    const a = acc[r.tourId] || (acc[r.tourId] = { sum: 0, count: 0 });
+    a.sum += r.rating; a.count += 1;
+  }
+  const out: Record<string, RatingSummary> = {};
+  for (const k of Object.keys(acc)) out[k] = { avg: Math.round((acc[k].sum / acc[k].count) * 10) / 10, count: acc[k].count };
+  return out;
+};
+export const ratingText = (r?: RatingSummary): string => (r && r.count ? r.avg.toFixed(1).replace('.', ',') : '');
+
+export type TourSort = 'proxima' | 'menor-preco' | 'mais-avaliado';
+export interface TourFilters {
+  q?: string; cityId?: string; operator?: string; category?: TourCategory;
+  /** Só passeios com saída nos próximos N dias. */ withinDays?: number;
+  /** Só passeios com nota média igual ou acima disso (precisa de avaliações). */ minRating?: number;
+  sort?: TourSort;
+}
 
 const fold = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-/** Busca e filtros da lista pública de passeios (texto livre, cidade, operadora, saída em breve, ordem). */
-export const filterTours = (tours: Tour[], f: TourFilters, cityName: (id: string) => string = () => '', now = new Date()): Tour[] => {
+/** Busca e filtros da lista pública de passeios. `ratings` vem de summarizeReviews. */
+export const filterTours = (tours: Tour[], f: TourFilters, cityName: (id: string) => string = () => '', now = new Date(), ratings: Record<string, RatingSummary> = {}): Tour[] => {
   const q = fold((f.q || '').trim());
   const next = (t: Tour) => nextDeparture(t, now);
   let out = tours.filter(t => {
     if (f.cityId && t.cityId !== f.cityId) return false;
     if (f.operator && t.operatorName !== f.operator) return false;
+    if (f.category && tourCategory(t) !== f.category) return false;
+    if (f.minRating && !((ratings[t.id]?.avg ?? 0) >= f.minRating)) return false;
     if (q) {
       const hay = fold([t.title, t.shortDescription, t.operatorName, t.meetingPoint, cityName(t.cityId), ...(t.includes || [])].join(' '));
       if (!q.split(/\s+/).every(w => hay.includes(w))) return false;
@@ -243,6 +278,7 @@ export const filterTours = (tours: Tour[], f: TourFilters, cityName: (id: string
     return true;
   });
   if (f.sort === 'menor-preco') out = [...out].sort((a, b) => (minPrice(a) ?? Infinity) - (minPrice(b) ?? Infinity));
+  else if (f.sort === 'mais-avaliado') out = [...out].sort((a, b) => (ratings[b.id]?.avg ?? 0) - (ratings[a.id]?.avg ?? 0) || (ratings[b.id]?.count ?? 0) - (ratings[a.id]?.count ?? 0));
   else if (f.sort === 'proxima') out = [...out].sort((a, b) => (next(a) || '9999').localeCompare(next(b) || '9999'));
   return out;
 };

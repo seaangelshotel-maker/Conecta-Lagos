@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, runTransaction } from 'firebase/firestore';
 import { db } from './firebase';
 import { getCurrentUser } from './dataService';
-import { Tour, TourBooking, TourSlot, User, UserRole } from '../types';
+import { Tour, TourBooking, TourReview, TourSlot, User, UserRole } from '../types';
 import { TOUR_DRAFTS } from '../data/tourDrafts';
 import { BookingInput, brtDate, cleanPhone, findPackage, slotId, validateBooking } from './tourRules';
 
@@ -223,3 +223,53 @@ export const adminImportTourDrafts = async (): Promise<{ created: number; skippe
   notifyChanged();
   return { created, skipped };
 };
+
+// ---------- Avaliações ----------
+const REVIEWS = 'tourReviews';
+let _reviews: TourReview[] | null = null;
+let _reviewsAt = 0;
+
+/** Todas as avaliações (leitura pública). Cache curto; a lista de passeios usa para a nota média. */
+export const getAllReviews = async (force = false): Promise<TourReview[]> => {
+  if (!force && _reviews && Date.now() - _reviewsAt < TTL_MS) return _reviews;
+  try {
+    const s = await getDocs(collection(db, REVIEWS));
+    _reviews = s.docs.map(d => ({ ...(d.data() as TourReview), id: d.id }));
+  } catch { _reviews = _reviews || []; }
+  _reviewsAt = Date.now();
+  return _reviews;
+};
+
+export const useReviews = () => {
+  const [reviews, setReviews] = useState<TourReview[]>(_reviews || []);
+  useEffect(() => { let alive = true; getAllReviews().then(r => { if (alive) setReviews(r); }); return () => { alive = false; }; }, []);
+  return reviews;
+};
+
+/** Reserva confirmada, já realizada, que dá direito a avaliar o passeio (a mais recente). */
+export const findReviewableBooking = async (userId: string, tourId: string, now = new Date()): Promise<TourBooking | undefined> => {
+  const mine = await getMyBookings(userId);
+  return mine.filter(b => b.tourId === tourId && b.status === 'confirmed' && b.date <= brtDate(now)).sort((a, b) => b.date.localeCompare(a.date))[0];
+};
+
+export const saveReview = async (tour: Tour, booking: TourBooking, rating: number, comment: string): Promise<void> => {
+  const user = requireUser();
+  if (!(Number.isInteger(rating) && rating >= 1 && rating <= 5)) throw new Error('Escolha de 1 a 5 estrelas.');
+  const id = `${tour.id}_${user.id}`;
+  const ref = doc(db, REVIEWS, id);
+  const prev = await getDoc(ref);
+  const text = comment.trim().slice(0, 500);
+  if (prev.exists()) {
+    await updateDoc(ref, clean({ rating, comment: text, updatedAt: new Date().toISOString() }));
+  } else {
+    const review: TourReview = {
+      id, tourId: tour.id, userId: user.id, bookingId: booking.id, authorName: (user.name || 'Cliente').split(' ')[0].slice(0, 40),
+      rating, createdAt: new Date().toISOString(), ...(text ? { comment: text } : {}),
+    };
+    await setDoc(ref, clean(review));
+  }
+  _reviews = null;
+};
+
+export const getTourReviews = async (tourId: string): Promise<TourReview[]> =>
+  (await getAllReviews(true)).filter(r => r.tourId === tourId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));

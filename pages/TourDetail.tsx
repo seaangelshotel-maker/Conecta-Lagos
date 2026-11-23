@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, MapPin, Clock, Users, Check, X, MessageCircle, Loader2, Info, CalendarCheck } from 'lucide-react';
-import { Tour, TourBooking, User } from '../types';
+import { ArrowLeft, MapPin, Clock, Users, Check, X, MessageCircle, Loader2, Info, CalendarCheck, Star } from 'lucide-react';
+import { Tour, TourBooking, TourReview, User } from '../types';
 import { SEO } from '../components/SEO';
 import { TourCalendar } from '../components/TourCalendar';
 import { LoadingState, ErrorState, Field, inputClass, primaryButton, secondaryButton } from '../components/ui/States';
-import { createBooking, getTourById, getTourSlots } from '../services/tourService';
+import { createBooking, getTourById, getTourSlots, getTourReviews, findReviewableBooking, saveReview } from '../services/tourService';
 import {
-  BookingErrors, bookingWhatsappText, cleanPhone, dayAvailability, departureDates, formatDateBR, findPackage, priceLabel, totalLabel, validateBooking, whatsappLink,
+  BookingErrors, bookingWhatsappText, cleanPhone, dayAvailability, departureDates, formatDateBR, findPackage, priceLabel, totalLabel, summarizeReviews, ratingText, validateBooking, whatsappLink,
 } from '../services/tourRules';
 import { REGION_MUNICIPALITIES } from '../services/regionGeo';
 
@@ -28,6 +28,26 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
   const [done, setDone] = useState<TourBooking | null>(null);
   const [photo, setPhoto] = useState(0);
   const now = useMemo(() => new Date(), [tourId, done]);
+  const [reviews, setReviews] = useState<TourReview[]>([]);
+  const [canReview, setCanReview] = useState<TourBooking | undefined>();
+  const [stars, setStars] = useState(0);
+  const [rText, setRText] = useState('');
+  const [rBusy, setRBusy] = useState(false);
+  const [rMsg, setRMsg] = useState('');
+  const loadReviews = async () => {
+    setReviews(await getTourReviews(tourId));
+    if (currentUser) setCanReview(await findReviewableBooking(currentUser.id, tourId).catch(() => undefined));
+  };
+  useEffect(() => { loadReviews(); }, [tourId, currentUser?.id]);
+  const mine = reviews.find(r => r.userId === currentUser?.id);
+  useEffect(() => { if (mine) { setStars(mine.rating); setRText(mine.comment || ''); } }, [mine?.id]);
+  const sendReview = async () => {
+    if (!tour || !canReview) return;
+    setRBusy(true); setRMsg('');
+    try { await saveReview(tour, canReview, stars, rText); setRMsg('Avaliação salva. Obrigado!'); await loadReviews(); }
+    catch (e: any) { setRMsg(e?.message || 'Não foi possível salvar a avaliação.'); }
+    setRBusy(false);
+  };
 
   const load = async () => {
     const t = await getTourById(tourId);
@@ -197,6 +217,33 @@ export const TourDetail: React.FC<Props> = ({ tourId, currentUser, onNavigate })
             </div>
           )}
         </section>
+
+          <section className="mt-6 bg-white rounded-3xl border border-slate-100 p-5" data-testid="tour-reviews">
+            <h2 className="font-black text-ocean-950 text-lg flex items-center gap-2">Avaliações
+              {reviews.length > 0 && <span className="text-sm font-black text-amber-600 flex items-center gap-1"><Star size={14} className="fill-amber-400 text-amber-400" /> {ratingText(summarizeReviews(reviews)[tour.id])} <span className="text-slate-400 font-medium">({reviews.length})</span></span>}
+            </h2>
+            {reviews.length === 0 && <p className="text-sm text-slate-500 mt-1">Ainda não há avaliações. Quem fizer o passeio pode avaliar aqui.</p>}
+            <div className="mt-3 space-y-3">
+              {reviews.slice(0, 20).map(r => (
+                <div key={r.id} className="border-t border-slate-100 pt-3">
+                  <p className="text-sm font-black text-ocean-950 flex items-center gap-2">{r.authorName}
+                    <span className="flex">{[1, 2, 3, 4, 5].map(n => <Star key={n} size={13} className={n <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'} />)}</span></p>
+                  {r.comment && <p className="text-sm text-slate-600 mt-0.5">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+            {canReview && (
+              <div className="mt-4 border-t border-slate-100 pt-4 space-y-2" data-testid="tour-review-form">
+                <p className="text-sm font-black text-ocean-950">{mine ? 'Sua avaliação' : 'Você fez este passeio. Avalie!'}</p>
+                <div className="flex gap-1" role="radiogroup" aria-label="Nota">
+                  {[1, 2, 3, 4, 5].map(n => <button key={n} type="button" role="radio" aria-checked={stars === n} aria-label={`${n} estrela${n > 1 ? 's' : ''}`} onClick={() => setStars(n)}><Star size={30} className={n <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-300'} /></button>)}
+                </div>
+                <textarea className={inputClass(false)} rows={2} maxLength={500} value={rText} onChange={e => setRText(e.target.value)} placeholder="Conte como foi (opcional)" aria-label="Comentário" />
+                <button onClick={sendReview} disabled={rBusy || !stars} className={`${primaryButton} w-full`}>{rBusy ? <Loader2 className="animate-spin" size={18} /> : null}{mine ? 'Atualizar avaliação' : 'Enviar avaliação'}</button>
+                {rMsg && <p className="text-xs font-bold text-slate-600" role="status">{rMsg}</p>}
+              </div>
+            )}
+          </section>
       </div>
     </div>
   );
