@@ -48,4 +48,40 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'passeio-de-escuna-saida-do-rio-bate-e-volta',
+    title: 'Passeio de escuna com saída do Rio (bate e volta)',
+    shortDescription: 'Bate e volta saindo do Rio de Janeiro: transporte ida e volta, escuna de 2 andares com toboágua, mergulho, almoço e tudo incluso.',
+    description:
+      'Um dia inteiro em Arraial do Cabo saindo do Rio de Janeiro, sem se preocupar com nada: o transporte de ida e volta, o passeio de escuna de 2 andares com toboágua, a caipirinha ou suco, o almoço e a taxa da marina já estão no valor.\n\n' +
+      'O barco navega pelos principais cartões-postais de Arraial do Cabo e para para mergulho e praias na Ilha do Farol (com opção de desembarque para conhecer), nas Prainhas do Pontal do Atalaia, na Enseada do Guriri e na Praia do Forno. ' +
+      'Pelo caminho passa pelos pontos panorâmicos: Gruta Azul, Pedra do Gorila, Pedra da Tartaruga, Fenda de Nossa Senhora e Impacto do Meteorito.\n\n' +
+      'Saídas diárias, com embarque em diversos pontos do Rio entre 6h30 e 8h40. Depois do passeio, o almoço self-service sem balança é no restaurante na Praia dos Anjos, em Arraial do Cabo.\n\n' +
+      'Na reserva, informe no campo de observações o bairro ou hotel onde prefere embarcar. A operadora confirma o ponto e o horário exatos pelo WhatsApp.',
+    coverImage: '/passeios/bate-e-volta-rio-arraial.jpg',
+    gallery: ['/passeios/escuna-arraial-do-cabo.jpg', '/passeios/escuna-ilha-do-farol.jpg', '/passeios/escuna-toboagua.jpg', '/passeios/escuna-prainhas.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'Embarque no Rio de Janeiro: Leblon/Ipanema 6h30, Copacabana 6h45, Leme 7h10, Botafogo 7h20, Flamengo 7h30, Centro/Lapa 7h45, Niterói 8h30 e São Gonçalo 8h40. A lista completa dos pontos é confirmada pela operadora.',
+    durationText: 'Dia inteiro (bate e volta, embarque entre 6h30 e 8h40)',
+    includes: [
+      'Transporte ida e volta', 'Passeio de escuna de 2 andares com toboágua', 'Macarrões flutuantes', '2 banheiros', 'Serviço de bordo',
+      'Coração para fotos', 'Som bluetooth e Wi-Fi', '1 caipirinha ou suco por pessoa (na recepção do passeio)',
+      'Refeição self-service sem balança, no restaurante na Praia dos Anjos após o passeio', 'Água livre', 'Taxa da marina e translado obrigatórios',
+    ],
+    notIncluded: [],
+    requirements: 'Criança até 5 anos não paga (vai no colo no ônibus). Informe na reserva o ponto de embarque desejado; a operadora confirma o horário exato pelo WhatsApp.',
+    price: 215,
+    priceNote: 'por pessoa, com tudo incluso',
+    // Vagas: sem limite prático (teto do sistema = 500 por saída). Mínimo/máximo por reserva ainda a confirmar.
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 6,
+    minNoticeHours: 12,
+    // Horário = primeiro embarque do dia (Leblon/Ipanema). Só novembro e início de dezembro de 2026 (de 23/11 a 07/12).
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['06:30'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];
