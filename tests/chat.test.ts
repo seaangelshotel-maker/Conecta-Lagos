@@ -53,6 +53,9 @@ test('canais: chat só com plano liberado e pedidos ligados; só-chat esconde Wh
   assert.deepEqual(resolveChannels({ ordersEnabled: true, orderChannels: 'chat' }, { showChat: true }), { whatsapp: false, chat: true });
   assert.deepEqual(resolveChannels({ ordersEnabled: true, orderChannels: 'chat' }, { showChat: false }), { whatsapp: true, chat: false });
   assert.deepEqual(resolveChannels({ ordersEnabled: false, orderChannels: 'both' }, { showChat: true }), { whatsapp: true, chat: false });
+  assert.deepEqual(resolveChannels({ ordersEnabled: true, orderChannels: 'both', chatAccess: 'deny' }, { showChat: true }), { whatsapp: true, chat: false });
+  assert.deepEqual(resolveChannels({ ordersEnabled: true, orderChannels: 'both', chatAccess: 'allow' }, { showChat: false }), { whatsapp: true, chat: true });
+  assert.deepEqual(resolveChannels({ ordersEnabled: true, orderChannels: 'both', chatAccess: 'plan' }, { showChat: true }), { whatsapp: true, chat: true });
 });
 
 test('limite por hora e bloqueio', () => {

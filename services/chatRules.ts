@@ -40,14 +40,20 @@ export const cleanMessage = (raw: unknown, max = MAX_MESSAGE_LEN): string | null
 
 export const previewOf = (text: string, n = 80) => text.replace(/\s+/g, ' ').slice(0, n);
 
+/** Controle do admin por empresa: segue o plano (padrão), libera mesmo sem o plano ou bloqueia mesmo com o plano. */
+export type ChatAccess = 'plan' | 'allow' | 'deny';
+
+/** O chat está liberado para esta empresa? (admin por empresa tem prioridade sobre o plano) */
+export const chatAllowed = (biz: { chatAccess?: string }, plan?: { showChat?: boolean } | null): boolean =>
+  biz.chatAccess === 'deny' ? false : biz.chatAccess === 'allow' ? true : plan?.showChat === true;
+
 /** Canal efetivo da empresa. Sem escolha = só WhatsApp (comportamento de sempre). */
 export const resolveChannels = (
-  biz: { ordersEnabled?: boolean; orderChannels?: string },
+  biz: { ordersEnabled?: boolean; orderChannels?: string; chatAccess?: string },
   plan?: { showChat?: boolean } | null,
 ): { whatsapp: boolean; chat: boolean } => {
   const c = biz.orderChannels === 'chat' || biz.orderChannels === 'both' ? biz.orderChannels : 'whatsapp';
-  const chatAllowed = plan?.showChat === true && biz.ordersEnabled === true;
-  const chat = chatAllowed && (c === 'chat' || c === 'both');
+  const chat = chatAllowed(biz, plan) && biz.ordersEnabled === true && (c === 'chat' || c === 'both');
   // sem chat liberado a empresa continua no WhatsApp; com "só chat" o WhatsApp some
   const whatsapp = !(chat && c === 'chat');
   return { whatsapp, chat };

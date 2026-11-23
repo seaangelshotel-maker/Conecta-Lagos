@@ -1,4 +1,5 @@
 import { merchantImpact, formatBRL, couponSaving } from '../services/walletRules';
+import { chatAllowed } from '../services/chatRules';
 import { canOrder, menuProgress, menuBytes, MENU_BYTES_WARN } from '../services/orderModel';
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationSystem';
@@ -1841,7 +1842,7 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                   onChange={e => setEditBusiness({ ...editBusiness, ordersEnabled: e.target.checked })} />
                               <span className="text-sm font-bold text-ocean-950">Receber pedidos pelo app</span>
                           </label>
-                          {(activePlan?.showChat === true || currentUser.role === UserRole.SUPER_ADMIN) && editBusiness.ordersEnabled === true && (
+                          {(chatAllowed(editBusiness, activePlan) || currentUser.role === UserRole.SUPER_ADMIN) && editBusiness.ordersEnabled === true && (
                               <label className="space-y-1 block">
                                   <span className="text-[10px] font-black uppercase text-slate-500">Como o cliente envia o pedido</span>
                                   <select data-testid="order-channels" className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold"
@@ -1851,6 +1852,18 @@ export const AdminDashboard: React.FC<{ currentUser: User; onNavigate: (page: st
                                       <option value="both">WhatsApp ou chat do Lagos GO (o cliente escolhe)</option>
                                       <option value="chat">Só pelo chat do Lagos GO</option>
                                   </select>
+                                  {currentUser.role === UserRole.SUPER_ADMIN && (
+                                      <span className="block pt-2">
+                                          <span className="text-[10px] font-black uppercase text-slate-500">Chat (controle do admin)</span>
+                                          <select data-testid="chat-access" className="w-full bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm font-bold"
+                                              value={editBusiness.chatAccess || 'plan'}
+                                              onChange={e => setEditBusiness({ ...editBusiness, chatAccess: e.target.value as 'plan' | 'allow' | 'deny' })}>
+                                              <option value="plan">Seguir o plano da empresa</option>
+                                              <option value="allow">Liberar o chat (mesmo sem o plano)</option>
+                                              <option value="deny">Bloquear o chat (mesmo com o plano)</option>
+                                          </select>
+                                      </span>
+                                  )}
                                   <span className="text-[10px] text-slate-400">No chat, o cliente vê um aviso de que a tratativa é de responsabilidade da empresa. Você responde em "Conversas" e recebe aviso por e-mail.</span>
                               </label>
                           )}

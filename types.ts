@@ -116,6 +116,8 @@ export interface BusinessProfile {
   orderWhatsapp?: string;
   /** Por onde o cliente envia o pedido: WhatsApp (padrão), chat do Lagos GO ou os dois (chat exige plano com showChat). */
   orderChannels?: 'whatsapp' | 'chat' | 'both';
+  /** Só o admin define: 'plan' (padrão, segue o plano), 'allow' (libera o chat mesmo sem o plano) ou 'deny' (bloqueia). */
+  chatAccess?: 'plan' | 'allow' | 'deny';
   reviews?: Review[];
   rating: number;
   reviewCount?: number;

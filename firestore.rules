@@ -153,7 +153,7 @@ service cloud.firestore {
       return ['isFeatured', 'plan', 'planId', 'status', 'isBlocked', 'paymentCustomerId',
               'paymentSubscriptionStatus', 'paymentSubscriptionId', 'subscriptionEndsAt',
               'ownerId', 'rating', 'reviewCount', 'reviews', 'ratingStats', 'views', 'shares', 'actionCounts',
-              'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags'];
+              'isClaimed', 'canBeClaimed', 'active', 'id', 'experienceTags', 'chatAccess'];
     }
 
     match /businesses/{bizId} {
@@ -170,7 +170,7 @@ service cloud.firestore {
         && request.resource.data.get('isFeatured', false) == false
         && request.resource.data.get('isBlocked', false) == false
         && !request.resource.data.keys().hasAny(['planId', 'paymentCustomerId', 'paymentSubscriptionStatus',
-              'paymentSubscriptionId', 'subscriptionEndsAt', 'reviews', 'actionCounts'])
+              'paymentSubscriptionId', 'subscriptionEndsAt', 'reviews', 'actionCounts', 'chatAccess'])
         && (
           !request.resource.data.keys().hasAny(['plan']) ||
           request.resource.data.plan == 'free' ||
