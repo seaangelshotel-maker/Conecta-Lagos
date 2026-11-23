@@ -43,7 +43,7 @@ export const TOUR_DRAFTS: Tour[] = [
     minNoticeHours: 12,
     schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['12:00'], blockedDates: [], extraDates: [] },
     operatorName: 'Guida Trips',
-    operatorBusinessId: 'guida-trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
     operatorWhatsapp: '',
     status: 'draft',
   },

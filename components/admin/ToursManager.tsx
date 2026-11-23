@@ -14,7 +14,7 @@ import { ImageUpload } from '../ImageUpload';
 import { useNotification } from '../NotificationSystem';
 import { Badge, EmptyState, Field, inputClass, primaryButton, secondaryButton } from '../ui/States';
 
-const GUIDA = 'guida-trips';
+const GUIDA = 'cnYye6yHwbaS07Px3P7y0BXEKG33';
 
 const EMPTY: Omit<Tour, 'id'> = {
   title: '', shortDescription: '', description: '', coverImage: '', gallery: [], cityId: 'arraial-do-cabo', meetingPoint: '', durationText: '',
