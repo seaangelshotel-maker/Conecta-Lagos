@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Tour } from '../types';
 import {
-  scheduledTimes, dayAvailability, dayStatus, validateBooking, validateTour, slotId, brtDate, slotInstant, departureDates, bookingWhatsappText, whatsappLink, priceLabel, totalLabel, filterTours,
+  scheduledTimes, dayAvailability, dayStatus, validateBooking, validateTour, slotId, brtDate, slotInstant, departureDates, bookingWhatsappText, whatsappLink, priceLabel, totalLabel, filterTours, nextDeparture,
 } from '../services/tourRules';
 
 const tour = (o: Partial<Tour> = {}): Tour => ({
@@ -112,4 +112,11 @@ test('filtros da lista: busca sem acento, cidade, operadora, saída em breve e o
   assert.equal(names(filterTours(all, { operator: 'Guida Trips' }, () => '', now)), 'a');
   assert.equal(names(filterTours(all, { withinDays: 7 }, () => '', now)), 'a');
   assert.equal(names(filterTours(all, { sort: 'menor-preco' }, () => '', now)), 'b,a');
+});
+
+test('próxima saída ignora horário que já passou hoje e respeita a antecedência', () => {
+  const t = tour({ minNoticeHours: 12, schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['12:00'], blockedDates: [], extraDates: [] } });
+  assert.equal(nextDeparture(t, new Date('2026-11-23T19:00:00-03:00')), '2026-11-24'); // hoje 12h já passou
+  assert.equal(nextDeparture(t, new Date('2026-11-24T02:00:00-03:00')), '2026-11-25'); // 12h do dia 24 está a menos de 12h
+  assert.equal(nextDeparture(t, new Date('2026-11-23T08:00:00-03:00')), '2026-11-24');
 });

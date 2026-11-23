@@ -5,7 +5,7 @@ import { SEO } from '../components/SEO';
 import { EmptyState, SkeletonCards } from '../components/ui/States';
 import { LegalFooter } from '../components/LegalFooter';
 import { usePublishedTours } from '../services/tourService';
-import { priceLabel, departureDates, formatDateBR, filterTours, TourSort } from '../services/tourRules';
+import { priceLabel, nextDeparture, formatDateBR, filterTours, TourSort } from '../services/tourRules';
 import { REGION_MUNICIPALITIES } from '../services/regionGeo';
 
 interface Props { currentUser: User | null; onNavigate: (page: string, params?: any) => void; }
@@ -16,13 +16,13 @@ const chip = (on: boolean) => `shrink-0 h-9 px-3.5 rounded-full text-[13px] font
 
 /** Card de passeio. `large` vira o destaque da página: foto grande com o texto sobre ela. */
 export const TourCard: React.FC<{ tour: Tour; onOpen: () => void; large?: boolean }> = ({ tour, onOpen, large }) => {
-  const next = useMemo(() => departureDates(tour, new Date(), 120)[0], [tour]);
+  const next = useMemo(() => nextDeparture(tour, new Date()), [tour]);
   const photos = [tour.coverImage, ...(tour.gallery || [])].filter(Boolean);
   if (large) {
     return (
       <button onClick={onOpen} data-testid="tour-card" data-large="true" className="group relative text-left w-full rounded-[2rem] overflow-hidden shadow-lg min-h-[340px] md:min-h-[400px] flex items-end bg-ocean-950">
         {photos[0] && <img src={photos[0]} alt={tour.title} referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-ocean-950/95 via-ocean-950/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ocean-950/95 via-ocean-950/65 to-ocean-950/10" />
         <div className="relative p-5 md:p-8 text-white w-full md:flex md:items-end md:justify-between md:gap-6">
           <div className="max-w-2xl">
             <div className="flex flex-wrap gap-2 mb-3">

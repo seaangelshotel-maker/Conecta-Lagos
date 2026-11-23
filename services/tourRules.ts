@@ -89,6 +89,10 @@ export const departureDates = (tour: Tour, now = new Date(), horizonDays = 365):
   return out;
 };
 
+/** Próxima data com saída ainda reservável (descarta horários já passados e dentro da antecedência mínima). Ignora lotação. */
+export const nextDeparture = (tour: Tour, now = new Date(), horizonDays = 120): string | undefined =>
+  departureDates(tour, now, horizonDays).find(d => dayAvailability(tour, d, {}, now).some(x => x.state === 'open'));
+
 export interface BookingInput {
   date: string; time: string; people: number; customerName: string; customerPhone: string; notes?: string; packageId?: string;
 }
@@ -209,7 +213,7 @@ const fold = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 /** Busca e filtros da lista pública de passeios (texto livre, cidade, operadora, saída em breve, ordem). */
 export const filterTours = (tours: Tour[], f: TourFilters, cityName: (id: string) => string = () => '', now = new Date()): Tour[] => {
   const q = fold((f.q || '').trim());
-  const next = (t: Tour) => departureDates(t, now, 120)[0];
+  const next = (t: Tour) => nextDeparture(t, now);
   let out = tours.filter(t => {
     if (f.cityId && t.cityId !== f.cityId) return false;
     if (f.operator && t.operatorName !== f.operator) return false;
