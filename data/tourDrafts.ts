@@ -187,4 +187,37 @@ export const TOUR_DRAFTS: Tour[] = [
     operatorWhatsapp: '5522988227730',
     status: 'draft',
   },
+  {
+    id: 'buggy-arraial-do-cabo-2-horas',
+    title: 'Passeio de buggy em Arraial do Cabo (2 horas)',
+    shortDescription: 'Buggy por 5 paradas em Arraial do Cabo: Praia do Pontal, Curvinha, Lagoa Vermelha, Pórtico da cidade e Praia Grande. Fotos incluídas.',
+    description:
+      'Duas horas de buggy pelos pontos mais bonitos de Arraial do Cabo, com paradas de 20 a 30 minutos em cada praia para mergulho recreativo e fotos incluídas.\n\n' +
+      'Roteiro: Praia do Pontal, Curvinha, Lagoa Vermelha, Pórtico da cidade e Praia Grande.\n\n' +
+      'Saídas às 8h, 10h30, 13h30 e 15h30, esta última finalizando no pôr do sol.\n\n' +
+      'O valor é por buggy e depende do tamanho do grupo: 2 pessoas R$ 250, 3 pessoas R$ 280 e 4 pessoas R$ 300.',
+    coverImage: '/passeios/buggy-2-horas-por-do-sol.jpg',
+    gallery: ['/passeios/buggy-arubinha.jpg', '/passeios/quadriciclo-lagoa-rosada.jpg'],
+    cityId: 'arraial-do-cabo',
+    meetingPoint: 'A verificar. A operadora confirma o ponto de encontro pelo WhatsApp.',
+    durationText: '2 horas',
+    includes: ['Passeio de buggy', 'Paradas de 20 a 30 minutos em cada praia para mergulho recreativo', 'Fotos incluídas'],
+    notIncluded: [],
+    price: 250,
+    pricingUnit: 'vehicle',
+    unitName: 'buggy',
+    unitSize: 4,
+    groupPrices: [{ people: 2, price: 250 }, { people: 3, price: 280 }, { people: 4, price: 300 }],
+    priceNote: 'por buggy: 2 pessoas R$ 250, 3 pessoas R$ 280, 4 pessoas R$ 300',
+    // A CONFIRMAR: vagas por saída (valor provisório). Máximo de 4 pessoas por reserva segue a tabela de preços.
+    capacityPerSlot: 500,
+    minPeople: 1,
+    maxPeoplePerBooking: 4,
+    minNoticeHours: 12,
+    schedule: { weekdays: [0, 1, 2, 3, 4, 5, 6], times: ['08:00', '10:30', '13:30', '15:30'], startDate: '2026-11-23', endDate: '2026-12-07', blockedDates: [], extraDates: [] },
+    operatorName: 'Guida Trips',
+    operatorBusinessId: 'cnYye6yHwbaS07Px3P7y0BXEKG33',
+    operatorWhatsapp: '5522988227730',
+    status: 'draft',
+  },
 ];

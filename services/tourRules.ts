@@ -171,16 +171,26 @@ export const minPrice = (t: Pick<Tour, 'price' | 'packages'>): number | undefine
 };
 
 /** Texto do preço para exibir. Com pacotes: "A partir de R$ X por pessoa". */
-export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages' | 'pricingUnit' | 'unitName' | 'unitSize'>): string => {
+export const priceLabel = (t: Pick<Tour, 'price' | 'priceNote' | 'packages' | 'pricingUnit' | 'unitName' | 'unitSize' | 'groupPrices'>): string => {
   const m = minPrice(t);
   if (m == null) return t.priceNote || 'Consulte o valor';
   const v = brl(m, m % 1 ? 2 : 0);
+  if (t.pricingUnit === 'vehicle' && (t.groupPrices || []).length > 1) return `A partir de ${v} por ${t.unitName || 'veículo'}`;
   if (t.pricingUnit === 'vehicle') return `${v} por ${t.unitName || 'veículo'}${t.unitSize ? ` (até ${t.unitSize} pessoas)` : ''}`;
   return (t.packages || []).length > 1 ? `A partir de ${v} por pessoa` : `${v} por pessoa`;
 };
 
 /** Total estimado; com pacotes, usa o pacote escolhido. */
-export const totalLabel = (t: Pick<Tour, 'price' | 'packages' | 'pricingUnit' | 'unitSize'>, people: number, packageId?: string): string | null => {
+/** Preço de um grupo pela tabela por tamanho (menor faixa que comporta o grupo); acima da maior faixa, soma veículos cheios. */
+const groupTotal = (tiers: { people: number; price: number }[], people: number): number => {
+  const sorted = [...tiers].sort((a, b) => a.people - b.people);
+  const top = sorted[sorted.length - 1];
+  if (people > top.people) return Math.floor(people / top.people) * top.price + (people % top.people ? groupTotal(tiers, people % top.people) : 0);
+  return (sorted.find(x => x.people >= people) || top).price;
+};
+
+export const totalLabel = (t: Pick<Tour, 'price' | 'packages' | 'pricingUnit' | 'unitSize' | 'groupPrices'>, people: number, packageId?: string): string | null => {
+  if (t.pricingUnit === 'vehicle' && (t.groupPrices || []).length && people > 0) return brl(groupTotal(t.groupPrices as { people: number; price: number }[], people));
   const unit = (t.packages || []).length ? findPackage(t, packageId)?.price : t.price;
   const count = t.pricingUnit === 'vehicle' ? ((t.unitSize || 0) > 0 ? Math.ceil(people / (t.unitSize as number)) : 1) : people;
   return unit != null && unit > 0 && people > 0 ? brl(unit * count) : null;

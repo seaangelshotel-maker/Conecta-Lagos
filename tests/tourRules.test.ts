@@ -134,3 +134,14 @@ test('cobrança por veículo sem tamanho definido: valor de um veículo, sem mul
   assert.match(priceLabel(t), /R\$\s?600 por buggy$/);
   assert.match(totalLabel(t, 3) || '', /600,00/);
 });
+
+test('preço por tamanho do grupo: 2 = 250, 3 = 280, 4 = 300; acima de 4 soma outro buggy', () => {
+  const t = tour({ price: 250, pricingUnit: 'vehicle', unitName: 'buggy', unitSize: 4, groupPrices: [{ people: 2, price: 250 }, { people: 3, price: 280 }, { people: 4, price: 300 }] });
+  assert.equal(priceLabel(t), 'A partir de R$ 250 por buggy');
+  const n = (x: string | null) => (x || '').replace(/\u00a0/g, ' ');
+  assert.equal(n(totalLabel(t, 1)), 'R$ 250,00');
+  assert.equal(n(totalLabel(t, 2)), 'R$ 250,00');
+  assert.equal(n(totalLabel(t, 3)), 'R$ 280,00');
+  assert.equal(n(totalLabel(t, 4)), 'R$ 300,00');
+  assert.equal(n(totalLabel(t, 6)), 'R$ 550,00');
+});

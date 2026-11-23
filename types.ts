@@ -820,6 +820,8 @@ export interface Tour {
   unitName?: string;
   /** Pessoas por veículo quando pricingUnit = 'vehicle'. */
   unitSize?: number;
+  /** Preço por tamanho do grupo quando pricingUnit = 'vehicle' (ex.: 2 pessoas R$ 250, 3 R$ 280, 4 R$ 300). */
+  groupPrices?: { people: number; price: number }[];
   /** Pacotes com preços diferentes (opcional). Com pacotes, o cliente escolhe um na reserva e o preço vem do pacote. */
   packages?: TourPackage[];
   /** Vagas por saída. */
