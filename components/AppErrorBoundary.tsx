@@ -67,6 +67,7 @@ export class AppErrorBoundary extends React.Component<{ children: React.ReactNod
             Recarregar
           </button>
           <a href="/" className="block mt-4 text-xs font-bold text-slate-400">Ir para o início</a>
+          <p data-testid="error-detail" className="mt-4 text-[10px] text-slate-300 break-words select-all">{String((this.state.error as any)?.message || this.state.error || '').slice(0, 160)}</p>
         </div>
       </div>
     );
