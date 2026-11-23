@@ -11,6 +11,10 @@
  *  - tema sem foto boa no Commons fica sem foto (melhor o ícone do que uma foto que não combina).
  */
 import type { AppEvent, ImageCredit } from '../types';
+import { OFFICIAL_EVENTS_EXTRA } from './officialEventsExtra';
+
+/** Banners originais do Lagos GO (arte própria, sem foto de terceiros) em /public/eventos/<id>.jpg. */
+const BANNER_IDS = new Set(OFFICIAL_EVENTS_EXTRA.map(e => e.id));
 
 interface EventPhoto { match: RegExp; imageUrl: string; credit: ImageCredit; }
 
@@ -32,6 +36,7 @@ const PHOTOS: EventPhoto[] = [
 /** Devolve o evento com a foto ilustrativa do tema (se houver e se ele não tiver foto própria). */
 export const withEventPhoto = (ev: AppEvent): AppEvent => {
   if (ev.coverImage) return ev;
+  if (BANNER_IDS.has(ev.id)) return { ...ev, coverImage: `/eventos/${ev.id}.jpg` };
   const p = PHOTOS.find(x => x.match.test(ev.title));
   return p ? { ...ev, coverImage: p.imageUrl, imageCredit: p.credit } : ev;
 };
