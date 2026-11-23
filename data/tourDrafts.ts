@@ -97,7 +97,7 @@ export const TOUR_DRAFTS: Tour[] = [
     coverImage: '/passeios/snorkel-santuario-das-tartarugas.jpg',
     gallery: ['/passeios/escuna-ilha-do-farol.jpg', '/passeios/escuna-prainhas.jpg'],
     cityId: 'arraial-do-cabo',
-    meetingPoint: 'Prainha, em Arraial do Cabo. A operadora confirma o ponto exato pelo WhatsApp.',
+    meetingPoint: 'A verificar. A operadora confirma o ponto de encontro pelo WhatsApp.',
     durationText: '2 horas',
     includes: [
       'Máscara e snorkel', 'Colete de flutuação', 'Lycra com proteção solar 50+', 'Nadadeiras',
