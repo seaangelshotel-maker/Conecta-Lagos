@@ -1095,7 +1095,7 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                   </>
                 ) : (
                   <>
-                    <ListFilter size={18} className="text-ocean-500" /> Filtros
+                    <ListFilter size={18} className="text-ocean-500" /> Filtrar lugares
                   </>
                 )}
               </h3>
@@ -1158,47 +1158,71 @@ export const BusinessGuide: React.FC<BusinessGuideProps> = ({
                 </div>
               )}
 
-              {activeModal === "filters" && (
-                <div className="flex flex-col gap-1 p-2">
-                  {amenities.filter((am) => selectedAmenities.includes(am.id) || amenityAppliesTo(am, selectedCategory === "Todos" ? undefined : businessKind({ category: selectedCategory, subcategory: selectedSubCategory === "Todos" ? undefined : selectedSubCategory }))).map((am) => {
-                    const isSelected = selectedAmenities.includes(am.id);
-                    return (
-                      <button
-                        key={am.id}
-                        onClick={() => {
-                          setSelectedAmenities((prev) =>
-                            isSelected
-                              ? prev.filter((x) => x !== am.id)
-                              : [...prev, am.id],
-                          );
-                        }}
-                        className={`w-full flex items-center justify-between p-4 rounded-xl transition-all mb-1 ${isSelected ? "bg-ocean-50 border border-ocean-200" : "bg-slate-50 border border-transparent hover:bg-slate-100"}`}
-                      >
-                        <span
-                          className={`font-semibold ${isSelected ? "text-ocean-700" : "text-slate-700"}`}
-                        >
-                          {am.label}
-                        </span>
-                        <div
-                          className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${isSelected ? "bg-ocean-500 border-ocean-500 text-white" : "border-slate-300"}`}
-                        >
-                          {isSelected && <Check size={14} strokeWidth={3} />}
+              {activeModal === "filters" && (() => {
+                const chip = (on: boolean) =>
+                  `inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full border text-[13px] font-bold transition-colors active:scale-95 ${on ? "bg-ocean-600 text-white border-ocean-600" : "bg-white text-ocean-950 border-slate-200"}`;
+                const kind = selectedCategory === "Todos" ? undefined : businessKind({ category: selectedCategory, subcategory: selectedSubCategory === "Todos" ? undefined : selectedSubCategory });
+                const shownAmenities = amenities.filter((am) => selectedAmenities.includes(am.id) || amenityAppliesTo(am, kind));
+                const cityId = cities.some((c) => c.id === selectedLocation) ? selectedLocation : "";
+                const n = (selectedCategory !== "Todos" ? 1 : 0) + (selectedLocation !== "Todos" ? 1 : 0) + selectedAmenities.length;
+                return (
+                  <div className="flex flex-col" data-testid="guide-filter-sheet">
+                    <div className="px-3 pt-2 pb-4 space-y-5">
+                      <section aria-label="Categoria">
+                        <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">O que você procura</p>
+                        <div className="flex flex-wrap gap-2">
+                          {categories.map((c) => {
+                            const on = selectedCategory.toLowerCase() === c.name.toLowerCase();
+                            return (
+                              <button key={c.id} aria-pressed={on} onClick={() => { setSelectedCategory(on ? "Todos" : c.name); setSelectedSubCategory("Todos"); }} className={chip(on)}>
+                                <CategoryIcon name={guessCategoryIcon(c.name)} size={14} />{c.name}
+                              </button>
+                            );
+                          })}
                         </div>
+                      </section>
+
+                      {cities.length > 0 && (
+                        <section aria-label="Cidade">
+                          <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">Onde</p>
+                          <div className="flex flex-wrap gap-2">
+                            {cities.map((c) => (
+                              <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setSelectedLocation(cityId === c.id ? "Todos" : c.id)} className={chip(cityId === c.id)}>{c.name}</button>
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
+                      {shownAmenities.length > 0 && (
+                        <section aria-label="Comodidades">
+                          <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">O que o lugar tem</p>
+                          <div className="flex flex-wrap gap-2">
+                            {shownAmenities.map((am) => {
+                              const on = selectedAmenities.includes(am.id);
+                              return (
+                                <button key={am.id} aria-pressed={on} onClick={() => setSelectedAmenities((prev) => (on ? prev.filter((x) => x !== am.id) : [...prev, am.id]))} className={chip(on)}>
+                                  {on && <Check size={14} />}{am.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      )}
+                    </div>
+
+                    <div className="sticky bottom-0 bg-white border-t border-slate-100 px-3 py-3 flex items-center gap-3">
+                      <button
+                        onClick={() => { setSelectedCategory("Todos"); setSelectedSubCategory("Todos"); setSelectedLocation("Todos"); setSelectedAmenities([]); }}
+                        disabled={!n}
+                        className="h-12 px-4 rounded-2xl text-sm font-black text-slate-500 disabled:opacity-40"
+                      >Limpar</button>
+                      <button onClick={() => setActiveModal(null)} className="flex-1 h-12 rounded-2xl bg-ocean-600 text-white text-sm font-black active:scale-[0.98] transition-transform">
+                        {n ? `Ver resultados (${n} ${n === 1 ? "filtro" : "filtros"})` : "Ver todos os lugares"}
                       </button>
-                    );
-                  })}
-                  <div className="mt-4 p-2 bg-white sticky bottom-0 border-t border-slate-50">
-                    <button
-                      onClick={() => setActiveModal(null)}
-                      className="w-full bg-ocean-600 text-white font-extrabold uppercase tracking-widest text-sm py-4 rounded-2xl hover:bg-ocean-700 transition-colors shadow-lg shadow-ocean-500/30"
-                    >
-                      Aplicar Filtros{" "}
-                      {selectedAmenities.length > 0 &&
-                        `(${selectedAmenities.length})`}
-                    </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         </div>
