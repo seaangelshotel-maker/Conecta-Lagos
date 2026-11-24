@@ -215,11 +215,8 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ currentUser, onNavig
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-5xl font-black text-ocean-950">{brl(plan.price)}</span>
-                                    <span className="text-slate-400 font-bold text-sm">/mês</span>
-                                </div>
-                                <p className="text-ocean-700 text-xs font-black uppercase tracking-wider" data-testid="plan-total">Plano de {periodLabel(plan.period)} · {brl(planTotal(plan))}</p>
+                                <p className="text-ocean-700 text-sm font-black" data-testid="plan-price-hidden">O valor aparece no final, depois que você conhecer tudo.</p>
+                                <button onClick={() => { setJourneyAtPrice(true); setJourneyPlan(plan); }} data-testid="plan-see-price" className="text-xs font-bold text-slate-400 underline underline-offset-4">Ver valores</button>
                             </div>
 
                             <div className="flex-1 space-y-5 mb-12">
