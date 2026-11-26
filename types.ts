@@ -382,6 +382,8 @@ export interface BlogPost {
   featured?: boolean;
   popular?: boolean;
   order?: number;
+  /** Fontes conferidas (links) da matéria, vindas do Execute Studio. */
+  sources?: string[];
 }
 
 export interface GuideRelated {

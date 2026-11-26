@@ -88,3 +88,28 @@ export const saveBusinessExperienceTags = async (b: BusinessProfile, tags: strin
   b.experienceTags = tags;
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
 };
+
+/**
+ * Importa matérias produzidas no Execute Studio (JSON colado pelo admin).
+ * Regras: só entra como rascunho, exige título, texto e 3+ fontes; não sobrescreve matéria já publicada.
+ */
+export const importStudioArticles = async (raw: string): Promise<number> => {
+  requireAdmin();
+  let list: any;
+  try { list = JSON.parse(raw); } catch { throw new Error('JSON inválido. Cole o arquivo inteiro baixado do Studio.'); }
+  if (!Array.isArray(list) || !list.length) throw new Error('O arquivo precisa ser uma lista de matérias.');
+  const existing = await getGuideArticles(true, true);
+  const me = getCurrentUser()!;
+  let n = 0;
+  for (const a of list) {
+    if (!a?.id || !String(a.id).startsWith('guia_') || !a.title || !a.content) throw new Error(`Matéria incompleta (${a?.title || a?.id || 'sem título'}): faltam id, título ou texto.`);
+    if (!Array.isArray(a.sources) || a.sources.filter((x: string) => String(x).trim().length > 8).length < 3) throw new Error(`"${a.title}" tem menos de 3 fontes conferidas.`);
+    const prev = existing.find(x => x.id === a.id);
+    if (prev && prev.status === 'published') throw new Error(`"${a.title}" já está publicada; edite direto no painel.`);
+    await setDoc(doc(db, 'blog_posts', a.id), clean({ ...a, kind: 'guia', status: 'draft', authorId: me.id }), { merge: true });
+    n += 1;
+  }
+  await getGuideArticles(true, true);
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('dataUpdated'));
+  return n;
+};

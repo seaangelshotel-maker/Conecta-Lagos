@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Loader2, Eye, EyeOff, Star, Flame, Save, Search, Sparkles } from 'lucide-react';
 import { BlogPost, BusinessProfile } from '../../types';
 import { getAllBusinesses } from '../../services/dataService';
-import { getGuideArticles, previewGuideImport, runGuideImport, setGuideArticleFlags, saveBusinessExperienceTags, GuideImportPreview } from '../../services/guideService';
+import { getGuideArticles, previewGuideImport, runGuideImport, importStudioArticles, setGuideArticleFlags, saveBusinessExperienceTags, GuideImportPreview } from '../../services/guideService';
 import { resolveRelated, EXPERIENCE_TAGS, norm } from '../../services/discoverLogic';
 import { C } from '../../data/guideArticles';
 import { useNotification } from '../NotificationSystem';
@@ -40,6 +40,8 @@ export const GuideContentAdmin: React.FC = () => {
         finally { setBusy(false); }
     };
 
+    const [studioTxt, setStudioTxt] = useState('');
+    const importStudio = () => run(async () => { const n = await importStudioArticles(studioTxt); setStudioTxt(''); notify('success', `${n} matéria(s) do Execute Studio cadastrada(s) como rascunho.`); }, 'Importação concluída.');
     const importAll = () => run(async () => { await runGuideImport(); }, 'Matérias cadastradas.');
     const toggle = (a: BlogPost, k: 'featured' | 'popular') => run(() => setGuideArticleFlags(a.id, { [k]: !a[k] }), 'Atualizado.');
     const setStatus = (a: BlogPost) => run(() => setGuideArticleFlags(a.id, { status: a.status === 'draft' ? 'published' : 'draft' }), a.status === 'draft' ? 'Matéria publicada.' : 'Matéria despublicada.');
@@ -65,6 +67,12 @@ export const GuideContentAdmin: React.FC = () => {
                     <h3 className="font-black text-ocean-950 text-lg">Descubra: matérias e curadoria</h3>
                     <p className="text-sm text-slate-500">Cadastre as 20 matérias, publique ou despublique, destaque, monte coleções, ligue a empresas reais e marque as experiências (gratuito, famílias, casais…) que alimentam os filtros.</p>
                 </div>
+            </div>
+
+            <div className="bg-violet-50 border border-violet-200 rounded-2xl p-4 space-y-2">
+                <p className="text-sm text-violet-900"><b>Importar do Execute Studio</b>: cole o conteúdo do .json baixado no Studio. Entra como rascunho, com as fontes conferidas; você revisa e publica.</p>
+                <textarea value={studioTxt} onChange={e => setStudioTxt(e.target.value)} rows={4} className={inputCls} placeholder='[ { "id": "guia_…", "title": "…" } ]' />
+                <button onClick={importStudio} disabled={busy || !studioTxt.trim()} className="bg-violet-600 text-white font-black px-5 py-2.5 rounded-xl text-sm disabled:opacity-60">Importar como rascunho</button>
             </div>
 
             {loading ? <Loader2 className="animate-spin text-ocean-600" /> : (
