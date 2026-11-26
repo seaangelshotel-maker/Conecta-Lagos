@@ -373,11 +373,17 @@ const AdminEvents: React.FC<{ user: User }> = ({ user }) => {
                 {e.source === 'official' && <Badge tone="ocean">Oficial</Badge>}
                 {e.source === 'merchant' && <Badge tone="gold">{e.businessName || 'Comerciante'}</Badge>}
                 {e.isFeatured && <Badge tone="amber">Destaque</Badge>}
+                {e.ownerId === 'execute-studio' && <Badge tone="ocean">Execute Studio</Badge>}
                 <span className="text-[11px] font-bold text-slate-400">{categoryLabel(e.category)} · {cityLabel(e.cityId)}</span>
               </div>
               <p className="font-black text-ocean-950 text-lg leading-snug">{e.title}</p>
               <p className="text-sm font-semibold text-slate-500">{formatEventDates(e)}{e.startTime ? ` · ${e.startTime}` : ''}{e.locationName ? ` · ${e.locationName}` : ''}</p>
               {e.description && <p className="text-sm text-slate-500 mt-1 line-clamp-2">{e.description}</p>}
+              {e.status === 'pending' && Array.isArray((e as any).sources) && (e as any).sources.length > 0 && (
+                <details className="mt-2 text-xs text-slate-500"><summary className="cursor-pointer font-bold">Fontes conferidas ({(e as any).sources.length})</summary>
+                  <ul className="mt-1 space-y-0.5 list-disc pl-4">{(e as any).sources.map((s: string, i: number) => <li key={i} className="break-all">{s}</li>)}</ul>
+                </details>
+              )}
               <div className="flex flex-wrap gap-2 mt-3">
                 {e.status === 'pending' && <button onClick={() => run(e.id, () => setEventStatus(e, 'published'), 'Evento aprovado e no ar.')} disabled={busy === e.id} data-testid="approve" className={`${primaryButton} !py-2 !px-4 text-sm`}><Check size={15} /> Aprovar</button>}
                 {e.status === 'pending' && <button onClick={() => setRejecting({ id: e.id, reason: '' })} className={`${secondaryButton} !py-2 !px-4 text-sm !text-red-600`}><X size={15} /> Recusar</button>}
