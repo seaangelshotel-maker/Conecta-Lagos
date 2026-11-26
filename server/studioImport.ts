@@ -1,9 +1,10 @@
-import type { Req, Res } from '../server/http.js';
-import { sendJson, readJsonBody } from '../server/http.js';
-import { adminDb } from '../server/firebaseAdmin.js';
+import type { Req, Res } from './http.js';
+import { sendJson, readJsonBody } from './http.js';
+import { adminDb } from './firebaseAdmin.js';
 import { timingSafeEqual } from 'crypto';
 
 /**
+ * (Roteada por /api/email?action=studio-import: a Vercel gratuita limita 12 funções.)
  * Entrada de matérias produzidas no Execute Studio.
  * Protegida por STUDIO_TOKEN (Vercel). Só grava RASCUNHO em blog_posts (kind 'guia'),
  * exige 3+ fontes e nunca altera matéria já publicada. Quem publica é o administrador no painel.
@@ -22,7 +23,7 @@ export const validateStudioArticle = (a: any): string | null => {
     return null;
 };
 
-export default async function handler(req: Req, res: Res) {
+export async function handleStudioImport(req: Req, res: Res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

@@ -18,6 +18,7 @@ import { chatBlock, chatRead, chatReport, chatSend, chatStart, notifyOwnerInbox,
 import { clientInfo } from './access.js';
 import { listNewUsers, trackAccess } from './access.js';
 import { readRawBody } from './http.js';
+import { handleStudioImport } from './studioImport.js';
 
 const query = (req: Req, key: string): string => {
     const u = new URL(req.url || '/', 'http://x');
@@ -77,6 +78,8 @@ export default async function emailHandler(req: Req, res: Res) {
     const env = process.env;
     const site = siteUrl(env);
     try {
+        // ───── Execute Studio (token próprio, só rascunho)
+        if (action === 'studio-import') return await handleStudioImport(req, res);
         // ───── Público
         if (action === 'confirm' || action === 'unsubscribe') {
             if (req.method === 'POST' && action === 'unsubscribe') {
