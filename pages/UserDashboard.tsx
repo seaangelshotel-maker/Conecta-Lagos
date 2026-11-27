@@ -11,6 +11,8 @@ import { CouponCard } from '../components/CouponCard';
 import { ParticipationHub } from '../components/ParticipationHub';
 import { CouponModal } from '../components/CouponModal';
 import { WalletCard } from '../components/WalletCard';
+import { PointsCard } from '../components/PointsCard';
+import { couponPoints, couponBreakdown } from '../services/pointsRules';
 import { useWallet } from '../services/walletService';
 import { RedemptionView, walletStatus, WALLET_STATUS_LABEL, formatBRL } from '../services/walletRules';
 import { ImageUpload } from '../components/ImageUpload';
@@ -291,6 +293,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, onLog
 
       {/* Carteira (Passaporte de Economia): logo abaixo do topo, antes de "Como você participa" */}
       <div className="mb-8"><WalletCard summary={wallet} loading={walletLoading} variant="full" /></div>
+
+      {/* Nível e pontos: derivados dos cupons confirmados */}
+      <div className="mb-8"><PointsCard points={couponPoints(history)} breakdown={couponBreakdown(history)} loading={walletLoading} /></div>
 
       {/* Centro da conta: uma identidade, várias formas de participar */}
       <ParticipationHub currentUser={currentUser} onNavigate={onNavigate} />
